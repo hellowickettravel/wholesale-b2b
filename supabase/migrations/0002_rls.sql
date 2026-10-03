@@ -75,6 +75,9 @@ as $$
   where p.id = auth.uid() and p.active and p.role = 'supplier' and s.active
 $$;
 
+-- Explicit, because hosted and local projects ship different default privileges.
+revoke execute on function public.app_role(), public.is_admin(), public.my_customer_id(),
+  public.my_approved_customer_id(), public.my_supplier_id() from public;
 grant execute on function public.app_role(), public.is_admin(), public.my_customer_id(),
   public.my_approved_customer_id(), public.my_supplier_id() to anon, authenticated;
 

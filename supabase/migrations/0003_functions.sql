@@ -20,14 +20,18 @@ begin
   end if;
   v_window := to_timestamp(floor(extract(epoch from now()) / p_window_seconds) * p_window_seconds);
 
-  insert into public.rate_limits as r (key, window_start, count)
-  values (p_key, v_window, 1)
-  on conflict (key, window_start) do update set count = r.count + 1
-  returning r.count into v_count;
+  -- One row per key: a new window resets the count in place, so the table never needs pruning.
+  update public.rate_limits
+     set count = case when window_start = v_window then count + 1 else 1 end,
+         window_start = v_window
+   where key = p_key
+  returning count into v_count;
 
-  -- Opportunistic cleanup so the table stays small without a cron job.
-  if random() < 0.01 then
-    delete from public.rate_limits where window_start < now() - interval '1 day';
+  if not found then
+    insert into public.rate_limits as r (key, window_start, count)
+    values (p_key, v_window, 1)
+    on conflict (key, window_start) do update set count = r.count + 1
+    returning r.count into v_count;
   end if;
 
   return v_count <= p_limit;
@@ -290,19 +294,15 @@ language plpgsql
 security definer
 set search_path = ''
 as $$
-declare v_customer uuid;
 begin
-  select customer_id into v_customer from public.profiles where lower(email) = lower(p_email);
-  if not found then
-    raise exception 'no user with email %', p_email;
-  end if;
+  -- Unlinks any customer record (an accidental self-registration stays as an unlinked
+  -- pending customer that can be rejected in the admin screens).
   update public.profiles
      set role = 'admin', customer_id = null, supplier_id = null, active = true
    where lower(email) = lower(p_email);
-  -- A pending customer row created by an accidental self-registration is removed.
-  delete from public.customers c
-   where c.id = v_customer and c.status = 'pending'
-     and not exists (select 1 from public.orders o where o.customer_id = c.id);
+  if not found then
+    raise exception 'no user with email %', p_email;
+  end if;
 end;
 $$;
 
