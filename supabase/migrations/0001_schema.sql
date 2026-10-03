@@ -452,8 +452,8 @@ begin
     'product_variants', 'customer_category_margins', 'customer_price_overrides', 'orders',
     'supplier_orders', 'order_items', 'delivery_proofs', 'invoices', 'settings'
   ] loop
-    execute format('drop trigger if exists set_updated_at on public.%I', t);
     execute format(
-      'create trigger set_updated_at before update on public.%I for each row execute function public.set_updated_at()', t);
+      'create or replace trigger set_updated_at before update on public.%I '
+      'for each row execute function public.set_updated_at()', t);
   end loop;
 end $$;

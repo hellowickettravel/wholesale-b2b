@@ -8,7 +8,9 @@
 --     suppliers) and filter rows with the helper functions below.
 --   * Roles come from public.profiles.role, never from JWT/user metadata.
 --   * Guard triggers stop non-admins changing protected columns (role, links, customer status).
--- Re-runnable: policies are dropped and recreated; grants are revoked then re-granted.
+-- Re-runnable without destructive statements: policies go through public.ensure_policy()
+-- (create if missing, otherwise ALTER in place); triggers use CREATE OR REPLACE; grants are revoked
+-- then re-granted.
 
 -- ---------------------------------------------------------------------------------------------
 -- Stop Supabase's default auto-grants for objects created later by this role.
@@ -76,6 +78,27 @@ $$;
 grant execute on function public.app_role(), public.is_admin(), public.my_customer_id(),
   public.my_approved_customer_id(), public.my_supplier_id() to anon, authenticated;
 
+-- Idempotent policy definition: creates the policy, or updates roles/USING/WITH CHECK in place.
+create or replace function public.ensure_policy(
+  p_schema text, p_table text, p_name text, p_command text, p_roles text,
+  p_using text default null, p_check text default null)
+returns void
+language plpgsql
+set search_path = ''
+as $$
+declare
+  v_tail text := coalesce(' using (' || p_using || ')', '') || coalesce(' with check (' || p_check || ')', '');
+begin
+  if exists (select 1 from pg_catalog.pg_policies
+             where schemaname = p_schema and tablename = p_table and policyname = p_name) then
+    execute format('alter policy %I on %I.%I to %s', p_name, p_schema, p_table, p_roles) || v_tail;
+  else
+    execute format('create policy %I on %I.%I for %s to %s', p_name, p_schema, p_table, p_command, p_roles) || v_tail;
+  end if;
+end;
+$$;
+revoke execute on function public.ensure_policy(text, text, text, text, text, text, text) from public, anon, authenticated;
+
 -- ---------------------------------------------------------------------------------------------
 -- Enable RLS everywhere
 -- ---------------------------------------------------------------------------------------------
@@ -104,10 +127,8 @@ begin
     'customer_price_overrides', 'orders', 'supplier_orders', 'order_items', 'delivery_proofs',
     'customer_payments', 'supplier_payments', 'settings', 'email_log'
   ] loop
-    execute format('drop policy if exists admin_all on public.%I', t);
-    execute format(
-      'create policy admin_all on public.%I for all to authenticated '
-      'using ((select public.is_admin())) with check ((select public.is_admin()))', t);
+    perform public.ensure_policy('public', t, 'admin_all', 'all', 'authenticated',
+      '(select public.is_admin())', '(select public.is_admin())');
     execute format('grant select, insert, update, delete on public.%I to authenticated', t);
   end loop;
 end $$;
@@ -116,36 +137,22 @@ end $$;
 -- profiles: own row or admin. Updates are column-guarded by trigger below. No direct insert or
 -- delete: rows are created by handle_new_user() and removed with the auth user.
 -- ---------------------------------------------------------------------------------------------
-drop policy if exists profiles_select on public.profiles;
-create policy profiles_select on public.profiles for select to authenticated
-  using (id = (select auth.uid()) or (select public.is_admin()));
+select public.ensure_policy('public', 'profiles', 'profiles_select', 'select', 'authenticated', 'id = (select auth.uid()) or (select public.is_admin())');
 
-drop policy if exists profiles_update on public.profiles;
-create policy profiles_update on public.profiles for update to authenticated
-  using (id = (select auth.uid()) or (select public.is_admin()))
-  with check (id = (select auth.uid()) or (select public.is_admin()));
+select public.ensure_policy('public', 'profiles', 'profiles_update', 'update', 'authenticated', 'id = (select auth.uid()) or (select public.is_admin())', 'id = (select auth.uid()) or (select public.is_admin())');
 
 grant select, update on public.profiles to authenticated;
 
 -- ---------------------------------------------------------------------------------------------
 -- customers: own row (any status, so the pending page can show it) or admin.
 -- ---------------------------------------------------------------------------------------------
-drop policy if exists customers_select on public.customers;
-create policy customers_select on public.customers for select to authenticated
-  using (id = (select public.my_customer_id()) or (select public.is_admin()));
+select public.ensure_policy('public', 'customers', 'customers_select', 'select', 'authenticated', 'id = (select public.my_customer_id()) or (select public.is_admin())');
 
-drop policy if exists customers_update on public.customers;
-create policy customers_update on public.customers for update to authenticated
-  using (id = (select public.my_customer_id()) or (select public.is_admin()))
-  with check (id = (select public.my_customer_id()) or (select public.is_admin()));
+select public.ensure_policy('public', 'customers', 'customers_update', 'update', 'authenticated', 'id = (select public.my_customer_id()) or (select public.is_admin())', 'id = (select public.my_customer_id()) or (select public.is_admin())');
 
-drop policy if exists customers_admin_insert on public.customers;
-create policy customers_admin_insert on public.customers for insert to authenticated
-  with check ((select public.is_admin()));
+select public.ensure_policy('public', 'customers', 'customers_admin_insert', 'insert', 'authenticated', null, '(select public.is_admin())');
 
-drop policy if exists customers_admin_delete on public.customers;
-create policy customers_admin_delete on public.customers for delete to authenticated
-  using ((select public.is_admin()));
+select public.ensure_policy('public', 'customers', 'customers_admin_delete', 'delete', 'authenticated', '(select public.is_admin())');
 
 grant select, insert, update, delete on public.customers to authenticated;
 
@@ -156,14 +163,10 @@ do $$
 declare t text;
 begin
   foreach t in array array['categories', 'products'] loop
-    execute format('drop policy if exists public_read on public.%I', t);
-    execute format(
-      'create policy public_read on public.%I for select to anon, authenticated '
-      'using (active or (select public.is_admin()))', t);
-    execute format('drop policy if exists admin_write on public.%I', t);
-    execute format(
-      'create policy admin_write on public.%I for all to authenticated '
-      'using ((select public.is_admin())) with check ((select public.is_admin()))', t);
+    perform public.ensure_policy('public', t, 'public_read', 'select', 'anon, authenticated',
+      'active or (select public.is_admin())');
+    perform public.ensure_policy('public', t, 'admin_write', 'all', 'authenticated',
+      '(select public.is_admin())', '(select public.is_admin())');
     execute format('grant select on public.%I to anon', t);
     execute format('grant select, insert, update, delete on public.%I to authenticated', t);
   end loop;
@@ -177,14 +180,10 @@ do $$
 declare t text;
 begin
   foreach t in array array['customer_category_access', 'customer_product_rules'] loop
-    execute format('drop policy if exists own_read on public.%I', t);
-    execute format(
-      'create policy own_read on public.%I for select to authenticated '
-      'using (customer_id = (select public.my_approved_customer_id()) or (select public.is_admin()))', t);
-    execute format('drop policy if exists admin_write on public.%I', t);
-    execute format(
-      'create policy admin_write on public.%I for all to authenticated '
-      'using ((select public.is_admin())) with check ((select public.is_admin()))', t);
+    perform public.ensure_policy('public', t, 'own_read', 'select', 'authenticated',
+      'customer_id = (select public.my_approved_customer_id()) or (select public.is_admin())');
+    perform public.ensure_policy('public', t, 'admin_write', 'all', 'authenticated',
+      '(select public.is_admin())', '(select public.is_admin())');
     execute format('grant select, insert, update, delete on public.%I to authenticated', t);
   end loop;
 end $$;
@@ -192,33 +191,23 @@ end $$;
 -- ---------------------------------------------------------------------------------------------
 -- invoices: approved customer reads own; admin all. Created by create_order_tx (service role).
 -- ---------------------------------------------------------------------------------------------
-drop policy if exists invoices_select on public.invoices;
-create policy invoices_select on public.invoices for select to authenticated
-  using (customer_id = (select public.my_approved_customer_id()) or (select public.is_admin()));
+select public.ensure_policy('public', 'invoices', 'invoices_select', 'select', 'authenticated', 'customer_id = (select public.my_approved_customer_id()) or (select public.is_admin())');
 
-drop policy if exists invoices_admin_write on public.invoices;
-create policy invoices_admin_write on public.invoices for update to authenticated
-  using ((select public.is_admin())) with check ((select public.is_admin()));
+select public.ensure_policy('public', 'invoices', 'invoices_admin_write', 'update', 'authenticated', '(select public.is_admin())', '(select public.is_admin())');
 
 grant select, update on public.invoices to authenticated;
 
 -- ---------------------------------------------------------------------------------------------
 -- audit_log: admin read-only. Rows are written only by the audit trigger (security definer).
 -- ---------------------------------------------------------------------------------------------
-drop policy if exists audit_admin_read on public.audit_log;
-create policy audit_admin_read on public.audit_log for select to authenticated
-  using ((select public.is_admin()));
+select public.ensure_policy('public', 'audit_log', 'audit_admin_read', 'select', 'authenticated', '(select public.is_admin())');
 grant select on public.audit_log to authenticated;
 
 -- ---------------------------------------------------------------------------------------------
 -- notifications: own rows; may only mark read.
 -- ---------------------------------------------------------------------------------------------
-drop policy if exists notifications_own_read on public.notifications;
-create policy notifications_own_read on public.notifications for select to authenticated
-  using (user_id = (select auth.uid()));
-drop policy if exists notifications_own_mark on public.notifications;
-create policy notifications_own_mark on public.notifications for update to authenticated
-  using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
+select public.ensure_policy('public', 'notifications', 'notifications_own_read', 'select', 'authenticated', 'user_id = (select auth.uid())');
+select public.ensure_policy('public', 'notifications', 'notifications_own_mark', 'update', 'authenticated', 'user_id = (select auth.uid())', 'user_id = (select auth.uid())');
 grant select on public.notifications to authenticated;
 grant update (read_at) on public.notifications to authenticated;
 
@@ -248,8 +237,7 @@ begin
 end;
 $$;
 
-drop trigger if exists guard_profile_update on public.profiles;
-create trigger guard_profile_update before update on public.profiles
+create or replace trigger guard_profile_update before update on public.profiles
   for each row execute function public.guard_profile_update();
 
 create or replace function public.guard_customer_update()
@@ -272,8 +260,7 @@ begin
 end;
 $$;
 
-drop trigger if exists guard_customer_update on public.customers;
-create trigger guard_customer_update before update on public.customers
+create or replace trigger guard_customer_update before update on public.customers
   for each row execute function public.guard_customer_update();
 
 -- ---------------------------------------------------------------------------------------------
@@ -376,16 +363,7 @@ on conflict (id) do update
       file_size_limit = excluded.file_size_limit,
       allowed_mime_types = excluded.allowed_mime_types;
 
-drop policy if exists product_images_admin_select on storage.objects;
-create policy product_images_admin_select on storage.objects for select to authenticated
-  using (bucket_id = 'product-images' and (select public.is_admin()));
-drop policy if exists product_images_admin_insert on storage.objects;
-create policy product_images_admin_insert on storage.objects for insert to authenticated
-  with check (bucket_id = 'product-images' and (select public.is_admin()));
-drop policy if exists product_images_admin_update on storage.objects;
-create policy product_images_admin_update on storage.objects for update to authenticated
-  using (bucket_id = 'product-images' and (select public.is_admin()))
-  with check (bucket_id = 'product-images' and (select public.is_admin()));
-drop policy if exists product_images_admin_delete on storage.objects;
-create policy product_images_admin_delete on storage.objects for delete to authenticated
-  using (bucket_id = 'product-images' and (select public.is_admin()));
+select public.ensure_policy('storage', 'objects', 'product_images_admin_select', 'select', 'authenticated', 'bucket_id = ''product-images'' and (select public.is_admin())');
+select public.ensure_policy('storage', 'objects', 'product_images_admin_insert', 'insert', 'authenticated', null, 'bucket_id = ''product-images'' and (select public.is_admin())');
+select public.ensure_policy('storage', 'objects', 'product_images_admin_update', 'update', 'authenticated', 'bucket_id = ''product-images'' and (select public.is_admin())', 'bucket_id = ''product-images'' and (select public.is_admin())');
+select public.ensure_policy('storage', 'objects', 'product_images_admin_delete', 'delete', 'authenticated', 'bucket_id = ''product-images'' and (select public.is_admin())');

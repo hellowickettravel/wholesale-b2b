@@ -1,5 +1,5 @@
 -- 0003_functions.sql — rate limiting, new-user provisioning, atomic order creation, audit log,
--- and the one-off admin bootstrap. Re-runnable (create or replace / drop trigger if exists).
+-- and the one-off admin bootstrap. Re-runnable (create or replace everywhere).
 
 -- ---------------------------------------------------------------------------------------------
 -- Rate limiting (DECISIONS.md D10): fixed-window counter shared by every server instance.
@@ -82,8 +82,7 @@ begin
 end;
 $$;
 
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created after insert on auth.users
+create or replace trigger on_auth_user_created after insert on auth.users
   for each row execute function public.handle_new_user();
 
 create or replace function public.handle_user_email_change()
@@ -98,8 +97,7 @@ begin
 end;
 $$;
 
-drop trigger if exists on_auth_user_email_changed on auth.users;
-create trigger on_auth_user_email_changed after update of email on auth.users
+create or replace trigger on_auth_user_email_changed after update of email on auth.users
   for each row when (old.email is distinct from new.email)
   execute function public.handle_user_email_change();
 
@@ -162,9 +160,8 @@ begin
     'customer_price_overrides', 'orders', 'supplier_orders', 'order_items', 'delivery_proofs',
     'customer_payments', 'supplier_payments', 'invoices', 'settings'
   ] loop
-    execute format('drop trigger if exists audit on public.%I', t);
     execute format(
-      'create trigger audit after insert or update or delete on public.%I '
+      'create or replace trigger audit after insert or update or delete on public.%I '
       'for each row execute function public.audit_row_change()', t);
   end loop;
 end $$;
