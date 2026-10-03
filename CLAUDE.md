@@ -2,7 +2,7 @@
 
 # Project: B2B wholesale grocery ordering portal
 
-Read `PLAN.md` (phases, routes, data model), `DECISIONS.md` (why), `MEMORY.md` (traps) before changing anything.
+**Start with `HANDOVER.md`** (current status, next steps, environment setup). Then `docs/BRIEF.md` (owner's full brief, verbatim), `PLAN.md` (phases, routes, data model), `DECISIONS.md` (why), `MEMORY.md` (traps). Keep `HANDOVER.md` current at the end of every phase.
 
 ## Commands
 - `npm run verify` — typecheck + lint + unit tests + production build. Must be green before every push.
