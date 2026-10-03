@@ -1,0 +1,43 @@
+/*
+ * Design tokens. Brand-specific values (colours, fonts, radius) live here and only here.
+ * Components use semantic Tailwind utilities generated from @theme in globals.css
+ * (bg-primary, text-ink-muted, border-line, …). Keep hex in sync with src/config/brand.ts.
+ */
+:root {
+  /* Brand */
+  --brand-primary: #1d5b45; /* pine: trust, fresh produce */
+  --brand-primary-strong: #154535;
+  --brand-primary-soft: #e4efe9;
+  --brand-primary-ink: #ffffff;
+  --brand-accent: #e2a21b; /* saffron */
+  --brand-accent-soft: #fbf0d6;
+  --brand-accent-ink: #3a2a05;
+
+  /* Neutrals (warm) */
+  --ink: #18211d;
+  --ink-muted: #5e6863;
+  --ink-subtle: #8a928e;
+  --surface: #f8f6f1;
+  --surface-raised: #ffffff;
+  --surface-sunken: #f0ede5;
+  --line: #e2ddd2;
+  --line-strong: #cbc5b7;
+
+  /* Status */
+  --success: #1e7a4c;
+  --success-soft: #e3f3ea;
+  --warning: #9a5b00;
+  --warning-soft: #fdf1dc;
+  --danger: #b42318;
+  --danger-soft: #fdeceb;
+  --info: #1f5fa8;
+  --info-soft: #e6effa;
+
+  --focus: #2563eb;
+
+  /* Shape */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+}
