@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Logo } from "@/components/brand/logo";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 
 export function SupplierShell({ children, supplierName }: { children: ReactNode; supplierName: string }) {
   return (
@@ -10,7 +11,10 @@ export function SupplierShell({ children, supplierName }: { children: ReactNode;
             <Logo href="/supplier" />
             <span className="hidden rounded-full bg-sunken px-2.5 py-0.5 text-xs font-semibold text-ink-muted sm:inline">Supplier</span>
           </div>
-          <span className="truncate text-sm font-medium text-ink-muted">{supplierName}</span>
+          <div className="flex min-w-0 items-center gap-4">
+            <span className="truncate text-sm font-medium text-ink-muted">{supplierName}</span>
+            <SignOutButton className="shrink-0 text-ink-muted hover:text-ink" />
+          </div>
         </div>
       </header>
       <main id="main" className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-6">{children}</main>

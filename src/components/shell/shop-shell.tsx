@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { FileText, Package, ShoppingBasket, Store, UserRound } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 import { NavLink } from "./nav-link";
 
 const items = [
@@ -37,6 +38,7 @@ export function ShopShell({ children, businessName, basketCount = 0, homeHref = 
                 ) : null}
               </NavLink>
             ))}
+            <SignOutButton iconOnly className="ml-1 rounded-[var(--radius-md)] p-2 text-ink-muted hover:bg-sunken hover:text-ink" />
           </nav>
           <span className="max-w-[45%] truncate text-sm font-medium text-ink-muted md:hidden">{businessName}</span>
         </div>

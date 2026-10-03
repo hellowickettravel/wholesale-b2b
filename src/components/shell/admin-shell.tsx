@@ -14,6 +14,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 import { NavLink } from "./nav-link";
 
 const groups = [
@@ -84,8 +85,11 @@ export function AdminShell({ children, userName, badges = {} }: { children: Reac
             </div>
           ))}
         </nav>
-        <div className="border-t border-white/10 px-5 py-4 text-sm text-white/60">
-          Signed in as <span className="font-medium text-white">{userName}</span>
+        <div className="space-y-2 border-t border-white/10 px-5 py-4 text-sm text-white/60">
+          <p className="truncate">
+            Signed in as <span className="font-medium text-white">{userName}</span>
+          </p>
+          <SignOutButton className="text-white/60 hover:text-white" />
         </div>
       </aside>
 
@@ -93,7 +97,10 @@ export function AdminShell({ children, userName, badges = {} }: { children: Reac
         <header className="sticky top-0 z-30 border-b border-line bg-ink lg:hidden">
           <div className="flex h-14 items-center justify-between px-4">
             <Logo href="/admin" inverted />
-            <span className="truncate text-sm text-white/60">{userName}</span>
+            <div className="flex min-w-0 items-center gap-4">
+              <span className="hidden truncate text-sm text-white/60 sm:inline">{userName}</span>
+              <SignOutButton className="text-white/70 hover:text-white" />
+            </div>
           </div>
           <nav aria-label="Admin" className="overflow-x-auto">
             <ul className="flex min-w-max gap-1 px-3 pb-2">
