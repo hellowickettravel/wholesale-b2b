@@ -76,16 +76,12 @@ update public.profiles set customer_id = '20000000-0000-4000-a000-000000000003'
   where id = '10000000-0000-4000-a000-000000000006';
 
 -- Catalogue ---------------------------------------------------------------------------------------
-insert into public.categories (id, name, slug, sort) values
-  ('30000000-0000-4000-a000-000000000001', 'Rice', 'rice', 1),
-  ('30000000-0000-4000-a000-000000000002', 'Drinks', 'drinks', 2),
-  ('30000000-0000-4000-a000-000000000003', 'Whole Spices', 'whole-spices', 3)
-on conflict (id) do nothing;
+-- Categories come from migration 0005 (fixed ids ca7e0000-...).
 
 insert into public.products (id, category_id, name, slug, source) values
-  ('40000000-0000-4000-a000-000000000001', '30000000-0000-4000-a000-000000000001', 'Basant Basmati Rice', 'basant-basmati-rice', 'seed'),
-  ('40000000-0000-4000-a000-000000000002', '30000000-0000-4000-a000-000000000002', 'Mango Drink', 'mango-drink', 'seed'),
-  ('40000000-0000-4000-a000-000000000003', '30000000-0000-4000-a000-000000000003', 'Green Cardamom', 'green-cardamom', 'seed')
+  ('40000000-0000-4000-a000-000000000001', 'ca7e0000-0000-4000-a000-000000000001', 'Basant Basmati Rice', 'basant-basmati-rice', 'seed'),
+  ('40000000-0000-4000-a000-000000000002', 'ca7e0000-0000-4000-a000-000000000010', 'Mango Drink', 'mango-drink', 'seed'),
+  ('40000000-0000-4000-a000-000000000003', 'ca7e0000-0000-4000-a000-000000000003', 'Green Cardamom', 'green-cardamom', 'seed')
 on conflict (id) do nothing;
 
 insert into public.product_variants (id, product_id, size_label, size_sort, supplier_id, cost_pence, vat_rate_bp, sku) values
@@ -101,15 +97,15 @@ on conflict (id) do nothing;
 
 -- Per-customer catalogue and pricing --------------------------------------------------------------
 insert into public.customer_category_access (customer_id, category_id) values
-  ('20000000-0000-4000-a000-000000000001', '30000000-0000-4000-a000-000000000001'),
-  ('20000000-0000-4000-a000-000000000001', '30000000-0000-4000-a000-000000000002'),
-  ('20000000-0000-4000-a000-000000000001', '30000000-0000-4000-a000-000000000003'),
-  ('20000000-0000-4000-a000-000000000002', '30000000-0000-4000-a000-000000000001'),
-  ('20000000-0000-4000-a000-000000000002', '30000000-0000-4000-a000-000000000002')
+  ('20000000-0000-4000-a000-000000000001', 'ca7e0000-0000-4000-a000-000000000001'),
+  ('20000000-0000-4000-a000-000000000001', 'ca7e0000-0000-4000-a000-000000000010'),
+  ('20000000-0000-4000-a000-000000000001', 'ca7e0000-0000-4000-a000-000000000003'),
+  ('20000000-0000-4000-a000-000000000002', 'ca7e0000-0000-4000-a000-000000000001'),
+  ('20000000-0000-4000-a000-000000000002', 'ca7e0000-0000-4000-a000-000000000010')
 on conflict do nothing;
 
 insert into public.customer_category_margins (customer_id, category_id, margin_bp) values
-  ('20000000-0000-4000-a000-000000000001', '30000000-0000-4000-a000-000000000001', 1000)
+  ('20000000-0000-4000-a000-000000000001', 'ca7e0000-0000-4000-a000-000000000001', 1000)
 on conflict do nothing;
 
 -- Restaurant A's agreed price for the mango drink case: £17.00 (sentinel value 1700 in tests).

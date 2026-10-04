@@ -38,13 +38,13 @@ export type Database = {
                   ]
                 },"categories": {
                   Row: {
-                    "active": boolean,"created_at": string,"description": string | null,"id": string,"image_path": string | null,"name": string,"slug": string,"sort": number,"updated_at": string
+                    "active": boolean,"created_at": string,"default_vat_rate_bp": number,"description": string | null,"id": string,"image_path": string | null,"name": string,"slug": string,"sort": number,"updated_at": string
                   }
                   Insert: {
-                    "active"?: boolean,"created_at"?: string,"description"?: string | null,"id"?: string,"image_path"?: string | null,"name": string,"slug": string,"sort"?: number,"updated_at"?: string
+                    "active"?: boolean,"created_at"?: string,"default_vat_rate_bp"?: number,"description"?: string | null,"id"?: string,"image_path"?: string | null,"name": string,"slug": string,"sort"?: number,"updated_at"?: string
                   }
                   Update: {
-                    "active"?: boolean,"created_at"?: string,"description"?: string | null,"id"?: string,"image_path"?: string | null,"name"?: string,"slug"?: string,"sort"?: number,"updated_at"?: string
+                    "active"?: boolean,"created_at"?: string,"default_vat_rate_bp"?: number,"description"?: string | null,"id"?: string,"image_path"?: string | null,"name"?: string,"slug"?: string,"sort"?: number,"updated_at"?: string
                   }
                   Relationships: [
                     
@@ -413,13 +413,13 @@ isOneToOne: false
                   ]
                 },"product_variants": {
                   Row: {
-                    "active": boolean,"cost_pence": number | null,"created_at": string,"id": string,"image_path": string | null,"product_id": string,"size_label": string,"size_sort": number,"sku": string | null,"supplier_id": string | null,"updated_at": string,"vat_rate_bp": number
+                    "active": boolean,"cost_pence": number | null,"created_at": string,"id": string,"image_path": string | null,"product_id": string,"size_label": string,"size_sort": number,"sku": string | null,"source_ref": string | null,"supplier_id": string | null,"updated_at": string,"vat_rate_bp": number
                   }
                   Insert: {
-                    "active"?: boolean,"cost_pence"?: number | null,"created_at"?: string,"id"?: string,"image_path"?: string | null,"product_id": string,"size_label": string,"size_sort"?: number,"sku"?: string | null,"supplier_id"?: string | null,"updated_at"?: string,"vat_rate_bp"?: number
+                    "active"?: boolean,"cost_pence"?: number | null,"created_at"?: string,"id"?: string,"image_path"?: string | null,"product_id": string,"size_label": string,"size_sort"?: number,"sku"?: string | null,"source_ref"?: string | null,"supplier_id"?: string | null,"updated_at"?: string,"vat_rate_bp"?: number
                   }
                   Update: {
-                    "active"?: boolean,"cost_pence"?: number | null,"created_at"?: string,"id"?: string,"image_path"?: string | null,"product_id"?: string,"size_label"?: string,"size_sort"?: number,"sku"?: string | null,"supplier_id"?: string | null,"updated_at"?: string,"vat_rate_bp"?: number
+                    "active"?: boolean,"cost_pence"?: number | null,"created_at"?: string,"id"?: string,"image_path"?: string | null,"product_id"?: string,"size_label"?: string,"size_sort"?: number,"sku"?: string | null,"source_ref"?: string | null,"supplier_id"?: string | null,"updated_at"?: string,"vat_rate_bp"?: number
                   }
                   Relationships: [
                     {
