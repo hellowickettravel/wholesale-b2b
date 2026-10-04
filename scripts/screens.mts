@@ -109,6 +109,38 @@ const shots: Shot[] = [
     },
   },
   { name: "supplier", path: "/supplier", as: "supplier.a@example.com" },
+  { name: "supplier-all", path: "/supplier?show=all", as: "supplier.a@example.com" },
+  { name: "supplier-order", path: "/supplier/orders/{openSoA}", as: "supplier.a@example.com" },
+  {
+    name: "supplier-order-link",
+    path: "/supplier/orders/{openSoA2}",
+    as: "supplier.a@example.com",
+    before: async (p) => {
+      p.once("dialog", (d) => d.accept());
+      await p.getByRole("button", { name: /^Make (driver|a new) link$/ }).click();
+      await p.getByTestId("driver-link").waitFor();
+    },
+  },
+  { name: "supplier-order-proof", path: "/supplier/orders/{deliveredSoA}", as: "supplier.a@example.com" },
+  { name: "driver", path: "/d/{driverToken}" },
+  {
+    name: "driver-filled",
+    path: "/d/{driverToken}",
+    before: async (p) => {
+      await p.locator("#proof-photo").setInputFiles("tests/fixtures/delivery-photo.jpg");
+      await p.getByRole("img", { name: "Delivery photo preview" }).waitFor();
+      const pad = p.getByRole("img", { name: /Customer signature/ });
+      await pad.scrollIntoViewIfNeeded();
+      const b = (await pad.boundingBox())!;
+      await p.mouse.move(b.x + 40, b.y + 110);
+      await p.mouse.down();
+      for (const [dx, dy] of [[50, -50], [110, 10], [170, -40], [230, 0]]) await p.mouse.move(b.x + 40 + dx, b.y + 110 + dy, { steps: 5 });
+      await p.mouse.up();
+      await p.getByLabel(/Name of the person signing/).fill("Priya");
+    },
+  },
+  { name: "driver-invalid", path: "/d/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" },
+  { name: "order-proof", path: "/orders/{deliveredOrderA}", as: "restaurant.a@example.com" },
   { name: "account-disabled", path: "/account-disabled" },
 ];
 
@@ -131,7 +163,37 @@ await db.query(`insert into public.basket_items (customer_id, variant_id, qty) v
 const { rows: latest } = await db.query<{ id: string }>(
   "select id from public.orders where customer_id = '20000000-0000-4000-a000-000000000001' order by created_at desc limit 1",
 );
-for (const s of shots) s.path = s.path.replace("{latestA}", latest[0]?.id ?? "none");
+// Delivery screens: open supplier-A orders, a delivered one with a proof, and a driver link
+// with a known token (only its hash is stored, as always).
+const { rows: openA } = await db.query<{ id: string }>(
+  "select so.id from public.supplier_orders so where so.supplier_id = '00000000-0000-4000-a000-000000000001' and so.status = 'placed' order by so.created_at desc limit 3",
+);
+const { rows: proofA } = await db.query<{ so: string; order_id: string }>(
+  `select so.id so, so.order_id from public.supplier_orders so join public.delivery_proofs dp on dp.supplier_order_id = so.id
+    join public.orders o on o.id = so.order_id
+   where so.supplier_id = '00000000-0000-4000-a000-000000000001' and dp.submitted_by_kind = 'driver' and o.status = 'delivered'
+   order by dp.submitted_at desc limit 1`,
+);
+const driverToken = "ScreenshotsDriverToken000000000000000000000";
+const { rowCount: reused } = await db.query(
+  "update public.delivery_proofs set revoked_at = null, expires_at = now() + interval '72 hours' where token_hash = extensions.digest($1, 'sha256') and submitted_at is null",
+  [driverToken],
+);
+if (!reused && openA[2]) {
+  await db.query(
+    "select public.create_driver_link($1, extensions.digest($2, 'sha256'), now() + interval '72 hours', null)",
+    [openA[2].id, driverToken],
+  );
+}
+const vars: Record<string, string> = {
+  latestA: latest[0]?.id ?? "none",
+  openSoA: openA[0]?.id ?? "none",
+  openSoA2: openA[1]?.id ?? "none",
+  deliveredSoA: proofA[0]?.so ?? "none",
+  deliveredOrderA: proofA[0]?.order_id ?? "none",
+  driverToken,
+};
+for (const s of shots) s.path = s.path.replace(/\{(\w+)\}/g, (_, k: string) => vars[k] ?? "none");
 await db.end();
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? "/opt/pw-browsers/chromium-1194/chrome-linux/chrome" });

@@ -70,8 +70,9 @@ test.describe("access control in the browser", () => {
 
   test("the supplier's page shows its orders and never a price", async ({ page }) => {
     await signIn(page, "supplier.a@example.com");
-    await expect(page.getByRole("cell", { name: "#1001" })).toBeVisible();
-    await expect(page.getByRole("cell", { name: "#1002" })).toBeVisible();
+    await page.goto("/supplier?show=all");
+    await expect(page.getByRole("link", { name: /^ORDER-1001(?!\d)/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /^ORDER-1002(?!\d)/ })).toBeVisible();
     const html = await page.content();
     expect(html).not.toMatch(/£|unit_price|cost_pence|1700|4620/);
   });
@@ -221,8 +222,8 @@ test.describe.serial("admin-created accounts (invite flow)", () => {
     await invitee.locator('input[name="confirm_password"]').fill("Invited123!");
     await invitee.getByRole("button", { name: "Set password and continue" }).click();
     await expect(invitee).toHaveURL(/\/supplier$/);
-    await expect(invitee.getByText("E2E Wholesale Ltd")).toBeVisible();
-    await expect(invitee.getByText("No orders yet")).toBeVisible();
+    await expect(invitee.getByText("E2E Wholesale Ltd").first()).toBeVisible();
+    await expect(invitee.getByText("Nothing to deliver")).toBeVisible();
   });
 
   test("inviting an existing email is refused", async ({ page }) => {

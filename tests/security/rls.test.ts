@@ -752,3 +752,132 @@ describe("basket and order placement (Phase 5)", () => {
     });
   });
 });
+
+describe("supplier orders and proof of delivery (Phase 6)", () => {
+  const hash = (n: number) => `'\\x${n.toString(16).padStart(2, "0").repeat(32)}'::bytea`;
+  async function order(q: Parameters<Parameters<typeof asOwner>[1]>[0]) {
+    const r = (await q<{ r: { order_id: string } }>("select public.create_order_tx($1::jsonb) r", [JSON.stringify({
+      customer_id: IDS.customers.A, placed_by: IDS.users.customerA, delivery_date: "2026-10-10", payment_terms: "on_delivery",
+      totals: { goods_net_pence: 2880, goods_vat_pence: 340, delivery_net_pence: 0, delivery_vat_pence: 0, vat_pence: 340, total_pence: 3220 },
+      supplier_orders: [
+        { supplier_id: IDS.suppliers.A, items: [{ variant_id: IDS.variants.rice5, product_name: "Rice", size_label: "5 kg", qty: 1, unit_price_pence: 1180, unit_cost_pence: 1000, vat_rate_bp: 0, line_net_pence: 1180, line_vat_pence: 0 }] },
+        { supplier_id: IDS.suppliers.B, items: [{ variant_id: IDS.variants.mango, product_name: "Mango", size_label: "330 ml", qty: 1, unit_price_pence: 1700, unit_cost_pence: 1450, vat_rate_bp: 2000, line_net_pence: 1700, line_vat_pence: 340 }] },
+      ],
+    })]))[0].r;
+    const parts = await q<{ id: string; supplier_id: string }>("select id, supplier_id from public.supplier_orders where order_id = $1", [r.order_id]);
+    return { orderId: r.order_id, soA: parts.find((p) => p.supplier_id === IDS.suppliers.A)!.id, soB: parts.find((p) => p.supplier_id === IDS.suppliers.B)!.id };
+  }
+  const proof = (extra: Record<string, unknown>) => JSON.stringify({ submitted_by_kind: "driver", photo_path: "p.jpg", signature_path: "s.png", ...extra });
+
+  it.each(NON_ADMINS)("%s cannot call the delivery functions", async (actor) => {
+    for (const sql of [
+      "select public.rollup_order_status(gen_random_uuid())",
+      "select public.set_supplier_order_status(gen_random_uuid(), 'sent', null)",
+      `select public.create_driver_link(gen_random_uuid(), ${hash(1)}, now(), null)`,
+      "select public.record_delivery_proof('{}'::jsonb)",
+    ]) {
+      expect(await as(db, actor, (q) => outcome(q(sql))), `${actor}: ${sql}`).toBe(DENIED);
+    }
+  });
+
+  it("a new link revokes the unused one; a used, revoked or expired link records nothing", async () => {
+    await asOwner(db, async (q) => {
+      const o = await order(q);
+      const first = (await q<{ id: string }>(`select public.create_driver_link($1, ${hash(1)}, now() + interval '1 hour', null) id`, [o.soA]))[0].id;
+      const second = (await q<{ id: string }>(`select public.create_driver_link($1, ${hash(2)}, now() + interval '1 hour', null) id`, [o.soA]))[0].id;
+      const rows = await q<{ id: string; revoked: boolean }>("select id, revoked_at is not null revoked from public.delivery_proofs where supplier_order_id = $1", [o.soA]);
+      expect(rows.find((r) => r.id === first)?.revoked).toBe(true);
+      expect(rows.find((r) => r.id === second)?.revoked).toBe(false);
+
+      await q("savepoint s");
+      expect(await outcome(q("select public.record_delivery_proof($1::jsonb)", [proof({ proof_id: first })]))).toBe("P0002");
+      await q("rollback to savepoint s");
+
+      const r = (await q<{ r: { order_status: string } }>("select public.record_delivery_proof($1::jsonb) r", [proof({ proof_id: second })]))[0].r;
+      expect(r.order_status).toBe("partially_delivered");
+      await q("savepoint s2");
+      expect(await outcome(q("select public.record_delivery_proof($1::jsonb)", [proof({ proof_id: second })]))).toBe("P0002");
+      await q("rollback to savepoint s2");
+
+      const expired = (await q<{ id: string }>(`select public.create_driver_link($1, ${hash(3)}, now() - interval '1 minute', null) id`, [o.soB]))[0].id;
+      await q("savepoint s3");
+      expect(await outcome(q("select public.record_delivery_proof($1::jsonb)", [proof({ proof_id: expired })]))).toBe("P0002");
+      await q("rollback to savepoint s3");
+    });
+  });
+
+  it("a proof needs a photo and a signed document or signature", async () => {
+    await asOwner(db, async (q) => {
+      const o = await order(q);
+      for (const bad of [{ photo_path: "" }, { signature_path: null }]) {
+        await q("savepoint s");
+        expect(await outcome(q("select public.record_delivery_proof($1::jsonb)", [proof({ supplier_order_id: o.soA, ...bad })]))).toBe("P0001");
+        await q("rollback to savepoint s");
+      }
+    });
+  });
+
+  it("statuses only move forward; delivered only comes with a proof; the order rolls up", async () => {
+    await asOwner(db, async (q) => {
+      const o = await order(q);
+      const st = (so: string, s: string) => q<{ r: string }>("select public.set_supplier_order_status($1, $2::public.supplier_order_status, null) r", [so, s]);
+      expect((await st(o.soA, "sent"))[0].r).toBe("sent");
+      expect((await st(o.soB, "out_for_delivery"))[0].r).toBe("out_for_delivery");
+      for (const [so, s] of [[o.soA, "placed"], [o.soA, "sent"], [o.soB, "sent"], [o.soA, "delivered"], [o.soA, "cancelled"]]) {
+        await q("savepoint s");
+        expect(await outcome(st(so, s)), `${s}`).toBe("P0001");
+        await q("rollback to savepoint s");
+      }
+      await q("select public.record_delivery_proof($1::jsonb)", [proof({ supplier_order_id: o.soA, submitted_by_kind: "supplier" })]);
+      await q("select public.record_delivery_proof($1::jsonb)", [proof({ supplier_order_id: o.soB, submitted_by_kind: "supplier" })]);
+      const [ord] = await q<{ status: string }>("select status::text from public.orders where id = $1", [o.orderId]);
+      expect(ord.status).toBe("delivered");
+      await q("savepoint s");
+      expect(await outcome(st(o.soA, "out_for_delivery"))).toBe("P0001");
+      await q("rollback to savepoint s");
+    });
+  });
+
+  it("proofs are visible to the order's restaurant and supplier only, never with the token hash", async () => {
+    const seen = await asOwner(db, async (q) => {
+      const o = await order(q);
+      await q("select public.record_delivery_proof($1::jsonb)", [proof({ supplier_order_id: o.soA, submitted_by_kind: "supplier" })]);
+      const out: Record<string, number> = {};
+      for (const actor of ["customerA", "customerB", "pending", "supplierA", "supplierB"] as const) {
+        await q("savepoint v");
+        await q("set local role authenticated");
+        await q("select set_config('request.jwt.claims', $1, true)", [JSON.stringify({ sub: IDS.users[actor], role: "authenticated" })]);
+        const c = (await q("select 1 from public.customer_delivery_proofs where supplier_order_id = $1", [o.soA])).length;
+        const s = (await q("select 1 from public.supplier_delivery_proofs where supplier_order_id = $1", [o.soA])).length;
+        const raw = (await q("select 1 from public.delivery_proofs")).length;
+        out[actor] = c * 100 + s * 10 + raw;
+        await q("rollback to savepoint v");
+      }
+      return out;
+    });
+    expect(seen).toEqual({ customerA: 100, customerB: 0, pending: 0, supplierA: 10, supplierB: 0 });
+    for (const view of ["customer_delivery_proofs", "supplier_delivery_proofs"]) {
+      const cols = await as(db, "customerA", (q) => q<{ column_name: string }>("select column_name from information_schema.columns where table_schema = 'public' and table_name = $1", [view]));
+      expect(cols.map((c) => c.column_name)).not.toContain("token_hash");
+      expect(await rowsOrDenied("anon", `select * from public.${view}`)).toBe(DENIED);
+    }
+  });
+
+  it.each(NON_ADMINS)("%s cannot read or write private proof files", async (actor) => {
+    const r = await asOwner(db, async (q) => {
+      await q("insert into storage.objects (bucket_id, name) values ('delivery-proofs', 'x/y/photo.jpg')");
+      await q("savepoint s");
+      if (actor === "anon") {
+        await q("set local role anon");
+        await q(`select set_config('request.jwt.claims', '{"role":"anon"}', true)`);
+      } else {
+        await q("set local role authenticated");
+        await q("select set_config('request.jwt.claims', $1, true)", [JSON.stringify({ sub: IDS.users[actor as keyof typeof IDS.users], role: "authenticated" })]);
+      }
+      const read = (await q("select 1 from storage.objects where bucket_id = 'delivery-proofs'")).length;
+      const write = await outcome(q("insert into storage.objects (bucket_id, name) values ('delivery-proofs', 'x/y/evil.jpg')"));
+      return { read, write };
+    });
+    expect(r).toEqual({ read: 0, write: DENIED });
+  });
+});

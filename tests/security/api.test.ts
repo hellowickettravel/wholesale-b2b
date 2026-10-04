@@ -226,3 +226,57 @@ describe("service-role key never reaches the browser", () => {
     expect(hits).toEqual([]);
   });
 });
+
+describe("proof of delivery through the API (Phase 6)", () => {
+  const service = createClient(URL, SERVICE, { auth: { persistSession: false } });
+  const path = `security-test/${Date.now()}/photo.jpg`;
+  beforeAll(async () => {
+    const { error } = await service.storage.from("delivery-proofs").upload(path, new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3, 4, 5, 6, 7, 8]), { contentType: "image/jpeg" });
+    if (error) throw new Error(error.message);
+  });
+  afterAll(async () => {
+    await service.storage.from("delivery-proofs").remove([path]);
+  });
+
+  it("the service role can read the file (positive control)", async () => {
+    const { data, error } = await service.storage.from("delivery-proofs").download(path);
+    expect(error).toBeNull();
+    expect(data?.size).toBe(12);
+  });
+
+  it("nobody else can download, list, sign, upload into or overwrite the private bucket", async () => {
+    for (const c of [anon(), customerA, customerB, pending, supplierA]) {
+      const dl = await c.storage.from("delivery-proofs").download(path);
+      expect(dl.data).toBeNull();
+      const list = await c.storage.from("delivery-proofs").list(path.split("/").slice(0, 2).join("/"));
+      expect(list.data ?? []).toHaveLength(0);
+      const signed = await c.storage.from("delivery-proofs").createSignedUrl(path, 60);
+      expect(signed.data).toBeNull();
+      const up = await c.storage.from("delivery-proofs").upload(`security-test/evil-${Date.now()}.jpg`, new Uint8Array([0xff, 0xd8, 0xff, 0]), { contentType: "image/jpeg" });
+      expect(up.error).not.toBeNull();
+      const over = await c.storage.from("delivery-proofs").update(path, new Uint8Array([0xff, 0xd8, 0xff, 1]), { contentType: "image/jpeg" });
+      expect(over.error).not.toBeNull();
+    }
+  });
+
+  it("no API role can make driver links, record proofs or move order status", async () => {
+    const so = (await db.query<{ id: string }>("select id from public.supplier_orders limit 1")).rows[0].id;
+    for (const c of [anon(), customerA, supplierA]) {
+      const link = await c.rpc("create_driver_link", { p_supplier_order: so, p_token_hash: "\\x" + "00".repeat(32), p_expires_at: "2030-01-01T00:00:00Z", p_actor: null });
+      expect(link.error).not.toBeNull();
+      const proof = await c.rpc("record_delivery_proof", { p: { supplier_order_id: so, submitted_by_kind: "supplier", photo_path: "x", signature_path: "y" } });
+      expect(proof.error).not.toBeNull();
+      const status = await c.rpc("set_supplier_order_status", { p_supplier_order: so, p_status: "sent", p_actor: null });
+      expect(status.error).not.toBeNull();
+    }
+  });
+
+  it("token hashes are not readable by anyone through the API", async () => {
+    for (const c of [anon(), customerA, supplierA]) {
+      const { data } = await c.from("delivery_proofs").select("token_hash");
+      expect(data ?? []).toHaveLength(0);
+      const view = await c.from("supplier_delivery_proofs").select("token_hash");
+      expect(view.error).not.toBeNull();
+    }
+  });
+});

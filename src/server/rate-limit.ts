@@ -13,6 +13,10 @@ export const LIMITS = {
   passwordSetPerUser: { limit: 10, window: 60 * 60 },
   invitePerAdmin: { limit: 60, window: 60 * 60 },
   orderPerCustomer: { limit: 30, window: 60 * 60 },
+  driverViewPerIp: { limit: 120, window: 15 * 60 },
+  driverSubmitPerIp: { limit: 20, window: 15 * 60 },
+  driverSubmitPerToken: { limit: 10, window: 15 * 60 },
+  driverLinkPerUser: { limit: 30, window: 60 * 60 },
 } as const;
 
 /** Client IP as seen by Vercel / the local server. */

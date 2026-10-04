@@ -714,6 +714,43 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"customer_delivery_proofs": {
+                  Row: {
+                    "document_path": string | null,"id": string | null,"order_id": string | null,"photo_path": string | null,"signature_path": string | null,"signed_by_name": string | null,"submitted_at": string | null,"submitted_by_kind": Database["public"]['Enums']["proof_submitter"] | null,"supplier_order_id": string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "delivery_proofs_supplier_order_id_fkey"
+      columns: ["supplier_order_id"]
+isOneToOne: false
+      referencedRelation: "customer_deliveries"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "delivery_proofs_supplier_order_id_fkey"
+      columns: ["supplier_order_id"]
+isOneToOne: false
+      referencedRelation: "supplier_order_list"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "delivery_proofs_supplier_order_id_fkey"
+      columns: ["supplier_order_id"]
+isOneToOne: false
+      referencedRelation: "supplier_orders"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "supplier_orders_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: false
+      referencedRelation: "customer_orders"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "supplier_orders_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: false
+      referencedRelation: "orders"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"customer_order_items": {
                   Row: {
                     "id": string | null,"line_net_pence": number | null,"line_vat_pence": number | null,"order_id": string | null,"product_id": string | null,"product_name": string | null,"qty": number | null,"size_label": string | null,"sku": string | null,"sort": number | null,"supplier_order_id": string | null,"unit_price_pence": number | null,"vat_rate_bp": number | null
@@ -827,6 +864,31 @@ isOneToOne: false
                         Relationships: [
                     
                   ]
+                },"supplier_delivery_proofs": {
+                  Row: {
+                    "created_at": string | null,"document_path": string | null,"expires_at": string | null,"id": string | null,"photo_path": string | null,"revoked_at": string | null,"signature_path": string | null,"signed_by_name": string | null,"submitted_at": string | null,"submitted_by_kind": Database["public"]['Enums']["proof_submitter"] | null,"supplier_order_id": string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "delivery_proofs_supplier_order_id_fkey"
+      columns: ["supplier_order_id"]
+isOneToOne: false
+      referencedRelation: "customer_deliveries"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "delivery_proofs_supplier_order_id_fkey"
+      columns: ["supplier_order_id"]
+isOneToOne: false
+      referencedRelation: "supplier_order_list"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "delivery_proofs_supplier_order_id_fkey"
+      columns: ["supplier_order_id"]
+isOneToOne: false
+      referencedRelation: "supplier_orders"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"supplier_order_lines": {
                   Row: {
                     "id": string | null,"product_name": string | null,"qty": number | null,"size_label": string | null,"sku": string | null,"sort": number | null,"supplier_order_id": string | null
@@ -880,6 +942,9 @@ isOneToOne: false
 "clean_text":
 { Args: { "p": string,"p_max": number }; Returns: string
                            },
+"create_driver_link":
+{ Args: { "p_actor": string,"p_expires_at": string,"p_supplier_order": string,"p_token_hash": string }; Returns: string
+                           },
 "create_order_tx":
 { Args: { "p": Json }; Returns: Json
                            },
@@ -906,6 +971,15 @@ isOneToOne: false
                            },
 "promote_to_admin":
 { Args: { "p_email": string }; Returns: undefined
+                           },
+"record_delivery_proof":
+{ Args: { "p": Json }; Returns: Json
+                           },
+"rollup_order_status":
+{ Args: { "p_order": string }; Returns: Database["public"]['Enums']["order_status"]
+                           },
+"set_supplier_order_status":
+{ Args: { "p_actor": string,"p_status": Database["public"]['Enums']["supplier_order_status"],"p_supplier_order": string }; Returns: Database["public"]['Enums']["order_status"]
                            }
           }
           Enums: {

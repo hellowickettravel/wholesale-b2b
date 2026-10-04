@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ProofView } from "@/components/delivery/proof-view";
 import { BankDetails } from "@/components/shop/bank-details";
 import { DeliveryStatusBadge, OrderStatusBadge } from "@/components/shop/order-status";
 import { formatDate, formatDayDate } from "@/domain/dates";
@@ -64,6 +65,12 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                   </li>
                 ))}
               </ul>
+              {part.proof ? (
+                <div className="border-t border-line bg-success-soft/30 px-4 py-3">
+                  <h3 className="mb-2 text-sm font-bold">Proof of delivery</h3>
+                  <ProofView proof={part.proof} />
+                </div>
+              ) : null}
             </section>
           ))}
           {order.note ? (

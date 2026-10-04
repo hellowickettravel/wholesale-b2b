@@ -1,6 +1,7 @@
 import "server-only";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { signProofs } from "./delivery";
 
 /**
  * A restaurant's own orders, read with the signed-in user's client through the customer_*
@@ -12,13 +13,17 @@ export async function getCustomerOrder(id: string) {
   const { data: order, error } = await supabase.from("customer_orders").select("*").eq("id", id).maybeSingle();
   if (error) throw new Error(`order: ${error.message}`);
   if (!order) return null;
-  const [items, deliveries, invoice, payments] = await Promise.all([
+  const [items, deliveries, invoice, payments, proofs] = await Promise.all([
     supabase.from("customer_order_items").select("*").eq("order_id", id).order("sort"),
     supabase.from("customer_deliveries").select("*").eq("order_id", id),
     supabase.from("invoices").select("id, number, issued_at, voided_at").eq("order_id", id).maybeSingle(),
     supabase.from("customer_payment_history").select("*").eq("order_id", id).order("paid_on"),
+    supabase.from("customer_delivery_proofs").select("*").eq("order_id", id).order("submitted_at", { ascending: false }),
   ]);
-  for (const r of [items, deliveries, invoice, payments]) if (r.error) throw new Error(`order: ${r.error.message}`);
+  for (const r of [items, deliveries, invoice, payments, proofs]) if (r.error) throw new Error(`order: ${r.error.message}`);
+  // Newest proof per delivery; files are shown through short-lived signed URLs.
+  const signed = await signProofs((proofs.data ?? []).map((p) => ({ ...p, id: p.id! })));
+  const proofFor = (soId: string) => signed.find((p) => p.supplierOrderId === soId) ?? null;
 
   // Deliveries in the order their lines appear in the basket.
   const firstSort = new Map<string, number>();
@@ -26,7 +31,7 @@ export async function getCustomerOrder(id: string) {
   const parts = (deliveries.data ?? [])
     .filter((d) => d.id)
     .sort((a, b) => (firstSort.get(a.id!) ?? 0) - (firstSort.get(b.id!) ?? 0))
-    .map((d) => ({ ...d, items: (items.data ?? []).filter((it) => it.supplier_order_id === d.id) }));
+    .map((d) => ({ ...d, items: (items.data ?? []).filter((it) => it.supplier_order_id === d.id), proof: proofFor(d.id!) }));
 
   return { order, items: items.data ?? [], parts, invoice: invoice.data, payments: payments.data ?? [] };
 }
