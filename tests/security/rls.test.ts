@@ -371,6 +371,7 @@ describe("supplier B", () => {
 
 describe("admin", () => {
   it("can read costs, margins, overrides, payments and every order", async () => {
+    const allProfiles = (await asOwner(db, (q) => q<{ n: string }>("select count(*) as n from public.profiles")))[0].n;
     await as(db, "admin", async (q) => {
       expect((await q("select cost_pence from public.product_variants where cost_pence is not null")).length).toBeGreaterThan(0);
       expect(await q("select * from public.customer_price_overrides")).toHaveLength(1);
@@ -378,7 +379,7 @@ describe("admin", () => {
       expect(await q("select * from public.orders")).toHaveLength(2);
       expect(await q("select * from public.customer_payments")).toHaveLength(1);
       expect(await q("select * from public.supplier_payments")).toHaveLength(1);
-      expect((await q("select * from public.profiles")).length).toBe(6);
+      expect((await q("select * from public.profiles")).length).toBe(Number(allProfiles));
     });
   });
 

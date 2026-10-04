@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { LinkButton } from "@/components/ui/button";
 import { StatusPage } from "@/components/shell/status-page";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 
 export const metadata: Metadata = { title: "No access" };
 
@@ -12,7 +13,7 @@ export default function Forbidden() {
       actions={
         <>
           <LinkButton href="/">Go to home</LinkButton>
-          <LinkButton href="/login" variant="secondary">Sign in as someone else</LinkButton>
+          <SignOutButton label="Sign in as someone else" className="h-10 rounded-[var(--radius-md)] border border-line-strong bg-raised px-4 font-semibold text-ink hover:bg-sunken" />
         </>
       }
     >

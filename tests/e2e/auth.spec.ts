@@ -245,3 +245,11 @@ test("sign-in is rate limited per account", async ({ page }) => {
   await submitLogin(page, email, "wrong-password-1");
   await expect(formAlert(page)).toContainText("Too many sign-in attempts");
 });
+
+test("the 403 page's 'Sign in as someone else' signs out and shows the login form", async ({ page }) => {
+  await signIn(page, "restaurant.a@example.com");
+  await page.goto("/admin", { waitUntil: "load" });
+  await page.getByRole("button", { name: "Sign in as someone else" }).click();
+  await expect(page).toHaveURL(/\/login\?notice=signed-out$/);
+  await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
+});

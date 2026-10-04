@@ -31,7 +31,13 @@ export default async function UsersPage() {
   return (
     <>
       <PageHeader eyebrow="System" title="Users" description="Everyone who can sign in, and invitations for new restaurants, suppliers and admins." />
-      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+      <div className="space-y-6">
+        <Card>
+          <CardHeader title="Invite someone" description="They get an email with a link to set their own password." />
+          <CardBody>
+            <InviteForm suppliers={suppliers ?? []} />
+          </CardBody>
+        </Card>
         <Card>
           <CardHeader title="All users" description={`${profiles?.length ?? 0} accounts`} />
           <Table>
@@ -39,42 +45,37 @@ export default async function UsersPage() {
               <tr>
                 <TH>Name</TH>
                 <TH>Role</TH>
-                <TH>Business</TH>
-                <TH>Last sign-in</TH>
+                <TH className="hidden md:table-cell">Business</TH>
+                <TH className="hidden md:table-cell">Last sign-in</TH>
               </tr>
             </THead>
             <tbody>
               {(profiles ?? []).map((p) => {
                 const seen = lastSignIn.get(p.id);
+                const business = p.customers ? p.customers.business_name : p.suppliers ? p.suppliers.name : null;
+                const pendingStatus = p.customers && p.customers.status !== "approved" ? p.customers.status : null;
                 return (
                   <TR key={p.id}>
-                    <TD>
+                    <TD className="min-w-0">
                       <div className="font-medium">{p.full_name || "—"}</div>
-                      <div className="text-[13px] text-ink-muted">{p.email}</div>
+                      <div className="break-all text-[13px] text-ink-muted">{p.email}</div>
+                      <div className="mt-1 text-[13px] text-ink-muted md:hidden">
+                        {business ?? "No business"} · {seen ? `Last in ${formatTimestamp(seen)}` : "Invited, not signed in yet"}
+                      </div>
                     </TD>
                     <TD>
-                      <Badge tone={p.active ? ROLE_TONE[p.role] : "neutral"}>{ROLE_LABEL[p.role]}{p.active ? "" : " (off)"}</Badge>
+                      <div className="flex flex-col items-start gap-1">
+                        <Badge tone={p.active ? ROLE_TONE[p.role] : "neutral"}>{ROLE_LABEL[p.role]}{p.active ? "" : " (off)"}</Badge>
+                        {pendingStatus ? <Badge tone="warning">{pendingStatus}</Badge> : null}
+                      </div>
                     </TD>
-                    <TD className="text-ink-muted">
-                      {p.customers ? (
-                        <>
-                          {p.customers.business_name}
-                          {p.customers.status !== "approved" ? <Badge tone="warning" className="ml-2">{p.customers.status}</Badge> : null}
-                        </>
-                      ) : p.suppliers ? p.suppliers.name : "—"}
-                    </TD>
-                    <TD className="whitespace-nowrap text-ink-muted">{seen ? formatTimestamp(seen) : <Badge tone="neutral">Invited</Badge>}</TD>
+                    <TD className="hidden text-ink-muted md:table-cell">{business ?? "—"}</TD>
+                    <TD className="hidden whitespace-nowrap text-ink-muted md:table-cell">{seen ? formatTimestamp(seen) : <Badge tone="neutral">Invited</Badge>}</TD>
                   </TR>
                 );
               })}
             </tbody>
           </Table>
-        </Card>
-        <Card>
-          <CardHeader title="Invite someone" description="They get an email to set their own password." />
-          <CardBody>
-            <InviteForm suppliers={suppliers ?? []} />
-          </CardBody>
         </Card>
       </div>
     </>

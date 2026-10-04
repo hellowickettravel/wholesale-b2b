@@ -30,7 +30,7 @@ export function AuthShell({
             Browse catalogue
           </Link>
         </header>
-        <main id="main" className="flex flex-1 items-start justify-center px-4 pb-16 pt-4 sm:items-center sm:px-8 sm:pt-0">
+        <main id="main" className="flex flex-1 items-start justify-center px-4 pb-16 pt-4 sm:items-center sm:px-8 sm:py-10">
           <div className={wide ? "w-full max-w-xl" : "w-full max-w-sm"}>
             <h1 className="text-[28px] font-extrabold leading-tight text-ink sm:text-[32px]">{title}</h1>
             {description ? <div className="mt-2 text-[15px] leading-relaxed text-ink-muted">{description}</div> : null}
@@ -40,9 +40,9 @@ export function AuthShell({
         </main>
       </div>
 
-      <aside aria-hidden="true" className="relative hidden overflow-hidden bg-primary lg:flex lg:flex-col lg:justify-between lg:p-12">
+      <aside aria-hidden="true" className="relative hidden overflow-hidden bg-primary lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:justify-between lg:self-start lg:p-12">
         <div className="pointer-events-none absolute -right-24 -top-24 size-[420px] rounded-full bg-primary-strong" />
-        <div className="pointer-events-none absolute -bottom-32 -left-20 size-[360px] rounded-full bg-accent/15" />
+        <div className="pointer-events-none absolute -bottom-32 -left-20 size-[360px] rounded-full bg-white/[0.04]" />
         <div className="relative">
           <p className="font-display text-sm font-bold uppercase tracking-[0.14em] text-accent">Trade accounts</p>
           <p className="mt-4 max-w-md font-display text-[34px] font-extrabold leading-[1.1] text-white">

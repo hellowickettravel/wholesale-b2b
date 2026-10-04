@@ -51,7 +51,7 @@ export default async function PendingPage() {
   if (!viewer) {
     return (
       <AuthShell title="Check your inbox" description="One more step before we can review your account.">
-        <div className="rounded-[var(--radius-lg)] border border-line bg-raised p-5">
+        <div className="mb-8 rounded-[var(--radius-lg)] border border-line bg-raised p-5">
           <Mail className="size-6 text-primary" aria-hidden="true" />
           <p className="mt-3 text-[15px] leading-relaxed text-ink">
             If that email address can be used for a new account, we have sent it a confirmation link. Open it on this device to confirm your email.

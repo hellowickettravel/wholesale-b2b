@@ -27,7 +27,7 @@ export function InviteForm({ suppliers }: { suppliers: { id: string; name: strin
 
       <fieldset>
         <legend className="mb-2 text-sm font-medium text-ink">Account type</legend>
-        <div className="grid gap-2 sm:grid-cols-3">
+        <div className="grid gap-2 sm:grid-cols-3 lg:max-w-3xl">
           {ROLES.map(({ value, label, hint, icon: Icon }) => (
             <label
               key={value}
@@ -47,7 +47,7 @@ export function InviteForm({ suppliers }: { suppliers: { id: string; name: strin
         </div>
       </fieldset>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 lg:max-w-3xl">
         <Field label="Full name" required error={fe.full_name}>
           {(p) => <Input {...p} name="full_name" autoComplete="off" defaultValue={v.full_name} />}
         </Field>
@@ -57,13 +57,13 @@ export function InviteForm({ suppliers }: { suppliers: { id: string; name: strin
       </div>
 
       {role === "customer" ? (
-        <Field label="Restaurant or business name" required error={fe.business_name} hint="Pricing and catalogue are set on the customer's page.">
+        <Field className="lg:max-w-3xl" label="Restaurant or business name" required error={fe.business_name} hint="Pricing and catalogue are set on the customer's page.">
           {(p) => <Input {...p} name="business_name" defaultValue={v.business_name} />}
         </Field>
       ) : null}
 
       {role === "supplier" ? (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:max-w-3xl">
           <Field label="Existing supplier" error={fe.supplier_id}>
             {(p) => (
               <Select {...p} name="supplier_id" defaultValue={v.supplier_id ?? ""}>
@@ -80,7 +80,7 @@ export function InviteForm({ suppliers }: { suppliers: { id: string; name: strin
         </div>
       ) : null}
 
-      <div className="flex justify-end">
+      <div className="lg:max-w-3xl">
         <SubmitButton block={false} pendingText="Sending invite…">Send invitation</SubmitButton>
       </div>
     </form>

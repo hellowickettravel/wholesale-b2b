@@ -9,9 +9,9 @@ import { register } from "./actions";
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <fieldset className="space-y-4">
-      <legend className="mb-1 text-xs font-bold uppercase tracking-[0.12em] text-ink-subtle">{title}</legend>
-      {children}
+    <fieldset>
+      <legend className="mb-3 text-xs font-bold uppercase tracking-[0.12em] text-ink-subtle">{title}</legend>
+      <div className="space-y-4">{children}</div>
     </fieldset>
   );
 }

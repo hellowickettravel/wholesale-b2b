@@ -38,7 +38,7 @@ export default async function SupplierOrders() {
             <THead>
               <tr>
                 <TH>Order</TH>
-                <TH>Deliver</TH>
+                <TH className="hidden sm:table-cell">Deliver</TH>
                 <TH>Restaurant</TH>
                 <TH>Status</TH>
               </tr>
@@ -46,11 +46,14 @@ export default async function SupplierOrders() {
             <tbody>
               {orders.map((o) => (
                 <TR key={o.id}>
-                  <TD className="font-semibold tabular">#{o.order_number}</TD>
-                  <TD className="whitespace-nowrap">{o.delivery_date ? formatDayDate(o.delivery_date) : "—"}</TD>
-                  <TD>
+                  <TD className="whitespace-nowrap">
+                    <div className="font-semibold tabular">#{o.order_number}</div>
+                    <div className="text-[13px] text-ink-muted sm:hidden">{o.delivery_date ? formatDayDate(o.delivery_date) : "—"}</div>
+                  </TD>
+                  <TD className="hidden whitespace-nowrap sm:table-cell">{o.delivery_date ? formatDayDate(o.delivery_date) : "—"}</TD>
+                  <TD className="min-w-0">
                     <div className="font-medium">{o.customer_name}</div>
-                    <div className="max-w-xs truncate text-[13px] text-ink-muted">{o.delivery_address}</div>
+                    <div className="max-w-[9rem] truncate text-[13px] text-ink-muted sm:max-w-xs">{o.delivery_address}</div>
                   </TD>
                   <TD>
                     <Badge tone={o.status === "delivered" ? "success" : o.status === "cancelled" ? "neutral" : "accent"} dot>
