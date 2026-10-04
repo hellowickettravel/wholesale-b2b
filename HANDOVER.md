@@ -1,6 +1,6 @@
 # HANDOVER: start here
 
-Last updated: **4 Oct 2026**, end of Phase 7. A fresh session should read, in order: this file, then
+Last updated: **4 Oct 2026**, Phases 1–9 done; Phase 10 (deploy) prepared and waiting for the owner's go-ahead. A fresh session should read, in order: this file, then
 `docs/BRIEF.md` (the owner's full original brief, verbatim), `PLAN.md`, `DECISIONS.md`, `MEMORY.md`
 and `CLAUDE.md`.
 
@@ -30,8 +30,9 @@ and `CLAUDE.md`.
 | 5. Shop, basket, checkout, order creation and split | **Done** on the same branch and PR. Migration 0007 applied to hosted. |
 | 6. Supplier portal and driver proof | **Done** on the same branch and PR. Migration 0008 applied to hosted. |
 | 7. Admin orders, payments, chasing, suppliers | **Done** on the same branch and PR. Migration 0009 applied to hosted. |
-| 8. Invoices (PDF) and email (Resend) | **Next.** |
-| 9–10 | Not started (see `PLAN.md` §2). |
+| 8. Invoices (PDF) and email (Resend) | **Invoices done** on the same branch and PR. **Email sending deferred by the owner** (D40): messages are queued in `email_log`. |
+| 9. Polish and hardening | **Done** on the same branch and PR. No schema change. |
+| 10. Deploy | **Prepared.** Waiting for the owner's go-ahead to merge PR #2 to `main` (= production); checklist below. |
 
 ### Done in Phase 2 (verified locally: `npm run verify` green, 96 unit, 257 security, 24 E2E)
 - Migrations `0001_schema` (all tables, pence/bp, enums, indexes, counters, settings row), `0002_rls`
@@ -227,18 +228,50 @@ the owner's images (D31). Never import `tests/fixtures/catalogue-sample.csv` int
     supplier, complete, cancel, suppliers, and 403s for restaurants and suppliers.
 - Screenshots of 11 new admin screens at 390 and 1280 reviewed; no horizontal overflow.
 
-### Next: Phase 8 (invoices and email). Concrete to-do
-1. Invoice PDF with `@react-pdf/renderer` at `/api/invoices/[id]/pdf`. Restaurant: own invoices only
-   (through RLS). Admin: all. Show the logo, VAT breakdown per rate, the delivery line, bank details
-   and the reference `ORDER-n`. A voided invoice is marked VOID. Use live lines only (`removed_at is null`).
-2. `/invoices` for restaurants and `/admin/invoices` (list, filters, download).
-3. Email sender (Resend, D11): a server job that sends `email_log` rows with status `queued`.
-   Templates: `supplier_order_new`, `supplier_order_changed`, `supplier_order_cancelled`,
-   `order_confirmation` (with the invoice), `order_changed`, `order_cancelled`, `order_delivered`,
-   `payment_reminder`, and the approval email. With no `RESEND_API_KEY`, mark rows `skipped`. A
-   failure never blocks an order; admin can retry failed ones.
-4. Security + E2E: PDF access per restaurant, no cost in the PDF, the email queue drains in tests
-   (fake transport).
+### Done in Phase 8 without email (verified: 169 unit, 424 security, 57 E2E three runs in a row)
+- Invoice PDF `/api/invoices/[id]/pdf` (D39): restaurant only its own (404 for any other id),
+  admin any, supplier 404, signed out 401. Shows the VAT for each rate, the delivery line, totals from
+  the invoice snapshot, paid and balance, bank details and the `ORDER-n` reference. A voided
+  invoice says VOID.
+- `/invoices` (restaurant, with paid state and PDF) and `/admin/invoices` (search by number or
+  restaurant); PDF links on the order pages. Unknown admin paths are now 404 (every screen exists).
+- **Email: deferred (D40).** Every email is queued in `email_log` at the moment it happens; turning
+  sending on later needs a sender job and the Resend key. Auth emails come from Supabase (checklist D).
+
+### Done in Phase 9 (hardening)
+- Accessibility (D41): an automated WCAG A/AA check (axe) runs in E2E over 33 screens at 390 and
+  1280 px and passes after the contrast fixes.
+- Payload leaks: `tests/e2e/leaks.spec.ts` scans the HTML and the hidden RSC data stream behind the
+  restaurant, supplier and driver pages. No costs, margins, admin notes, chase fields, token hashes,
+  other suppliers or other restaurants appear; positive checks prove each page was read. The shop and
+  catalogue scans from earlier phases still run, and so does the service-key bundle check
+  (`tests/security/api.test.ts`).
+- Full journey (`tests/e2e/journey.spec.ts`): register, confirm email, approve, order across two
+  suppliers, split, driver proof from a phone, supplier's own proof, payment in full, both suppliers
+  paid, completed, and the invoice PDF showing a zero balance.
+- Performance advisor reviewed (D42); the E2E suite passes three times back to back.
+
+### Phase 10: deploy (what is left)
+Production is the `main` branch on Vercel (`https://wholesale-b2b-uy4a.vercel.app`). The database is
+already up to date: migrations 0001–0009 are applied and the fingerprint matches. **Merging PR #2
+into `main` publishes Phases 2–9 to production.** The agent will do the merge on the owner's go-ahead.
+
+Environment variables (Vercel → wholesale-b2b → Settings → Environment Variables):
+
+| Name | Value | Environments | Kind | Status |
+|---|---|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://qtztjbnaofonazruovty.supabase.co` | Production, Preview, Development | public | set |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Settings → API → anon key | Production, Preview, Development | public | set |
+| `NEXT_PUBLIC_SITE_URL` | `https://wholesale-b2b-uy4a.vercel.app` (later the custom domain) | Production | public | set |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Settings → API → service_role | Production (set), Preview (missing) | **server only, Sensitive** | checklist A |
+| `RESEND_API_KEY`, `EMAIL_FROM`, `ADMIN_NOTIFY_EMAIL` | Resend account | Production | server only | deferred (D40) |
+
+After merging, smoke test (the agent's container cannot reach the live site, so this is the owner's):
+1. `/` and `/catalogue` load with photos and no prices.
+2. Sign in as the first admin (checklist E) → `/admin` dashboard.
+3. Put a cost on one size (`/admin/products`) and approve or create a test restaurant.
+4. As that restaurant: see the price, place an order, open the invoice PDF.
+5. As admin: the order appears with its supplier part; record a payment.
 
 ## Owner checklist (what Touseef must do)
 **A. Vercel → Project wholesale-b2b → Settings → Environment Variables** (already set by the agent:
@@ -251,6 +284,9 @@ the owner's images (D31). Never import `tests/fixtures/catalogue-sample.csv` int
 **B. Supabase Dashboard → Authentication → URL Configuration** (✅ owner reports done 4 Oct)
 - Site URL: `https://wholesale-b2b-uy4a.vercel.app` (later: the custom domain).
 - Redirect URLs: add `https://wholesale-b2b-uy4a.vercel.app/**` and `https://*-wicket-travel-portal.vercel.app/**`.
+
+**L. Go-ahead to publish**: say "merge" and the agent merges PR #2 into `main` (production). Do A, E and I
+first so the live site works end to end.
 
 **C. Supabase Dashboard → Authentication → Email Templates**: paste the HTML from the repo files
 (subject in brackets): Confirm signup ← `supabase/templates/confirmation.html` ("Confirm your email to finish
@@ -320,7 +356,7 @@ npm run verify
    (the packaging one is image-only and must be read visually, because `tesseract` is not installed).
    **This is now the only thing between the hosted site and a real catalogue** (the import is built).
    Product photos: see owner checklist G.
-3. Resend API key + verified sender domain (Phase 8), plus the owner checklist above.
+3. Resend API key + verified sender domain, when email sending is wanted (deferred, D40).
 4. Client content (placeholders until supplied): legal name, address, VAT number, bank details, terms text,
    real prices, which categories each customer gets.
 5. Accountant to confirm delivery-charge VAT treatment (DECISIONS D5).

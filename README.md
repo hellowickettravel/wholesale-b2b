@@ -16,15 +16,17 @@ npm run dev
 
 ## Checks
 ```bash
+npm run db:reset        # migrations + local seed (do this BEFORE building: see MEMORY.md)
 npm run verify          # typecheck, lint, unit tests, build
-npm run db:reset        # migrations + local seed
 npm run test:security   # RLS/API attacks as anon, customers, supplier, admin (local stack)
-npm run build && npm run test:e2e   # Playwright journeys (local stack, Mailpit)
+npm run test:e2e        # Playwright: journeys, invoices, accessibility (axe), payload leak scans
 npx tsx --env-file=.env.local scripts/import-catalogue.mts <file.csv> --supplier NAME --source LABEL [--apply]
 npx tsx scripts/screens.mts         # screenshots at 390/1280 into test-results/screens
 ```
 
 ## Docs
+- `HANDOVER.md`: current status, deploy checklist, what the owner must do
+- `docs/CLIENT-GUIDE.md`: how the business runs day to day (approve, price, orders, payments)
 - `PLAN.md`: phases, route map, data model, test plan
 - `DECISIONS.md`: decisions and reasons (money, VAT, pricing, security)
 - `CLAUDE.md` / `MEMORY.md`: working notes for engineers and agents

@@ -127,3 +127,17 @@
   a check (`openPaymentForm` in admin-orders.spec.ts).
 - Date inputs with `max` and textareas with `required` are stopped by the browser before the server
   action; E2E checks `validity` for those.
+
+## Phases 8–9 additions
+- react-pdf 4.9: a `render()` Text inside anything is not drawn when the Page style has `lineHeight`
+  (reproduced in a 10-line script). Don't add page counters without removing that.
+- tsx cannot run react-pdf scripts (CJS + `@react-pdf/hyphenate` exports); test PDFs through the
+  route, or with plain `.mjs` + `createElement`.
+- E2E reads PDF text with `pdftotext` (poppler, installed in the container); `-layout` can split
+  words that sit in different boxes ("VOID … INVOICE"): match with `\s+`.
+- `order` is a reserved word: never use it as a SQL column alias in tests.
+- Anything that can unmount its own form on success (cancel, complete, pay the last order) confirms
+  with a toast pushed right after `await action(...)`; a `useEffect` on the action state never runs.
+- E2E global setup keeps restaurants that have orders (orders/invoices are never removed); tests
+  must not assume a list's first page holds the seed rows. Three back-to-back runs pass.
+- The a11y spec signs in once per role and scans each screen with axe; it takes ~35 s per width.

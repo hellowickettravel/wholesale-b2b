@@ -320,3 +320,38 @@ Switching a supplier off stops new orders for its sizes (D32) and stops it being
 line; orders already placed carry on. Its logins keep working so it can finish those. A login can be
 switched off on the supplier's page (it is sent to /account-disabled); an admin cannot switch off
 their own login.
+
+## D39. Invoice PDFs (Phase 8)
+- Route handler `/api/invoices/[id]/pdf` (D12, `@react-pdf/renderer` as a server external package).
+  The data is read with the **viewer's own client**: a restaurant through `invoices` (RLS) and the
+  `customer_*` views, so another restaurant's id finds nothing (404, not 403, so ids reveal nothing);
+  an admin through admin RLS; suppliers and anyone else get 404, signed-out visitors 401.
+- Totals come from the **invoice snapshot**; the per-rate VAT table is built from the live lines
+  and checked against the snapshot (`invoiceSummary`); a mismatch is logged. Delivery is its own
+  line with its VAT shown separately (apportioned, D5). Paid and balance come from recorded payments.
+- A voided invoice (cancelled order) is drawn with VOID and no payment box; its number stays (D13).
+- `Cache-Control: private, no-store`; inline by default, `?download=1` saves.
+- No "Page x of y" counter: react-pdf 4.9 does not draw `render()` text when the page has a
+  `lineHeight` (reproduced in isolation). The fixed footer shows the footer text and invoice number.
+
+## D40. Email deferred (owner, 4 Oct)
+The owner asked to skip email/Resend for now. Every message is still written to `email_log` with
+status `queued` at the moment it happens (order to suppliers, confirmations, changes, cancellations,
+deliveries, approvals, payment reminders), so switching sending on later needs only a sender job and
+`RESEND_API_KEY`; nothing is lost meanwhile. In-portal notifications work now. Auth emails (confirm,
+invite, reset) are sent by Supabase Auth and do not depend on this.
+
+## D41. Accessibility (Phase 9)
+axe-core WCAG 2.1 A/AA scan of 33 screens (public, restaurant, supplier, driver, admin) at 390 and
+1280 px runs in E2E and is clean. Fixes: `--ink-subtle` darkened to #646d68 (≥ 4.5:1 on every
+background it is used on), brighter sidebar and footer labels, home step numbers in the primary colour,
+inline links underlined. Automated rules cover only part of WCAG; keyboard and focus order were
+checked by hand while building each screen.
+
+## D42. Performance advisor (Phase 9)
+- "Unused index" (40, INFO): the hosted database has no orders yet; the indexes back the admin
+  lists, chasing and RLS lookups. Kept; review after a few months of real use.
+- "Multiple permissive policies" on categories, products, customer_category_access and
+  customer_product_rules (an admin FOR ALL policy plus a read policy): small tables, each policy is a
+  cheap function call. Splitting them would need DROP POLICY, which the connector cannot run (D20);
+  not worth an owner SQL step at this size.
