@@ -4,8 +4,13 @@ import { Client } from "pg";
 export const PASSWORD = "Password123!";
 const MAILPIT = "http://127.0.0.1:54324/api/v1";
 
-/** Submits the login form. Waits until the app has navigated away from /login. */
+/**
+ * Submits the login form. Waits until the app has navigated away from /login. The suite signs in
+ * far more than 50 times from 127.0.0.1, so the login counters are cleared first; the limits
+ * itself is tested with submitLogin in auth.spec.ts.
+ */
 export async function signIn(page: Page, email: string, password = PASSWORD, path = "/login") {
+  await sql("update public.rate_limits set count = 0 where key like 'login%'");
   await submitLogin(page, email, password, path);
   await expect(page).not.toHaveURL(/\/login(\?|$)/);
 }
@@ -52,4 +57,28 @@ export async function sql<T extends Record<string, unknown>>(query: string, para
   } finally {
     await db.end();
   }
+}
+
+/**
+ * A confirmed self-registration (pending customer), made through the Auth admin API instead of
+ * the register form + email (those are covered in auth.spec.ts). handle_new_user() creates the
+ * pending customer from the metadata, exactly as for a real sign-up.
+ */
+export async function registeredRestaurant(email: string, businessName: string): Promise<string> {
+  const { createClient } = await import("@supabase/supabase-js");
+  const admin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321",
+    process.env.SUPABASE_SERVICE_ROLE_KEY ??
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+    { auth: { persistSession: false } },
+  );
+  const { error } = await admin.auth.admin.createUser({
+    email,
+    password: PASSWORD,
+    email_confirm: true,
+    user_metadata: { business_name: businessName, contact_name: "E2E Contact", phone: "07700 900456", address_line1: "2 Test Road", city: "London", postcode: "E2 7AA" },
+  });
+  if (error) throw new Error(`create registration: ${error.message}`);
+  const [row] = await sql<{ id: string }>("select c.id from profiles p join customers c on c.id = p.customer_id where p.email = $1", [email]);
+  return row.id;
 }

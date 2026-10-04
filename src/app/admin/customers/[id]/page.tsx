@@ -65,7 +65,6 @@ export default async function CustomerPage({ params, searchParams }: PageProps<"
             <CardHeader title="Account status" />
             <CardBody>
               <StatusPanel
-                key={c.status}
                 status={c.status}
                 reason={c.status_reason}
                 action={changeStatus.bind(null, c.id)}

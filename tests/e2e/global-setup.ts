@@ -14,6 +14,8 @@ export default async function globalSetup() {
   await db.query("delete from auth.users where email like 'e2e-%@example.com'");
   const ids = rows.map((r) => r.customer_id).filter(Boolean);
   if (ids.length) await db.query("delete from public.customers where id = any($1::uuid[])", [ids]);
+  await db.query("delete from public.customers where business_name like 'E2E %'");
+  await db.query("update public.settings set global_margin_bp = 2000");
   await db.query("delete from public.products where name like 'E2E %' or category_id in (select id from public.categories where name like 'E2E %')");
   await db.query("delete from public.categories where name like 'E2E %'");
   await db.query("delete from public.suppliers where name like 'E2E %'");

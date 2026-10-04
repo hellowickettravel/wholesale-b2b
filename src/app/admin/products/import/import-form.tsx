@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { startTransition, useActionState, useState } from "react";
 import { CheckCircle2, FileSpreadsheet, Upload } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +22,16 @@ export function ImportForm({ suppliers, defaultSupplierId }: { suppliers: { id: 
   const previewed = r && !r.applied;
 
   return (
-    <form action={action} className="space-y-6">
+    // Submitted by hand (see sizes-editor.tsx): an automatic form reset would put the supplier
+    // <select> back to "New supplier…" between preview and import.
+    <form
+      className="space-y-6"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const fd = new FormData(e.currentTarget, (e.nativeEvent as SubmitEvent).submitter);
+        startTransition(() => action(fd));
+      }}
+    >
       <input type="hidden" name="csv" value={text} />
       <input type="hidden" name="fileName" value={fileName || state.fileName || ""} />
 

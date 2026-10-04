@@ -414,7 +414,7 @@ export function PricingWorkbench({ data }: { data: WorkbenchData }) {
       <div
         className={cn(
           "fixed inset-x-0 bottom-0 z-30 border-t border-line bg-raised/95 px-4 py-3 shadow-[0_-8px_24px_-12px_rgba(24,33,29,0.25)] backdrop-blur transition-transform lg:left-[248px]",
-          changes > 0 || saving ? "translate-y-0" : "translate-y-full",
+          changes > 0 || saving ? "translate-y-0" : "invisible translate-y-full",
         )}
         aria-hidden={changes === 0 && !saving}
       >

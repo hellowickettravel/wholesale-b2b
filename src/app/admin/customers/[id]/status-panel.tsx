@@ -45,7 +45,7 @@ export function StatusPanel({
       ) : null}
 
       {(status === "pending" && mode === "approve") || status === "rejected" ? (
-        <form action={formAction} className="space-y-4">
+        <form action={formAction} className="space-y-4" noValidate>
           <input type="hidden" name="action" value="approve" />
           <fieldset>
             <legend className="mb-2 text-sm font-medium text-ink">Categories they can see</legend>
@@ -67,7 +67,7 @@ export function StatusPanel({
       ) : null}
 
       {status === "pending" && mode === "reject" ? (
-        <form action={formAction} className="space-y-3">
+        <form action={formAction} className="space-y-3" noValidate>
           <input type="hidden" name="action" value="reject" />
           <Field label="Reason (the restaurant sees this)" required error={fe.reason}>
             {(p) => <Textarea {...p} name="reason" rows={3} placeholder="e.g. We only supply restaurants in Greater London at the moment." />}
@@ -77,7 +77,7 @@ export function StatusPanel({
       ) : null}
 
       {status === "approved" ? (
-        <form action={formAction} className="space-y-3">
+        <form action={formAction} className="space-y-3" noValidate>
           <input type="hidden" name="action" value="suspend" />
           <p className="text-sm text-ink-muted">Approved: they can see their catalogue and order.</p>
           <Field label="Put on hold: reason (they see this)" error={fe.reason}>

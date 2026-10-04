@@ -52,7 +52,7 @@ type ProductRow = {
   categories: { name: string; slug: string; image_path: string | null } | null;
 };
 
-const CARD_COLUMNS = "id, name, slug, image_path, categories!inner(name, slug, image_path)";
+const CARD_COLUMNS = "id, name, slug, image_path, categories!inner(name, slug, image_path, sort)";
 
 async function variantsFor(ids: string[]) {
   if (ids.length === 0) return new Map<string, { id: string; size_label: string; sku: string | null }[]>();

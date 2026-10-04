@@ -103,7 +103,7 @@ export default async function CustomersPage({ searchParams }: PageProps<"/admin/
             <THead>
               <tr>
                 <TH>Restaurant</TH>
-                <TH>Status</TH>
+                <TH className="hidden sm:table-cell">Status</TH>
                 <TH className="hidden text-right md:table-cell">Categories</TH>
                 <TH className="hidden text-right md:table-cell">Logins</TH>
                 <TH className="hidden lg:table-cell">Since</TH>
@@ -115,10 +115,11 @@ export default async function CustomersPage({ searchParams }: PageProps<"/admin/
                   <TD>
                     <Link href={`/admin/customers/${c.id}`} className="group block">
                       <span className="block font-medium group-hover:text-primary group-hover:underline">{c.business_name}</span>
-                      <span className="block text-[13px] text-ink-muted">{[c.contact_name, c.postcode ?? c.city].filter(Boolean).join(" · ") || c.email || "—"}</span>
+                      <span className="block break-all text-[13px] text-ink-muted">{[c.contact_name, c.postcode ?? c.city].filter(Boolean).join(" · ") || c.email || "—"}</span>
+                      <span className="mt-1 block sm:hidden"><CustomerStatusBadge status={c.status} /></span>
                     </Link>
                   </TD>
-                  <TD><CustomerStatusBadge status={c.status} /></TD>
+                  <TD className="hidden sm:table-cell"><CustomerStatusBadge status={c.status} /></TD>
                   <TD className="tabular hidden text-right md:table-cell">{c.customer_category_access?.[0]?.count ?? 0}</TD>
                   <TD className="tabular hidden text-right md:table-cell">{c.profiles?.[0]?.count ?? 0}</TD>
                   <TD className="hidden whitespace-nowrap text-ink-muted lg:table-cell">{formatDate(c.created_at)}</TD>

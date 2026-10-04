@@ -48,7 +48,10 @@ beforeAll(async () => {
   db = await connect();
 });
 afterAll(async () => {
+  const { rows } = await db.query<{ customer_id: string | null }>("select customer_id from public.profiles where email like 'api-attacker-%@example.com'");
   await db.query("delete from auth.users where email like 'api-attacker-%@example.com'");
+  const ids = rows.map((r) => r.customer_id).filter(Boolean);
+  if (ids.length) await db.query("delete from public.customers where id = any($1::uuid[])", [ids]);
   await db.end();
 });
 

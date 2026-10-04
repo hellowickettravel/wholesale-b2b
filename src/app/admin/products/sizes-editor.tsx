@@ -1,7 +1,6 @@
 "use client";
-import { useActionState, useState } from "react";
+import { startTransition, useActionState, useState } from "react";
 import { Plus } from "lucide-react";
-import { SubmitButton } from "@/components/auth/submit-button";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -51,7 +50,7 @@ export function SizesEditor({
     sku: "",
     active: true,
   });
-  const [state, formAction] = useActionState(action, {});
+  const [state, formAction, pending] = useActionState(action, {});
   const [rows, setRows] = useState<SizeRow[]>(initial.length ? initial : [blank(initial)]);
   // After a save the page re-renders with the stored rows (new sizes now have ids): take them.
   const signature = JSON.stringify(initial);
@@ -65,7 +64,18 @@ export function SizesEditor({
   const err = (i: number, f: string) => fe[`v.${i}.${f}`]?.[0];
 
   return (
-    <form action={formAction} className="space-y-4" noValidate>
+    // Submitted by hand, not via <form action>: React resets a form after an action, which puts
+    // controlled <select>s (supplier, VAT) back to their first option and the next save would
+    // silently clear them.
+    <form
+      className="space-y-4"
+      noValidate
+      onSubmit={(e) => {
+        e.preventDefault();
+        const fd = new FormData(e.currentTarget);
+        startTransition(() => formAction(fd));
+      }}
+    >
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.notice ? <Alert tone="success">{state.notice}</Alert> : null}
 
@@ -137,7 +147,7 @@ export function SizesEditor({
         <Button type="button" variant="secondary" size="sm" icon={<Plus className="size-4" aria-hidden="true" />} onClick={() => setRows((rs) => [...rs, blank(rs)])} disabled={rows.length >= 40}>
           Add a size
         </Button>
-        <SubmitButton block={false} pendingText="Saving…">Save sizes</SubmitButton>
+        <Button type="submit" size="lg" loading={pending}>{pending ? "Saving…" : "Save sizes"}</Button>
       </div>
       <p className="text-xs text-ink-subtle">Sizes are never deleted, because past orders refer to them. Untick &ldquo;On sale&rdquo; to stop selling one.</p>
     </form>

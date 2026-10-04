@@ -371,15 +371,19 @@ describe("supplier B", () => {
 
 describe("admin", () => {
   it("can read costs, margins, overrides, payments and every order", async () => {
-    const allProfiles = (await asOwner(db, (q) => q<{ n: string }>("select count(*) as n from public.profiles")))[0].n;
+    // Compared with the owner's view: E2E runs add their own customers, prices and logins.
+    const count = async (t: string) => Number((await asOwner(db, (q) => q<{ n: string }>(`select count(*) as n from public.${t}`)))[0].n);
+    const [allProfiles, allOverrides, allMargins] = [await count("profiles"), await count("customer_price_overrides"), await count("customer_category_margins")];
+    expect(allOverrides).toBeGreaterThan(0);
+    expect(allMargins).toBeGreaterThan(0);
     await as(db, "admin", async (q) => {
       expect((await q("select cost_pence from public.product_variants where cost_pence is not null")).length).toBeGreaterThan(0);
-      expect(await q("select * from public.customer_price_overrides")).toHaveLength(1);
-      expect(await q("select * from public.customer_category_margins")).toHaveLength(1);
+      expect(await q("select * from public.customer_price_overrides")).toHaveLength(allOverrides);
+      expect(await q("select * from public.customer_category_margins")).toHaveLength(allMargins);
       expect(await q("select * from public.orders")).toHaveLength(2);
       expect(await q("select * from public.customer_payments")).toHaveLength(1);
       expect(await q("select * from public.supplier_payments")).toHaveLength(1);
-      expect((await q("select * from public.profiles")).length).toBe(Number(allProfiles));
+      expect((await q("select * from public.profiles")).length).toBe(allProfiles);
     });
   });
 
@@ -598,5 +602,52 @@ describe("catalogue (Phase 3)", () => {
 
   it("anon cannot upload into the product-images bucket", async () => {
     expect(await rowsOrDenied("anon", "insert into storage.objects (bucket_id, name) values ('product-images', 'products/x/evil.png') returning id")).toBe(DENIED);
+  });
+});
+
+describe("approvals and per-customer pricing (Phase 4)", () => {
+  const A = IDS.customers.A;
+  const writes: Array<[string, string]> = [
+    ["grant itself a category", `insert into public.customer_category_access (customer_id, category_id) select '${A}', id from public.categories where slug = 'food-colours' returning customer_id`],
+    ["add an always-show rule", `insert into public.customer_product_rules (customer_id, product_id, mode) select '${A}', id, 'allow' from public.products where name = 'Green Cardamom' returning customer_id`],
+    ["set a category margin", `insert into public.customer_category_margins (customer_id, category_id, margin_bp) select '${A}', id, -5000 from public.categories where slug = 'food-colours' returning customer_id`],
+    ["set a fixed price", `insert into public.customer_price_overrides (customer_id, variant_id, price_pence) values ('${A}', '${IDS.variants.rice5}', 1) returning customer_id`],
+    ["write a default margin", `insert into public.customer_private (customer_id, default_margin_bp) values ('${A}', -9000) on conflict (customer_id) do update set default_margin_bp = -9000 returning customer_id`],
+    ["queue an email", `insert into public.email_log (to_email, template, subject) values ('x@example.com', 'account_approved', 'x') returning id`],
+  ];
+  it.each(SIGNED_IN_NON_ADMINS.flatMap((actor) => writes.map(([what, sql]) => [actor, what, sql] as const)))("%s cannot %s", async (actor, _what, sql) => {
+    expect(await rowsOrDenied(actor, sql)).toBe(DENIED);
+  });
+
+  it.each(SIGNED_IN_NON_ADMINS)("%s cannot change the global margin or remove a category grant", async (actor) => {
+    expect(await rowsOrDenied(actor, "update public.settings set global_margin_bp = 0 returning id")).toBe(0);
+    expect([0, DENIED]).toContain(await rowsOrDenied(actor, `delete from public.customer_category_access where customer_id = '${A}' returning customer_id`));
+  });
+
+  it.each(["customerA", "customerB", "pending"] as Actor[])("%s cannot approve, reject or reactivate any account", async (actor) => {
+    for (const id of [IDS.customers.A, IDS.customers.B, IDS.customers.pending]) {
+      // Always a real change: approved -> suspended, anything else -> approved.
+      const r = await rowsOrDenied(
+        actor,
+        `update public.customers set status = (case when status = 'approved' then 'suspended' else 'approved' end)::public.customer_status where id = '${id}' returning id`,
+      );
+      expect([0, DENIED]).toContain(r);
+    }
+  });
+
+  it("customer A reads its own categories and product rules, and nobody else's (positive control)", async () => {
+    await as(db, "customerA", async (q) => {
+      const access = await q<{ customer_id: string }>("select customer_id from public.customer_category_access");
+      expect(access.length).toBeGreaterThan(0);
+      expect(access.every((r) => r.customer_id === A)).toBe(true);
+      const rules = await q<{ customer_id: string }>("select customer_id from public.customer_product_rules");
+      expect(rules.every((r) => r.customer_id === A)).toBe(true);
+    });
+  });
+
+  it("admin can do all of it (positive control)", async () => {
+    await as(db, "admin", async (q) => {
+      for (const [, sql] of writes) expect((await q(sql)).length).toBe(1);
+    });
   });
 });

@@ -110,6 +110,7 @@ test.describe("admin catalogue", () => {
     await adminProductPage(page, product, category);
     await page.locator('input[name="v.0.size_label"]').fill("20 pcs");
     await page.locator('input[name="v.0.cost"]').fill("7.35");
+    await page.locator('select[name="v.0.vat"]').selectOption("20");
     await page.getByRole("button", { name: "Add a size" }).click();
     await page.locator('input[name="v.1.size_label"]').fill("50 pcs");
     await page.getByRole("button", { name: "Save sizes" }).click();
@@ -120,11 +121,18 @@ test.describe("admin catalogue", () => {
     // Re-saving keeps two sizes (new rows got ids; no duplicates).
     await page.getByRole("button", { name: "Save sizes" }).click();
     await expect(page.getByText("Sizes saved.")).toBeVisible();
-    const sizes = await sql<{ size_label: string; cost_pence: number | null }>(
-      "select size_label, cost_pence::int as cost_pence from public.product_variants v join public.products p on p.id = v.product_id where p.name = $1 order by size_sort",
-      [product],
-    );
-    expect(sizes).toEqual([{ size_label: "20 pcs", cost_pence: 735 }, { size_label: "50 pcs", cost_pence: null }]);
+    // Saving twice keeps every dropdown (regression: React's form reset used to clear supplier and VAT).
+    await expect.poll(async () =>
+      sql<{ size_label: string; cost_pence: number | null; vat_rate_bp: number; supplier: string | null }>(
+        `select v.size_label, v.cost_pence::int as cost_pence, v.vat_rate_bp, s.name as supplier from public.product_variants v
+           join public.products p on p.id = v.product_id left join public.suppliers s on s.id = v.supplier_id where p.name = $1 order by size_sort`,
+        [product],
+      ),
+    ).toEqual([
+      { size_label: "20 pcs", cost_pence: 735, vat_rate_bp: 2000, supplier: "Dev Supplier A" },
+      { size_label: "50 pcs", cost_pence: null, vat_rate_bp: 0, supplier: "Dev Supplier A" },
+    ]);
+    await expect(page.locator('select[name="v.0.vat"]')).toHaveValue("20");
 
     // Bad cost is rejected on the right row.
     await page.locator('input[name="v.1.cost"]').fill("abc");
