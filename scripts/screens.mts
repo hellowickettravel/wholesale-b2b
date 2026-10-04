@@ -66,6 +66,23 @@ const shots: Shot[] = [
   { name: "admin", path: "/admin", as: "admin@example.com" },
   { name: "admin-users", path: "/admin/users", as: "admin@example.com" },
   { name: "admin-soon", path: "/admin/orders", as: "admin@example.com" },
+  { name: "admin-products", path: "/admin/products", as: "admin@example.com" },
+  { name: "admin-products-needs-price", path: "/admin/products?status=needs-price&q=rice", as: "admin@example.com" },
+  { name: "admin-product-edit", path: "/admin/products/40000000-0000-4000-a000-000000000001", as: "admin@example.com" },
+  { name: "admin-product-new", path: "/admin/products/new", as: "admin@example.com" },
+  { name: "admin-categories", path: "/admin/categories", as: "admin@example.com" },
+  { name: "admin-category-edit", path: "/admin/categories/ca7e0000-0000-4000-a000-000000000001", as: "admin@example.com" },
+  { name: "admin-import", path: "/admin/products/import", as: "admin@example.com" },
+  {
+    name: "admin-import-preview",
+    path: "/admin/products/import",
+    as: "admin@example.com",
+    before: async (p) => {
+      await p.locator('input[type="file"]').setInputFiles("tests/fixtures/catalogue-sample.csv");
+      await p.getByRole("button", { name: "Preview import" }).click();
+      await p.getByText(/Nothing new to import|Preview only/).waitFor();
+    },
+  },
   { name: "supplier", path: "/supplier", as: "supplier.a@example.com" },
   { name: "account-disabled", path: "/account-disabled" },
 ];

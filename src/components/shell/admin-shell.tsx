@@ -4,6 +4,7 @@ import {
   Boxes,
   ClipboardList,
   FileText,
+  FolderTree,
   LayoutDashboard,
   ScrollText,
   Settings,
@@ -39,6 +40,7 @@ const groups = [
     label: "Catalogue",
     items: [
       { href: "/admin/products", label: "Products", icon: Boxes },
+      { href: "/admin/categories", label: "Categories", icon: FolderTree },
       { href: "/admin/suppliers", label: "Suppliers", icon: Truck },
     ],
   },
