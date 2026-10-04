@@ -8,6 +8,7 @@ export default async function globalSetup() {
   const db = new Client({ connectionString: process.env.TEST_DATABASE_URL ?? "postgresql://postgres:postgres@127.0.0.1:54322/postgres" });
   await db.connect();
   await db.query("truncate public.rate_limits");
+  await db.query("truncate public.basket_items");
   const { rows } = await db.query<{ customer_id: string | null }>(
     "select customer_id from public.profiles where email like 'e2e-%@example.com'",
   );

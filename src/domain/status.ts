@@ -60,3 +60,27 @@ export function isOrderLocked(order: { status: OrderStatus }, supplierStatuses: 
   if (order.status === "completed" || order.status === "cancelled") return true;
   return supplierStatuses.some((s) => s === "delivered");
 }
+
+/** Payment reference the restaurant puts on its bank transfer (DECISIONS D13). */
+export function orderRef(number: number): string {
+  return `ORDER-${number}`;
+}
+
+/** "INV-000001" */
+export function invoiceRef(number: number): string {
+  return `INV-${String(number).padStart(6, "0")}`;
+}
+
+export const SUPPLIER_STATUS_LABEL: Record<SupplierOrderStatus, string> = {
+  placed: "Order received",
+  sent: "With the supplier",
+  out_for_delivery: "Out for delivery",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
+};
+
+export const PAYMENT_TERMS_LABEL = {
+  on_delivery: "Pay on delivery",
+  within_7_days: "Within 7 days of delivery",
+  on_date: "On an agreed date",
+} as const;

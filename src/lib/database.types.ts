@@ -36,6 +36,37 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"basket_items": {
+                  Row: {
+                    "created_at": string,"customer_id": string,"qty": number,"updated_at": string,"variant_id": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"customer_id": string,"qty": number,"updated_at"?: string,"variant_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"customer_id"?: string,"qty"?: number,"updated_at"?: string,"variant_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "basket_items_customer_id_fkey"
+      columns: ["customer_id"]
+isOneToOne: false
+      referencedRelation: "customers"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "basket_items_variant_id_fkey"
+      columns: ["variant_id"]
+isOneToOne: false
+      referencedRelation: "catalogue_variants"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "basket_items_variant_id_fkey"
+      columns: ["variant_id"]
+isOneToOne: false
+      referencedRelation: "product_variants"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"categories": {
                   Row: {
                     "active": boolean,"created_at": string,"default_vat_rate_bp": number,"description": string | null,"id": string,"image_path": string | null,"name": string,"slug": string,"sort": number,"updated_at": string
@@ -406,13 +437,13 @@ isOneToOne: false
                   ]
                 },"orders": {
                   Row: {
-                    "cancelled_at": string | null,"completed_at": string | null,"created_at": string,"customer_id": string,"delivery_address": string,"delivery_date": string,"delivery_net_pence": number,"delivery_vat_pence": number,"goods_net_pence": number,"goods_vat_pence": number,"id": string,"locked_at": string | null,"next_chase_date": string | null,"note": string | null,"number": number,"payment_notes": string | null,"payment_terms": Database["public"]['Enums']["payment_terms"],"placed_by": string | null,"promised_pay_date": string | null,"status": Database["public"]['Enums']["order_status"],"total_pence": number,"updated_at": string,"vat_pence": number
+                    "cancelled_at": string | null,"checkout_key": string | null,"completed_at": string | null,"created_at": string,"customer_id": string,"delivery_address": string,"delivery_date": string,"delivery_net_pence": number,"delivery_vat_pence": number,"goods_net_pence": number,"goods_vat_pence": number,"id": string,"locked_at": string | null,"next_chase_date": string | null,"note": string | null,"number": number,"payment_notes": string | null,"payment_terms": Database["public"]['Enums']["payment_terms"],"placed_by": string | null,"promised_pay_date": string | null,"status": Database["public"]['Enums']["order_status"],"total_pence": number,"updated_at": string,"vat_pence": number
                   }
                   Insert: {
-                    "cancelled_at"?: string | null,"completed_at"?: string | null,"created_at"?: string,"customer_id": string,"delivery_address": string,"delivery_date": string,"delivery_net_pence"?: number,"delivery_vat_pence"?: number,"goods_net_pence": number,"goods_vat_pence": number,"id"?: string,"locked_at"?: string | null,"next_chase_date"?: string | null,"note"?: string | null,"number": number,"payment_notes"?: string | null,"payment_terms"?: Database["public"]['Enums']["payment_terms"],"placed_by"?: string | null,"promised_pay_date"?: string | null,"status"?: Database["public"]['Enums']["order_status"],"total_pence": number,"updated_at"?: string,"vat_pence": number
+                    "cancelled_at"?: string | null,"checkout_key"?: string | null,"completed_at"?: string | null,"created_at"?: string,"customer_id": string,"delivery_address": string,"delivery_date": string,"delivery_net_pence"?: number,"delivery_vat_pence"?: number,"goods_net_pence": number,"goods_vat_pence": number,"id"?: string,"locked_at"?: string | null,"next_chase_date"?: string | null,"note"?: string | null,"number": number,"payment_notes"?: string | null,"payment_terms"?: Database["public"]['Enums']["payment_terms"],"placed_by"?: string | null,"promised_pay_date"?: string | null,"status"?: Database["public"]['Enums']["order_status"],"total_pence": number,"updated_at"?: string,"vat_pence": number
                   }
                   Update: {
-                    "cancelled_at"?: string | null,"completed_at"?: string | null,"created_at"?: string,"customer_id"?: string,"delivery_address"?: string,"delivery_date"?: string,"delivery_net_pence"?: number,"delivery_vat_pence"?: number,"goods_net_pence"?: number,"goods_vat_pence"?: number,"id"?: string,"locked_at"?: string | null,"next_chase_date"?: string | null,"note"?: string | null,"number"?: number,"payment_notes"?: string | null,"payment_terms"?: Database["public"]['Enums']["payment_terms"],"placed_by"?: string | null,"promised_pay_date"?: string | null,"status"?: Database["public"]['Enums']["order_status"],"total_pence"?: number,"updated_at"?: string,"vat_pence"?: number
+                    "cancelled_at"?: string | null,"checkout_key"?: string | null,"completed_at"?: string | null,"created_at"?: string,"customer_id"?: string,"delivery_address"?: string,"delivery_date"?: string,"delivery_net_pence"?: number,"delivery_vat_pence"?: number,"goods_net_pence"?: number,"goods_vat_pence"?: number,"id"?: string,"locked_at"?: string | null,"next_chase_date"?: string | null,"note"?: string | null,"number"?: number,"payment_notes"?: string | null,"payment_terms"?: Database["public"]['Enums']["payment_terms"],"placed_by"?: string | null,"promised_pay_date"?: string | null,"status"?: Database["public"]['Enums']["order_status"],"total_pence"?: number,"updated_at"?: string,"vat_pence"?: number
                   }
                   Relationships: [
                     {

@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { PricingRules } from "@/domain/pricing";
 import type { ProductRuleMode, VisibilityRules } from "@/domain/visibility";
 import type { Database } from "@/lib/database.types";
+import { fetchAll } from "@/lib/supabase/fetch-all";
 
 type Client = SupabaseClient<Database>;
 
@@ -22,9 +23,13 @@ export async function loadCustomerRules(client: Client, customerId: string): Pro
     client.from("settings").select("global_margin_bp").single(),
     client.from("customer_private").select("default_margin_bp").eq("customer_id", customerId).maybeSingle(),
     client.from("customer_category_margins").select("category_id, margin_bp").eq("customer_id", customerId),
-    client.from("customer_price_overrides").select("variant_id, price_pence").eq("customer_id", customerId).limit(10000),
+    fetchAll((from, to) =>
+      client.from("customer_price_overrides").select("variant_id, price_pence").eq("customer_id", customerId).order("variant_id").range(from, to),
+    ).then((data) => ({ data, error: null }), (e: Error) => ({ data: null, error: e })),
     client.from("customer_category_access").select("category_id").eq("customer_id", customerId),
-    client.from("customer_product_rules").select("product_id, mode").eq("customer_id", customerId).limit(10000),
+    fetchAll((from, to) =>
+      client.from("customer_product_rules").select("product_id, mode").eq("customer_id", customerId).order("product_id").range(from, to),
+    ).then((data) => ({ data, error: null }), (e: Error) => ({ data: null, error: e })),
   ]);
   for (const r of [settings, priv, margins, overrides, access, rules]) {
     if (r.error) throw new Error(`load customer rules: ${r.error.message}`);

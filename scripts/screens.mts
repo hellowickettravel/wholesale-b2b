@@ -60,8 +60,17 @@ const shots: Shot[] = [
   { name: "reset-form", path: "/reset-password", as: "restaurant.b@example.com" },
   { name: "invite-form", path: "/auth/invite", as: "supplier.b@example.com" },
   { name: "shop", path: "/shop", as: "restaurant.a@example.com" },
+  { name: "shop-search", path: "/shop?q=rice", as: "restaurant.a@example.com" },
+  { name: "shop-category", path: "/shop?category=drinks", as: "restaurant.a@example.com" },
+  { name: "shop-empty-search", path: "/shop?q=zzzz", as: "restaurant.a@example.com" },
+  { name: "shop-product", path: "/shop/p/basant-basmati-rice", as: "restaurant.a@example.com" },
+  { name: "shop-product-unpriced", path: "/shop/p/green-cardamom", as: "restaurant.a@example.com" },
+  { name: "basket", path: "/basket", as: "restaurant.a@example.com" },
+  { name: "basket-problem", path: "/basket", as: "restaurant.b@example.com" },
+  { name: "orders", path: "/orders", as: "restaurant.a@example.com" },
+  { name: "order", path: "/orders/{latestA}", as: "restaurant.a@example.com" },
+  { name: "order-confirmed", path: "/orders/{latestA}/confirmed", as: "restaurant.a@example.com" },
   { name: "account", path: "/account", as: "restaurant.a@example.com" },
-  { name: "basket-soon", path: "/basket", as: "restaurant.a@example.com" },
   { name: "forbidden", path: "/admin", as: "restaurant.a@example.com" },
   { name: "admin", path: "/admin", as: "admin@example.com" },
   { name: "admin-users", path: "/admin/users", as: "admin@example.com" },
@@ -110,6 +119,19 @@ await db.query("truncate public.rate_limits");
 // Leftovers from E2E runs would show up on the public pages.
 await db.query("delete from public.products where name like 'E2E %' or category_id in (select id from public.categories where name like 'E2E %')");
 await db.query("delete from public.categories where name like 'E2E %'");
+// Baskets to photograph: A has a normal basket under the free-delivery minimum; B has an item
+// that is not on its list.
+await db.query("truncate public.basket_items");
+await db.query(`insert into public.basket_items (customer_id, variant_id, qty) values
+  ('20000000-0000-4000-a000-000000000001', '50000000-0000-4000-a000-000000000002', 2),
+  ('20000000-0000-4000-a000-000000000001', '50000000-0000-4000-a000-000000000001', 1),
+  ('20000000-0000-4000-a000-000000000001', '50000000-0000-4000-a000-000000000003', 3),
+  ('20000000-0000-4000-a000-000000000002', '50000000-0000-4000-a000-000000000001', 4),
+  ('20000000-0000-4000-a000-000000000002', '50000000-0000-4000-a000-000000000004', 1)`);
+const { rows: latest } = await db.query<{ id: string }>(
+  "select id from public.orders where customer_id = '20000000-0000-4000-a000-000000000001' order by created_at desc limit 1",
+);
+for (const s of shots) s.path = s.path.replace("{latestA}", latest[0]?.id ?? "none");
 await db.end();
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? "/opt/pw-browsers/chromium-1194/chrome-linux/chrome" });

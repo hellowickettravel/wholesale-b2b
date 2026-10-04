@@ -651,3 +651,104 @@ describe("approvals and per-customer pricing (Phase 4)", () => {
     });
   });
 });
+
+describe("basket and order placement (Phase 5)", () => {
+  const A = IDS.customers.A;
+  const B = IDS.customers.B;
+  const add = (customer: string, qty = 1) =>
+    `insert into public.basket_items (customer_id, variant_id, qty) values ('${customer}', '${IDS.variants.rice5}', ${qty}) returning customer_id`;
+
+  it("customer A keeps its own basket (positive control) and sees only its own rows", async () => {
+    await as(db, "customerA", async (q) => {
+      expect((await q(add(A, 3))).length).toBe(1);
+      expect((await q(`update public.basket_items set qty = 4 where customer_id = '${A}' returning qty`)).length).toBe(1);
+      const rows = await q<{ customer_id: string }>("select customer_id from public.basket_items");
+      expect(rows.length).toBe(1);
+      expect(rows.every((r) => r.customer_id === A)).toBe(true);
+      expect((await q(`delete from public.basket_items where customer_id = '${A}' returning customer_id`)).length).toBe(1);
+    });
+  });
+
+  it.each(NON_ADMINS.filter((a) => a !== "customerB"))("%s cannot put anything in restaurant B's basket", async (actor) => {
+    expect(await rowsOrDenied(actor, add(B))).toBe(DENIED);
+  });
+
+  it.each(["anon", "pending", "supplierA", "supplierB", "admin"] as Actor[])("%s cannot keep a basket (only approved restaurants can)", async (actor) => {
+    const own = actor === "pending" ? IDS.customers.pending : A;
+    expect(await rowsOrDenied(actor, add(own))).toBe(DENIED);
+  });
+
+  it.each(SIGNED_IN_NON_ADMINS)("%s cannot read, change or empty another restaurant's basket", async (actor) => {
+    const result = await asOwner(db, async (q) => {
+      await q(`insert into public.basket_items (customer_id, variant_id, qty) values ('${B}', '${IDS.variants.mango}', 2)`);
+      // Switch to the actor inside the same transaction so the row exists for the attempt.
+      await q("set local role authenticated");
+      await q("select set_config('request.jwt.claims', $1, true)", [JSON.stringify({ sub: IDS.users[actor as keyof typeof IDS.users], role: "authenticated" })]);
+      const seen = (await q(`select 1 from public.basket_items where customer_id = '${B}'`)).length;
+      const changed = (await q(`update public.basket_items set qty = 99 where customer_id = '${B}' returning 1`)).length;
+      const removed = (await q(`delete from public.basket_items where customer_id = '${B}' returning 1`)).length;
+      return { seen, changed, removed };
+    });
+    if (actor === "customerB") expect(result).toEqual({ seen: 1, changed: 1, removed: 1 });
+    else expect(result).toEqual({ seen: 0, changed: 0, removed: 0 });
+  });
+
+  it("quantities are whole numbers from 1 to 9,999", async () => {
+    for (const qty of [0, -1, 10000]) expect(await as(db, "customerA", (q) => outcome(q(add(A, qty))))).toBe("23514");
+  });
+
+  it.each(NON_ADMINS)("%s cannot call create_order_tx (server only)", async (actor) => {
+    const r = await as(db, actor, (q) => outcome(q("select public.create_order_tx('{}'::jsonb)")));
+    expect(r).toBe(DENIED);
+  });
+
+  it("customers cannot see the checkout key of their orders", async () => {
+    const cols = await as(db, "customerA", (q) =>
+      q<{ column_name: string }>("select column_name from information_schema.columns where table_schema = 'public' and table_name = 'customer_orders'"),
+    );
+    expect(cols.map((c) => c.column_name)).not.toContain("checkout_key");
+  });
+
+  const payload = (key: string | null, supplier: string = IDS.suppliers.A) => ({
+    customer_id: B, placed_by: IDS.users.customerB, checkout_key: key, delivery_date: "2026-10-10", payment_terms: "within_7_days", promised_pay_date: "2026-10-17",
+    totals: { goods_net_pence: 1440, goods_vat_pence: 0, delivery_net_pence: 1200, delivery_vat_pence: 0, vat_pence: 0, total_pence: 2640 },
+    supplier_orders: [{ supplier_id: supplier, items: [{ variant_id: IDS.variants.rice5, product_name: "Rice", size_label: "5 kg", qty: 1, unit_price_pence: 1440, unit_cost_pence: 1200, vat_rate_bp: 0, line_net_pence: 1440, line_vat_pence: 0 }] }],
+  });
+
+  it("the same checkout submitted twice places one order", async () => {
+    await asOwner(db, async (q) => {
+      const key = "9f1c2d3e-4b5a-4c6d-8e7f-0a1b2c3d4e5f";
+      const before = (await q<{ n: number }>("select count(*)::int n from public.orders"))[0].n;
+      const a = (await q<{ r: { order_id: string; existing: boolean } }>("select public.create_order_tx($1::jsonb) r", [JSON.stringify(payload(key))]))[0].r;
+      const b = (await q<{ r: { order_id: string; existing: boolean } }>("select public.create_order_tx($1::jsonb) r", [JSON.stringify(payload(key))]))[0].r;
+      expect(b.order_id).toBe(a.order_id);
+      expect([a.existing, b.existing]).toEqual([false, true]);
+      expect((await q<{ n: number }>("select count(*)::int n from public.orders"))[0].n).toBe(before + 1);
+    });
+  });
+
+  it("refuses lines from an inactive supplier", async () => {
+    const err = await asOwner(db, async (q) => {
+      await q(`update public.suppliers set active = false where id = '${IDS.suppliers.A}'`);
+      return outcome(q("select public.create_order_tx($1::jsonb)", [JSON.stringify(payload(null))]));
+    });
+    expect(err).toBe("P0001");
+  });
+
+  it("tells each supplier's own logins, and queues the supplier and restaurant emails", async () => {
+    await asOwner(db, async (q) => {
+      const r = (await q<{ r: { order_id: string; number: number } }>("select public.create_order_tx($1::jsonb) r", [JSON.stringify(payload(null))]))[0].r;
+      const notes = await q<{ user_id: string; link: string }>("select user_id, link from public.notifications where title = $1", [`New order ORDER-${r.number}`]);
+      expect(notes.map((n) => n.user_id)).toEqual([IDS.users.supplierA]);
+      expect(notes[0].link).toMatch(/^\/supplier\/orders\/[0-9a-f-]{36}$/);
+      const mail = await q<{ to_email: string; template: string }>(
+        "select to_email, template from public.email_log where entity_id in (select id::text from public.supplier_orders where order_id = $1 union select $1::text) order by template",
+        [r.order_id],
+      );
+      expect(mail).toEqual([
+        { to_email: "restaurant.b@example.com", template: "order_confirmation" },
+        { to_email: "supplier.a@example.com", template: "supplier_order_new" },
+      ]);
+    });
+  });
+});

@@ -90,9 +90,9 @@ describe("dates", () => {
   });
   it("promised pay date", () => {
     expect(promisedPayDate("on_delivery", "2026-10-06")).toBe("2026-10-06");
-    expect(promisedPayDate("7_days", "2026-10-06")).toBe("2026-10-13");
-    expect(promisedPayDate("date", "2026-10-06", "2026-10-20")).toBe("2026-10-20");
-    expect(() => promisedPayDate("date", "2026-10-06")).toThrow();
+    expect(promisedPayDate("within_7_days", "2026-10-06")).toBe("2026-10-13");
+    expect(promisedPayDate("on_date", "2026-10-06", "2026-10-20")).toBe("2026-10-20");
+    expect(() => promisedPayDate("on_date", "2026-10-06")).toThrow();
   });
 });
 

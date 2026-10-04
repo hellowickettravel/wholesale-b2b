@@ -12,6 +12,7 @@ export const LIMITS = {
   resetPerAccount: { limit: 5, window: 60 * 60 },
   passwordSetPerUser: { limit: 10, window: 60 * 60 },
   invitePerAdmin: { limit: 60, window: 60 * 60 },
+  orderPerCustomer: { limit: 30, window: 60 * 60 },
 } as const;
 
 /** Client IP as seen by Vercel / the local server. */

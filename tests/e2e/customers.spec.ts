@@ -45,10 +45,8 @@ test.describe("approvals", () => {
     const shop = await ctx.newPage();
     await signIn(shop, email);
     await expect(shop).toHaveURL(/\/shop$/);
-    const card = shop.getByRole("main");
-    await expect(card.getByText("Rice", { exact: true })).toBeVisible();
-    await expect(card.getByText("Drinks", { exact: true })).toBeVisible();
-    await expect(card.getByText("Whole Spices", { exact: true })).toHaveCount(0);
+    const shopCats = shop.getByRole("navigation", { name: "Categories" });
+    await expect(shopCats.getByRole("link")).toHaveText([/^All/, /^Rice/, /^Drinks/]);
     await ctx.close();
   });
 

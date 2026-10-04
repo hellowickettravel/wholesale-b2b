@@ -44,14 +44,14 @@ export function likePattern(word: string): string {
   return `%${word.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
 }
 
-/** Build a catalogue URL, dropping empty params and page 1. */
-export function catalogueHref(q: { category?: string | null; q?: string; page?: number }): string {
+/** Build a catalogue URL (public /catalogue or the restaurant's /shop), dropping empty params and page 1. */
+export function catalogueHref(q: { category?: string | null; q?: string; page?: number }, base: "/catalogue" | "/shop" = "/catalogue"): string {
   const sp = new URLSearchParams();
   if (q.category) sp.set("category", q.category);
   if (q.q) sp.set("q", q.q);
   if (q.page && q.page > 1) sp.set("page", String(q.page));
   const s = sp.toString();
-  return s ? `/catalogue?${s}` : "/catalogue";
+  return s ? `${base}?${s}` : base;
 }
 
 /** "1 kg", "5 kg", "20 kg" -> "1 kg – 20 kg"; one size -> that size; none -> null. */
@@ -59,4 +59,10 @@ export function sizeRange(sizes: string[]): string | null {
   if (sizes.length === 0) return null;
   if (sizes.length === 1) return sizes[0];
   return `${sizes[0]} – ${sizes[sizes.length - 1]}`;
+}
+
+/** In-memory version of the catalogue search: every word must appear in the name. */
+export function matchesWords(name: string, words: string[]): boolean {
+  const n = name.toLowerCase();
+  return words.every((w) => n.includes(w));
 }
