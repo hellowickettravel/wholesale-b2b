@@ -1,10 +1,9 @@
 "use server";
 import { revalidatePath } from "next/cache";
-import { siteUrl } from "@/lib/env";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { echo, fieldErrorsOf, inviteSchema, type FormState } from "@/lib/validation/auth";
 import { requireRole } from "@/server/auth";
+import { inviteLogin } from "@/server/invite";
 import { hit } from "@/server/rate-limit";
 
 const FIELDS = ["email", "full_name", "role", "business_name", "supplier_id", "new_supplier_name"];
@@ -67,29 +66,16 @@ export async function inviteUser(_prev: FormState, formData: FormData): Promise<
     if (createdSupplier && supplierId) await supabase.from("suppliers").delete().eq("id", supplierId);
   };
 
-  const admin = createAdminClient();
-  const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(input.email, {
-    data: { full_name: input.full_name },
-    redirectTo: `${siteUrl()}/auth/invite`,
+  const invited = await inviteLogin(supabase, {
+    email: input.email,
+    fullName: input.full_name,
+    role: input.role,
+    customerId,
+    supplierId,
   });
-  if (inviteError || !invited.user) {
+  if (invited.error) {
     await undoRecords();
-    console.error("invite failed", inviteError?.code, inviteError?.message);
-    return {
-      error: inviteError?.code === "email_exists" ? "Someone already has an account with this email." : "The invitation email could not be sent. Please try again.",
-      values,
-    };
-  }
-
-  const { error: linkError } = await supabase
-    .from("profiles")
-    .update({ role: input.role, customer_id: customerId, supplier_id: supplierId, full_name: input.full_name })
-    .eq("id", invited.user.id);
-  if (linkError) {
-    await admin.auth.admin.deleteUser(invited.user.id);
-    await undoRecords();
-    console.error("linking invited profile failed", linkError.message);
-    return { error: "Could not finish setting up the account. Nothing was created; please try again.", values };
+    return { error: invited.error, values };
   }
 
   revalidatePath("/admin/users");

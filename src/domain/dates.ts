@@ -107,6 +107,13 @@ export function formatDayDate(iso: string): string {
   }).format(toUtc(iso));
 }
 
+/** Timestamp → "6 Oct 2026" (London calendar day). */
+export function formatDate(ts: string | Date): string {
+  return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: BUSINESS_TZ }).format(
+    typeof ts === "string" ? new Date(ts) : ts,
+  );
+}
+
 /** Timestamp (ISO with time) → "6 Oct, 14:05" in London. */
 export function formatTimestamp(ts: string | Date): string {
   return new Intl.DateTimeFormat("en-GB", {

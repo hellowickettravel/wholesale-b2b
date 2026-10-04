@@ -66,6 +66,22 @@ const shots: Shot[] = [
   { name: "admin", path: "/admin", as: "admin@example.com" },
   { name: "admin-users", path: "/admin/users", as: "admin@example.com" },
   { name: "admin-soon", path: "/admin/orders", as: "admin@example.com" },
+  { name: "admin-approvals", path: "/admin/approvals", as: "admin@example.com" },
+  { name: "admin-customers", path: "/admin/customers", as: "admin@example.com" },
+  { name: "admin-customer-new", path: "/admin/customers/new", as: "admin@example.com" },
+  { name: "admin-customer", path: "/admin/customers/20000000-0000-4000-a000-000000000001", as: "admin@example.com" },
+  { name: "admin-customer-pending", path: "/admin/customers/20000000-0000-4000-a000-000000000003", as: "admin@example.com" },
+  { name: "admin-pricing", path: "/admin/customers/20000000-0000-4000-a000-000000000001/pricing", as: "admin@example.com" },
+  {
+    name: "admin-pricing-dirty",
+    path: "/admin/customers/20000000-0000-4000-a000-000000000001/pricing",
+    as: "admin@example.com",
+    before: async (p) => {
+      await p.getByLabel("Rice margin per cent").fill("12.5");
+      await p.getByText(/unsaved change/).waitFor();
+    },
+  },
+  { name: "admin-settings", path: "/admin/settings", as: "admin@example.com" },
   { name: "admin-products", path: "/admin/products", as: "admin@example.com" },
   { name: "admin-products-needs-price", path: "/admin/products?status=needs-price&q=rice", as: "admin@example.com" },
   { name: "admin-product-edit", path: "/admin/products/40000000-0000-4000-a000-000000000001", as: "admin@example.com" },
