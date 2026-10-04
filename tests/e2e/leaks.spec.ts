@@ -26,7 +26,8 @@ test.describe("nothing secret reaches a browser", () => {
     await signIn(page, "restaurant.a@example.com");
     // Supplier identity, costs and restaurant B's details never reach restaurant A.
     const words = [...SECRET_FIELDS, "supplier_id", "supplierId", "Dev Supplier", "£42.00", "£14.50", "Dev Restaurant B", "restaurant.b@example.com"];
-    for (const path of ["/orders", `/orders/${o.id}`, `/orders/${o.id}/confirmed`, "/invoices"]) await scan(page.request, path, words, "ORDER-1001");
+    for (const path of [`/orders/${o.id}`, `/orders/${o.id}/confirmed`]) await scan(page.request, path, words, "ORDER-1001");
+    for (const path of ["/orders", "/invoices"]) await scan(page.request, path, words, "ORDER-");
     await scan(page.request, "/account", words, "Dev Restaurant A");
   });
 

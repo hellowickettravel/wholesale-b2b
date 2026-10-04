@@ -157,6 +157,8 @@ test.describe("admin orders and payments", () => {
     await expect(page.getByText("A delivery has been made, so the order can no longer be changed.")).toBeVisible();
     await expect(page.getByRole("button", { name: "Cancel order" })).toHaveCount(0);
 
+    // Earlier runs leave other unpaid parts for supplier B; settle them so only this one is listed.
+    await sql("update supplier_orders set paid_to_supplier = true where supplier_id = $1 and id <> $2", [SUP_B, o.soB]);
     await page.goto(`/admin/suppliers/${SUP_B}`);
     const box = page.getByRole("checkbox", { name: new RegExp(`ORDER-${o.number}`) });
     await expect(box).toBeChecked();

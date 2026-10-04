@@ -14,8 +14,11 @@ export default async function globalSetup() {
   );
   await db.query("delete from auth.users where email like 'e2e-%@example.com'");
   const ids = rows.map((r) => r.customer_id).filter(Boolean);
-  if (ids.length) await db.query("delete from public.customers where id = any($1::uuid[])", [ids]);
-  await db.query("delete from public.customers where business_name like 'E2E %'");
+  // Restaurants that placed orders (the journey test) are kept: orders and invoices are never
+  // removed (gapless numbers, D13). Their logins are removed above, so they cannot sign in.
+  const noOrders = "not exists (select 1 from public.orders o where o.customer_id = customers.id)";
+  if (ids.length) await db.query(`delete from public.customers where id = any($1::uuid[]) and ${noOrders}`, [ids]);
+  await db.query(`delete from public.customers where business_name like 'E2E %' and ${noOrders}`);
   await db.query("update public.settings set global_margin_bp = 2000");
   await db.query("delete from public.products where name like 'E2E %' or category_id in (select id from public.categories where name like 'E2E %')");
   await db.query("delete from public.categories where name like 'E2E %'");

@@ -1,10 +1,12 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useMemo, useState, useTransition } from "react";
 import { SubmitButton } from "@/components/auth/submit-button";
 import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { Money } from "@/components/ui/money";
+import { useToast } from "@/components/ui/toast";
 import type { FormState } from "@/lib/validation/auth";
 import { PAYMENT_METHODS, PAYMENT_METHOD_LABEL } from "@/lib/validation/admin-orders";
 
@@ -52,15 +54,28 @@ export interface UnpaidPart {
 
 /** Tick the orders one bank transfer paid; the total updates as you tick. */
 export function PayPartsForm({ action, parts, today }: { action: Action; parts: UnpaidPart[]; today: string }) {
-  const [state, formAction] = useActionState(action, {});
+  const [state, setState] = useState<FormState>({});
+  const [pending, start] = useTransition();
+  const toast = useToast();
   const [picked, setPicked] = useState<Set<string>>(() => new Set(parts.filter((p) => p.delivered && !p.costMissing).map((p) => p.id)));
   const total = useMemo(() => parts.filter((p) => picked.has(p.id)).reduce((a, p) => a + p.leftPence, 0), [parts, picked]);
   const fe = state.fieldErrors ?? {};
   const v = state.values ?? {};
   return (
-    <form action={formAction} className="space-y-4" key={state.notice ?? "pay"}>
+    <form
+      className="space-y-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const fd = new FormData(e.currentTarget);
+        start(async () => {
+          const r = await action({}, fd);
+          // Confirm with a toast: once the last order is paid this form leaves the page.
+          if (r.notice) toast({ tone: "success", message: r.notice });
+          setState(r.notice ? {} : r);
+        });
+      }}
+    >
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
-      {state.notice ? <Alert tone="success">{state.notice}</Alert> : null}
       <ul className="divide-y divide-line rounded-[var(--radius-md)] border border-line">
         {parts.map((p) => (
           <li key={p.id}>
@@ -99,7 +114,7 @@ export function PayPartsForm({ action, parts, today }: { action: Action; parts: 
         </Field>
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <SubmitButton block={false} size="md" pendingText="Recording…">Record payment and mark paid</SubmitButton>
+        <Button type="submit" loading={pending}>{pending ? "Recording…" : "Record payment and mark paid"}</Button>
         <span className="text-sm text-ink-muted">Selected: <Money pence={total} className="font-semibold text-ink" /></span>
       </div>
     </form>

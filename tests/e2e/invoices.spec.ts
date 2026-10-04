@@ -23,11 +23,16 @@ test.describe("invoices", () => {
   test("a restaurant lists and downloads its own invoice: VAT per rate, delivery, bank details, no costs", async ({ page }) => {
     const inv = await invoiceOf(1001);
     await signIn(page, "restaurant.a@example.com");
+    // The list starts with restaurant A's newest invoice (later runs add more orders).
+    const [latest] = await sql<{ id: string; number: number; ord: number }>(
+      "select i.id, i.number::int number, o.number::int ord from invoices i join orders o on o.id = i.order_id where i.customer_id = '20000000-0000-4000-a000-000000000001' order by i.number desc limit 1",
+    );
+    const ref = `INV-${String(latest.number).padStart(6, "0")}`;
     await page.goto("/invoices");
-    const row = page.getByRole("listitem").filter({ hasText: "INV-000001" });
+    const row = page.getByRole("listitem").filter({ hasText: ref });
     await expect(row).toBeVisible();
-    await expect(row.getByRole("link", { name: "ORDER-1001" })).toBeVisible();
-    await expect(row.getByRole("link", { name: /PDF of INV-000001/ })).toHaveAttribute("href", `/api/invoices/${inv.id}/pdf`);
+    await expect(row.getByRole("link", { name: `ORDER-${latest.ord}` })).toBeVisible();
+    await expect(row.getByRole("link", { name: new RegExp(`PDF of ${ref}`) })).toHaveAttribute("href", `/api/invoices/${latest.id}/pdf`);
 
     const pdf = await pdfText(page.request, `/api/invoices/${inv.id}/pdf`);
     expect(pdf.status).toBe(200);
