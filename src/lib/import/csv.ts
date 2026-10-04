@@ -57,9 +57,13 @@ const HEADER_ALIASES: Record<keyof Columns, string[]> = {
   sku: ["sku", "code", "item code", "product code"],
   vat: ["vat", "vat %", "vat rate", "vat_rate"],
   description: ["description", "notes", "details"],
+  image: ["image", "photo", "image path"],
 };
 
-type Columns = { category: number; name: number; size: number; sku: number; vat: number; description: number };
+type Columns = { category: number; name: number; size: number; sku: number; vat: number; description: number; image: number };
+
+/** Photos referenced from a CSV must be files shipped with the site (public/images/…). */
+export const IMAGE_PATH_RE = /^\/images\/[a-z0-9][a-z0-9/_-]*\.(webp|jpg|png)$/;
 
 export interface CsvIssue {
   line: number;
@@ -128,7 +132,12 @@ export function readImportCsv(text: string): ReadResult {
       vatBp = bp;
     }
     const description = cell(r, col.description).slice(0, 4000);
-    rows.push({ category, name, size: size || undefined, sku: sku || undefined, vatBp, description: description || undefined, line });
+    const image = cell(r, col.image);
+    if (image && (!IMAGE_PATH_RE.test(image) || image.includes(".."))) {
+      errors.push({ line, message: `Image "${image.slice(0, 80)}" must be a site path like /images/products/name.webp.` });
+      return;
+    }
+    rows.push({ category, name, size: size || undefined, sku: sku || undefined, vatBp, description: description || undefined, image: image || undefined, line });
   });
   return { rows, errors };
 }

@@ -44,6 +44,7 @@ export interface PlannedProduct {
   name: string;
   slug: string;
   description: string | null;
+  image_path: string | null;
   source: string;
   source_ref: string;
 }
@@ -151,6 +152,7 @@ export function planImport(
         name: g.name.slice(0, 200),
         slug: uniqueSlug(g.name, productSlugs),
         description: g.description ?? null,
+        image_path: g.image ?? null,
         source: opts.source,
         source_ref: ref,
       });

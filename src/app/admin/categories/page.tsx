@@ -7,7 +7,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { Table, TD, TH, THead, TR } from "@/components/ui/table";
 import { formatBp } from "@/domain/money";
-import { publicImageUrl } from "@/lib/storage";
+import { categoryImageUrl } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/server/auth";
 import { createCategory } from "./actions";
@@ -48,7 +48,7 @@ export default async function CategoriesPage({ searchParams }: PageProps<"/admin
                 <TR key={c.id}>
                   <TD>
                     <Link href={`/admin/categories/${c.id}`} className="group flex items-center gap-3">
-                      <CategoryArt slug={c.slug} imageUrl={publicImageUrl(c.image_path)} className="size-10 shrink-0 rounded-[var(--radius-sm)]" iconClassName="size-5" sizes="40px" />
+                      <CategoryArt slug={c.slug} imageUrl={categoryImageUrl(c.slug, c.image_path)} className="size-10 shrink-0 rounded-[var(--radius-sm)]" iconClassName="size-5" sizes="40px" />
                       <span className="min-w-0">
                         <span className="block font-medium group-hover:text-primary group-hover:underline">{c.name}</span>
                         <span className="block text-[13px] text-ink-muted">/{c.slug}</span>

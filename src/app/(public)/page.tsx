@@ -5,7 +5,7 @@ import { LAUNCH_CATEGORIES } from "@/config/launch-categories";
 import { CategoryArt } from "@/components/catalogue/category-art";
 import { LinkButton } from "@/components/ui/button";
 import { slugify } from "@/lib/import/parse-name";
-import { publicImageUrl } from "@/lib/storage";
+import { categoryImageUrl } from "@/lib/storage";
 import { getPublicCategories, type PublicCategory } from "@/server/catalogue";
 
 export const revalidate = 3600;
@@ -127,7 +127,7 @@ export default async function HomePage() {
                   href={`/catalogue?category=${c.slug}`}
                   className="group flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] border border-line bg-surface transition-[border-color,box-shadow] hover:border-primary hover:shadow-[0_10px_30px_-18px_rgba(24,33,29,0.45)]"
                 >
-                  <CategoryArt slug={c.slug} imageUrl={publicImageUrl(c.imagePath)} className="aspect-[16/9] w-full" sizes="(min-width: 1024px) 270px, (min-width: 640px) 33vw, 50vw" />
+                  <CategoryArt slug={c.slug} imageUrl={categoryImageUrl(c.slug, c.imagePath)} className="aspect-[16/9] w-full" sizes="(min-width: 1024px) 270px, (min-width: 640px) 33vw, 50vw" />
                   <span className="flex flex-1 items-start justify-between gap-2 px-3.5 py-3">
                     <span className="min-w-0">
                       <span className="block text-[15px] font-semibold leading-snug text-ink">{c.name}</span>

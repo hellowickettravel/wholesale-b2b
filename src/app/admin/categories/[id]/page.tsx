@@ -8,7 +8,7 @@ import { CategoryArt } from "@/components/catalogue/category-art";
 import { Alert } from "@/components/ui/alert";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
-import { publicImageUrl } from "@/lib/storage";
+import { categoryImageUrl, publicImageUrl } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/server/auth";
 import { clearCategoryImage, deleteCategory, setCategoryImage, updateCategory } from "../actions";
@@ -64,7 +64,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps<"
                 imageUrl={publicImageUrl(c.image_path)}
                 upload={setCategoryImage.bind(null, c.id)}
                 remove={clearCategoryImage.bind(null, c.id)}
-                placeholder={<CategoryArt slug={c.slug} className="size-full" />}
+                placeholder={<CategoryArt slug={c.slug} imageUrl={categoryImageUrl(c.slug, null)} className="size-full" />}
               />
             </CardBody>
           </Card>

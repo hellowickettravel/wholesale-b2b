@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Pagination } from "@/components/ui/pagination";
 import { CATALOGUE_PAGE_SIZE, catalogueHref, parseCatalogueQuery } from "@/lib/catalogue/query";
 import { cn } from "@/lib/cn";
-import { publicImageUrl } from "@/lib/storage";
+import { categoryImageUrl } from "@/lib/storage";
 import { getPublicCategories, searchPublicProducts } from "@/server/catalogue";
 
 export async function generateMetadata({ searchParams }: PageProps<"/catalogue">): Promise<Metadata> {
@@ -124,7 +124,7 @@ export default async function CataloguePage({ searchParams }: PageProps<"/catalo
 
           <aside className="mt-10 flex flex-col items-start gap-4 overflow-hidden rounded-[var(--radius-xl)] bg-primary p-6 text-primary-ink sm:flex-row sm:items-center sm:justify-between sm:p-8">
             <div className="flex items-center gap-4">
-              {active ? <CategoryArt slug={active.slug} imageUrl={publicImageUrl(active.imagePath)} className="hidden size-16 shrink-0 rounded-[var(--radius-md)] sm:grid" iconClassName="size-7" sizes="64px" /> : null}
+              {active ? <CategoryArt slug={active.slug} imageUrl={categoryImageUrl(active.slug, active.imagePath)} className="hidden size-16 shrink-0 rounded-[var(--radius-md)] sm:grid" iconClassName="size-7" sizes="64px" /> : null}
               <div>
                 <h2 className="text-xl font-bold">See your trade prices</h2>
                 <p className="mt-1 text-sm text-white/75">Prices are agreed per restaurant. Open an account and we will set yours up.</p>

@@ -58,7 +58,7 @@ export async function replaceImage(
     await bucket.remove([path]);
     return { error: "The photo could not be saved. Please try again." };
   }
-  if (row.image_path) await bucket.remove([row.image_path]);
+  if (row.image_path && !row.image_path.startsWith("/")) await bucket.remove([row.image_path]);
   return {};
 }
 
@@ -66,5 +66,5 @@ export async function removeImage(supabase: Client, table: "categories" | "produ
   const { data: row } = await supabase.from(table).select("image_path").eq("id", id).maybeSingle();
   if (!row?.image_path) return;
   const { error } = await supabase.from(table).update({ image_path: null }).eq("id", id);
-  if (!error) await supabase.storage.from(PRODUCT_IMAGES_BUCKET).remove([row.image_path]);
+  if (!error && !row.image_path.startsWith("/")) await supabase.storage.from(PRODUCT_IMAGES_BUCKET).remove([row.image_path]);
 }
