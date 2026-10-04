@@ -40,3 +40,22 @@
 - Domain `PaymentTerms` uses `7_days`/`date` but the DB enum is `within_7_days`/`on_date`:
   reconcile in Phase 5.
 - `promote_to_admin(email)` is the only way to create the first admin on a fresh project.
+
+## Phase 3 additions
+- Launch categories are created by migration 0005 with fixed ids `ca7e0000-0000-4000-a000-0000000000NN`
+  (01 Rice … 10 Drinks, 11 Packing & Cleaning). The seed references them; it no longer inserts categories.
+- `tests/fixtures/catalogue-sample.csv` is **sample data for local dev/tests only** (made-up generic
+  lines, no prices). E2E global setup imports it (idempotent). Never import it into the hosted project.
+- Import CLI: `npx tsx --env-file=.env.local scripts/import-catalogue.mts <file.csv> --supplier NAME --source LABEL [--apply]`
+  (dry run without `--apply`). Same code as `/admin/products/import`.
+- PostgREST caps responses at 1000 rows: page with `.range()` (see `pageAll` in `src/lib/import/apply.ts`).
+- `pg` returns bigint columns (e.g. `cost_pence`) as strings in tests: cast `::int` in SQL.
+- `next/image` refuses local IPs in Next 16; `next.config.ts` sets `dangerouslyAllowLocalIP` only
+  when the Supabase URL is 127.0.0.1/localhost.
+- Admin forms use Tailwind container queries (`@container`, `@lg:`) because the same form sits in
+  wide and narrow cards.
+- Storage: non-admin DELETE on `storage.objects` is refused outright (42501), not filtered to 0 rows.
+- `scripts/screens.mts` also writes `<name>-390-fold.png` (first screen only): long phone pages are
+  unreadable when a full-page capture is scaled down.
+- Container egress blocks the client's source sites and stock-photo hosts (unsplash, pexels,
+  wikimedia). `pdftotext` is installed for the PDFs when they arrive.

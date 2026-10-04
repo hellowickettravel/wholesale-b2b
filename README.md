@@ -20,6 +20,8 @@ npm run verify          # typecheck, lint, unit tests, build
 npm run db:reset        # migrations + local seed
 npm run test:security   # RLS/API attacks as anon, customers, supplier, admin (local stack)
 npm run build && npm run test:e2e   # Playwright journeys (local stack, Mailpit)
+npx tsx scripts/screens.mts         # screenshots at 390/1280 + overflow check (server on :3000)
+npx tsx --env-file=.env.local scripts/import-catalogue.mts <file.csv> --supplier NAME --source LABEL [--apply]
 npx tsx scripts/screens.mts         # screenshots at 390/1280 into test-results/screens
 ```
 

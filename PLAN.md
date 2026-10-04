@@ -1,6 +1,6 @@
 # PLAN — B2B wholesale grocery ordering portal
 
-Owner: Touseef · Client: Nagaraju Vardanam (UK) · Status: **Phases 1–2 done (Phase 2 in draft PR, migrations live on hosted Supabase). Phase 3 next.** See `HANDOVER.md`.
+Owner: Touseef · Client: Nagaraju Vardanam (UK) · Status: **Phases 1–3 done (Phases 2–3 in draft PR #2, migrations 0001–0006 live on hosted Supabase). Phase 4 next.** See `HANDOVER.md`.
 
 This is the living plan. Decisions and their reasons live in `DECISIONS.md`; traps and
 non-obvious facts live in `CLAUDE.md` / `MEMORY.md`.
@@ -68,7 +68,7 @@ screenshots of the new screens at 390px and 1280px reviewed, commit, push, PR, s
 `/admin` — role admin
 - `/admin` dashboard · `/admin/approvals` · `/admin/customers` (+ `/new`, `/[id]`)
 - `/admin/customers/[id]/pricing` **key screen** · `/admin/products` (+ `/[id]`, `/import`)
-- `/admin/categories` · `/admin/orders` · `/admin/orders/[id]` · `/admin/payments`
+- `/admin/categories` (+ `/[id]`) · `/admin/products/missing.csv` · `/admin/orders` · `/admin/orders/[id]` · `/admin/payments`
 - `/admin/suppliers` (+ `/[id]`) · `/admin/invoices` · `/admin/settings` · `/admin/users` · `/admin/audit`
 
 `/supplier` — role supplier
@@ -85,9 +85,9 @@ Everything else is server actions.
 - `customer_private(customer_id, default_margin_bp, admin_notes)` — admin only (split out of `customers`, DECISIONS D15).
 - `customers(id, business_name, contact_name, email, phone, address_line1/2, city, postcode, status[pending|approved|rejected|suspended], default_margin_bp?, notes, approved_at, approved_by)`
 - `suppliers(id, name, email, phone, address, active, notes)`
-- `categories(id, name, slug, sort, active, image_path)`
-- `products(id, category_id, name, slug, description, image_path, active, needs_price (derived), source, source_ref)`
-- `product_variants(id, product_id, size_label, size_sort, supplier_id, cost_pence?, vat_rate_bp, sku, active, image_path)`
+- `categories(id, name, slug, sort, active, image_path, default_vat_rate_bp)`
+- `products(id, category_id, name, slug, description, image_path, active, needs_price (derived), source, source_ref = import key "<category id>::<name key>" unique)`
+- `product_variants(id, product_id, size_label, size_sort, supplier_id, cost_pence?, vat_rate_bp, sku, active, image_path, source_ref = source line)`
 - `customer_category_access(customer_id, category_id)` · `customer_product_rules(customer_id, product_id, mode[allow|deny])`
 - `customer_category_margins(customer_id, category_id, margin_bp)` · `customer_price_overrides(customer_id, variant_id, price_pence)`
 - `orders(id, number seq, customer_id, status, delivery_date, note, payment_terms[on_delivery|7_days|date], promised_pay_date, next_chase_date, payment_notes, subtotal/vat/delivery/total pence, delivery_vat_pence, cost_total_pence, placed_by, locked_at)`

@@ -143,3 +143,43 @@ the connector; a schema fingerprint (columns, constraints, indexes, policies, fu
 views, triggers, grants, RLS flags, buckets) matched the local stack exactly. The seed is local only.
 **Region note:** customers are in the UK; a London (eu-west-2) Supabase project would cut latency.
 The hosted database is empty, so moving now costs minutes; later it costs a migration.
+
+## D22. Catalogue import identity (Phase 3)
+A product's import key is `products.source_ref = "<category id>::<normalised base name>"`, unique.
+The same item in the same category is one product whichever list (or the admin) created it, so a
+later list adds sizes to it instead of duplicating it. Admin-created products get the same key.
+A size matches by its source line (`product_variants.source_ref`) or, failing that, by its size
+label (case-insensitive). Imports are **insert-only**: nothing that exists is changed, so the admin's
+edits (names, costs, photos, hidden flags) always win and re-running a file is safe. Inserts run in
+dependency order in batches; an interrupted run is finished by running it again. Unknown categories
+are created (and listed in the preview); a category is matched by name or slug. Costs are never
+imported: every new size starts with `cost_pence = null` ("needs price"), and Phase 5 will refuse to
+sell a size without a cost. The admin screen and the CLI share `src/lib/import/*`; the admin screen
+writes with the admin's own client (RLS + audit), the CLI with the service role on a trusted machine.
+
+## D23. Default VAT per category
+`categories.default_vat_rate_bp` sets the VAT of new sizes (import or admin). Launch defaults:
+Drinks and Restaurant Packing & Cleaning 20%, everything else 0% (most food is zero-rated in the UK).
+These are defaults only; some items (e.g. confectionery, some drinks mixes) differ, so the accountant
+should confirm. Each size's rate can be changed on the product screen.
+
+## D24. Public catalogue caching
+Public pages read through a cookie-less **anon** Supabase client inside `unstable_cache`
+(tag `catalogue`, 1 h), so they can only ever see what RLS gives the public: active categories,
+active products in active categories, and the cost-free `catalogue_variants` view. Product pages are
+ISR (rendered on first visit). Every admin catalogue action calls `updateTag("catalogue")`, so
+changes show on the next request. Search splits the query into words (max 6), each must appear in
+the name (`ilike`, trigram-indexed); `%` and `_` are never wildcards.
+
+## D25. Photos
+Product and category photos live in the public `product-images` bucket at
+`<table>/<id>/<random uuid>.<ext>` (new name per upload: no stale CDN copies), uploaded by the admin's
+own client (storage RLS: admin only). The server checks the file's bytes (JPEG, PNG or WebP) and size
+(5 MB) rather than its name or claimed type. Products without a photo show an illustrated tile in
+their category's colours (never someone else's product photo). Stock photos are allowed by the owner
+for category and marketing images; they must be licence-safe (e.g. Unsplash/Pexels licence) and
+hosted in our own storage. The container cannot reach those sites yet (network policy), see HANDOVER.
+
+## D26. Admin product list view
+`admin_product_list` (security_invoker, filtered by `is_admin()`) gives sizes, needs-price counts
+and supplier names per product so the admin list can filter and paginate in the database.
