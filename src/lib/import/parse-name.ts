@@ -166,6 +166,11 @@ export interface ImportRow {
   /** Optional explicit size, overrides parsing (e.g. drinks list has its own column). */
   size?: string;
   sku?: string;
+  /** Optional VAT rate for this size in basis points (else the category default). */
+  vatBp?: number;
+  description?: string;
+  /** 1-based source line, for reports. */
+  line?: number;
 }
 
 export interface GroupedVariant {
@@ -173,12 +178,18 @@ export interface GroupedVariant {
   sortKey: number;
   source: string;
   sku?: string;
+  vatBp?: number;
+  line?: number;
 }
 
 export interface GroupedProduct {
   category: string;
   name: string;
   groupKey: string;
+  /** normaliseKey(category) and normaliseKey(base name), the two halves of groupKey. */
+  categoryKey: string;
+  nameKey: string;
+  description?: string;
   variants: GroupedVariant[];
 }
 
@@ -202,19 +213,28 @@ export function groupItems(rows: ImportRow[]): GroupingReport {
       const explicit = extractSize(row.size);
       size = explicit ?? { label: row.size.trim(), amount: 0, unit: "pcs", count: 1, sortKey: 0, raw: row.size };
     }
-    const key = `${normaliseKey(row.category)}::${parsed.groupKey}`;
+    const categoryKey = normaliseKey(row.category);
+    const key = `${categoryKey}::${parsed.groupKey}`;
     let product = map.get(key);
     if (!product) {
-      product = { category: row.category.trim(), name: parsed.displayName, groupKey: key, variants: [] };
+      product = { category: row.category.trim(), name: parsed.displayName, groupKey: key, categoryKey, nameKey: parsed.groupKey, variants: [] };
       map.set(key, product);
     }
+    if (!product.description && row.description?.trim()) product.description = row.description.trim();
     const sizeLabel = size?.label ?? "Each";
     if (!size) noSize.push(row.name);
     if (product.variants.some((v) => v.sizeLabel.toLowerCase() === sizeLabel.toLowerCase())) {
       duplicates.push(row.name);
       continue;
     }
-    product.variants.push({ sizeLabel, sortKey: size?.sortKey ?? 0, source: row.name, sku: row.sku });
+    product.variants.push({
+      sizeLabel,
+      sortKey: size?.sortKey ?? 0,
+      source: row.size ? `${row.name} | ${row.size}` : row.name,
+      sku: row.sku,
+      vatBp: row.vatBp,
+      line: row.line,
+    });
   }
 
   const products = [...map.values()];

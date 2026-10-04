@@ -15,6 +15,14 @@ const filter = process.argv[2];
 type Shot = { name: string; path: string; as?: string; before?: (p: Page) => Promise<void> };
 
 const shots: Shot[] = [
+  { name: "home", path: "/" },
+  { name: "catalogue", path: "/catalogue" },
+  { name: "catalogue-category", path: "/catalogue?category=drinks" },
+  { name: "catalogue-search", path: "/catalogue?q=basmati" },
+  { name: "catalogue-empty", path: "/catalogue?q=zzzz" },
+  { name: "catalogue-page2", path: "/catalogue?page=2" },
+  { name: "product", path: "/catalogue/basant-basmati-rice" },
+  { name: "product-single", path: "/catalogue/rose-water" },
   { name: "login", path: "/login" },
   {
     name: "login-error",
@@ -101,6 +109,8 @@ for (const width of [390, 1280]) {
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     if (overflow > 0) problems.push(`${shot.name}@${width}: horizontal overflow ${overflow}px`);
     await page.screenshot({ path: `${OUT}/${shot.name}-${width}.png`, fullPage: true });
+    // Also the first screen on phones: long pages are unreadable when scaled down for review.
+    if (width === 390) await page.screenshot({ path: `${OUT}/${shot.name}-${width}-fold.png` });
     await page.close();
     if (shot.before && !shot.as) await ctx.close();
   }

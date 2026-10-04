@@ -1,4 +1,5 @@
 import Image from "next/image";
+import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 /**
@@ -12,6 +13,7 @@ export function ProductImage({
   className,
   sizes = "(min-width: 1024px) 240px, 45vw",
   priority,
+  fallback,
 }: {
   src?: string | null;
   alt: string;
@@ -19,6 +21,8 @@ export function ProductImage({
   className?: string;
   sizes?: string;
   priority?: boolean;
+  /** Rendered instead of the initials placeholder when there is no photo. */
+  fallback?: ReactNode;
 }) {
   if (src) {
     return (
@@ -27,6 +31,7 @@ export function ProductImage({
       </div>
     );
   }
+  if (fallback) return <>{fallback}</>;
   const hues = [152, 38, 24, 200, 280, 95];
   let h = 0;
   for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;

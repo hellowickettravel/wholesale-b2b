@@ -24,6 +24,8 @@ const nextConfig: NextConfig = {
     serverActions: { bodySizeLimit: "12mb" },
   },
   images: {
+    // The local Supabase stack serves images from 127.0.0.1; hosted Supabase is a public host.
+    dangerouslyAllowLocalIP: supabaseHost ? ["127.0.0.1", "localhost"].includes(supabaseHost.hostname) : false,
     remotePatterns: supabaseHost
       ? [
           {

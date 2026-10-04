@@ -84,6 +84,10 @@ insert into public.products (id, category_id, name, slug, source) values
   ('40000000-0000-4000-a000-000000000003', 'ca7e0000-0000-4000-a000-000000000003', 'Green Cardamom', 'green-cardamom', 'seed')
 on conflict (id) do nothing;
 
+-- Import keys (DECISIONS D22) so a catalogue import adds sizes to these instead of duplicating them.
+update public.products set source_ref = category_id || '::' || upper(name)
+  where source = 'seed' and source_ref is null;
+
 insert into public.product_variants (id, product_id, size_label, size_sort, supplier_id, cost_pence, vat_rate_bp, sku) values
   ('50000000-0000-4000-a000-000000000001', '40000000-0000-4000-a000-000000000001', '5 kg', 5000,
    '00000000-0000-4000-a000-000000000001', 1200, 0, 'RICE-BAS-5'),
