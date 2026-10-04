@@ -1,6 +1,6 @@
 # HANDOVER: start here
 
-Last updated: **4 Oct 2026**, end of Phase 4. A fresh session should read, in order: this file, then
+Last updated: **4 Oct 2026**, end of Phase 5. A fresh session should read, in order: this file, then
 `docs/BRIEF.md` (the owner's full original brief, verbatim), `PLAN.md`, `DECISIONS.md`, `MEMORY.md`
 and `CLAUDE.md`.
 
@@ -27,8 +27,9 @@ and `CLAUDE.md`.
 | 2. Auth, roles, RLS | **Done** on branch `claude/sleepy-cori-mq31fu` (draft PR #2). Migrations applied to hosted Supabase. |
 | 3. Catalogue, import, public pages | **Done** on the same branch and PR (the session is pinned to one branch). Migrations 0005–0006 applied to hosted. |
 | 4. Customer approval and per-customer pricing | **Done** on the same branch and PR. No schema change. **Real catalogue loaded on hosted.** |
-| 5. Shop, basket, checkout, order creation and split | **Next.** |
-| 6–10 | Not started (see `PLAN.md` §2). |
+| 5. Shop, basket, checkout, order creation and split | **Done** on the same branch and PR. Migration 0007 applied to hosted. |
+| 6. Supplier portal and driver proof | **Next.** |
+| 7–10 | Not started (see `PLAN.md` §2). |
 
 ### Done in Phase 2 (verified locally: `npm run verify` green, 96 unit, 257 security, 24 E2E)
 - Migrations `0001_schema` (all tables, pence/bp, enums, indexes, counters, settings row), `0002_rls`
@@ -104,18 +105,52 @@ the owner's images (D31). Never import `tests/fixtures/catalogue-sample.csv` int
   only the chosen categories; reject/hold/reactivate with reasons shown to the restaurant; pricing
   preview → save → reload → copy to a new customer; settings; non-admins get 403).
 
-### Next: Phase 5 (shop, basket, checkout, order creation and split). Concrete to-do
-1. `/shop` catalogue for the signed-in restaurant: `loadCustomerRules(createAdminClient(), viewer.customer.id)`
-   + products/variants (service role, server-only), filter with `isProductVisible`, price with
-   `resolvePrice`; only the resolved price leaves the server. Unpriced sizes shown but not orderable.
-   `/shop/p/[slug]` with size dropdown. Search/category/pagination like the public catalogue.
-2. Basket (cookie or table; server recomputes everything), live VAT and delivery charge from
-   `src/domain/totals.ts` and settings; delivery date from `delivery_days`; payment terms
-   (reconcile `PaymentTerms` with the DB enum, MEMORY); minimum order rule.
-3. Checkout → `create_order_tx` (service role) with server-recomputed lines; order split by supplier;
-   confirmation page with bank details (`shop_settings`); orders list/detail for the restaurant.
-4. Security: customer A can never obtain B's prices or any cost through pages, RSC payloads or
-   actions; tampered basket prices are ignored. E2E: order across two suppliers.
+### Done in Phase 5 (verified locally: `npm run verify` green, 142 unit, 352 security, 40 E2E twice)
+- Migration `0007_shop`: `basket_items` (one basket per restaurant, shared by its logins, any device;
+  RLS: own approved restaurant only, quantities 1–9,999), `orders.checkout_key` (unique per restaurant:
+  a double click or retry places one order), `create_order_tx` v2 (returns the existing order for a
+  repeated key, refuses inactive suppliers, notifies every active login of each supplier in-portal and
+  queues `supplier_order_new` + `order_confirmation` emails in `email_log`). Applied to hosted;
+  schema fingerprint identical to local (12/12); security advisor shows nothing new.
+- `src/server/shop.ts` (DECISIONS D32): the restaurant's catalogue, priced server-side with the
+  service-role client after `requireRole("customer")`; every exported shape carries only the resolved
+  price. `/shop` (search, category chips, pagination, size dropdown with prices, quantity, Add);
+  `/shop/p/[slug]` (price, size dropdown, a "your prices" table ex/inc VAT, more in the category).
+  Hidden products are 404s. A size with no cost and no fixed price shows "Price on request" and
+  cannot be added (on hosted that is every item until costs are entered: owner checklist H).
+- `/basket` (D33): live totals with the same `src/domain` code as the server, free-delivery progress,
+  VAT per rate, delivery date (next 14 delivery days from settings, from tomorrow), payment promise
+  (on delivery / within 7 days / on a date), note. Lines that can no longer be ordered are flagged and
+  block checkout. `placeOrder` re-reads the basket, re-prices it, re-checks the date and promise,
+  rebuilds totals and split with `buildOrder`, and refuses if the total differs from what the page
+  showed ("your basket or prices changed").
+- `/orders/[id]/confirmed` (bank details, reference `ORDER-n`, amount, pay-by date), `/orders`
+  (history), `/orders/[id]` (one block per delivery, status, totals, payment status, invoice number,
+  bank details while unpaid). All read through the `customer_*` views with the user's own client.
+- Domain: `PaymentTerms` now uses the DB enum values; `buildOrder` (`src/domain/order.ts`);
+  `orderRef`, `invoiceRef`, `fromIsoWeekdays` (settings store ISO weekdays 1–7).
+- Tests: `tests/unit/order.test.ts`; Phase 5 block in `tests/security/rls.test.ts` (basket RLS for
+  every role, quantity bounds, `create_order_tx` not callable by API roles, idempotency, inactive
+  supplier, notifications go to the right supplier's logins); `tests/e2e/shop.spec.ts` (order across
+  two suppliers with live delivery charge and VAT, split + snapshot checked in the DB, notifications,
+  basket emptied, later price change does not alter the order; a price change before checkout is
+  refused then accepted at the new total; restaurant B cannot see A's items, a row slipped into the
+  basket through the API blocks checkout; HTML **and RSC payloads** of every shop page scanned for
+  cost/margin/supplier fields and restaurant B's prices).
+- Screenshots of the 10 new screens at 390 and 1280 reviewed; no horizontal overflow.
+
+### Next: Phase 6 (supplier portal and driver proof). Concrete to-do
+1. `/supplier` list and `/supplier/orders/[id]` from `supplier_order_list` / `supplier_order_lines`
+   (no prices); in-portal notifications (`notifications`, created by `create_order_tx`) with read state;
+   supplier marks "sent" / "out for delivery". Roll the order status up with `rollupOrderStatus`.
+2. Driver link (D9): 256-bit token, SHA-256 at rest in `delivery_proofs`, 72 h expiry, one submission,
+   new link revokes the unused one; rate limits per token and IP.
+3. `/d/[token]` mobile page: delivery photo, signed document (photo or PDF), signature canvas; route
+   handler `/api/driver/[token]/submit` with magic-byte checks and size caps; private bucket; marks the
+   supplier order delivered. Supplier can upload the proof themselves.
+4. Customer `/orders/[id]` and (Phase 7) admin order detail show the proof via short-lived signed URLs.
+5. Security: expired/reused/forged tokens, oversized or wrong-type files, cross-supplier access; E2E:
+   supplier → driver link → phone upload → customer sees proof.
 
 ## Owner checklist (what Touseef must do)
 **A. Vercel → Project wholesale-b2b → Settings → Environment Variables** (already set by the agent:
@@ -152,9 +187,12 @@ Supabase to London before data exists (DECISIONS D21).
 supplied by Shrivi; check the flagged sizes ("8cc", "120 oz", two "Qty ???" items, the Coca Cola 1.75L line);
 which Shrivi address deliveries come from (two different addresses in the PDFs). Then enter costs: every size is
 "needs price" (`/admin/products?status=needs-price`, or send a price list and it can be imported).
+**Until a size has a cost (or a fixed price for that restaurant), restaurants see "Price on request" and
+cannot order it**, so the shop cannot take a real order on hosted until some costs are in.
 
 **I. Settings** (`/admin/settings`, after the first admin exists): legal name, address, VAT number, bank details
 and invoice footer are placeholders. Delivery days, minimum order (£150) and delivery charge (£12) are defaults.
+The bank details are shown to restaurants on every order confirmation, so fill them in before the first real order.
 
 **J. Optional clean-up**: the hosted database has the `http` extension (used once to load the catalogue; execute
 revoked from public/anon/authenticated). To remove it, run `drop extension http;` in the SQL editor.

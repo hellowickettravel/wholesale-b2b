@@ -225,3 +225,32 @@ Category and home photos are the four images the owner supplied (the fifth, an A
 watermarks, is not used: it needs a paid licence). Product photos for the packaging range are the
 supplier's own catalogue pictures, used to sell the supplier's products. All are served from our
 own site (`public/images/…`, image_path `/images/…`); admin uploads go to Supabase Storage.
+
+## D32. The restaurant's shop (Phase 5)
+`src/server/shop.ts` reads products, sizes, costs and suppliers with the service-role client, after
+`requireRole("customer")` has fixed the customer id to the viewer's own, applies D27 visibility and D4
+prices, and returns shapes with **only** the resolved unit price (no cost, margin, override source or
+supplier id). Not cached across requests: a cost or rule change shows on the next page view, and the
+catalogue is small (under 1,000 products). Search, categories and pagination run in memory on the
+restaurant's visible list. A product the restaurant may not see is a 404, not a 403, so its existence is
+not revealed. A size is orderable only if it has a price and an active supplier. Prices are shown ex VAT
+unless the admin turns on "show prices including VAT".
+
+## D33. Basket and checkout
+The basket is a table (`basket_items`), one per restaurant, so several staff and devices share it and it
+survives sign-out. It stores quantities only; prices are never stored or trusted from the browser. The
+basket page previews totals with the same `src/domain` code the server uses. Placing the order re-reads
+the basket, re-prices it, re-checks the delivery date (a delivery day, from tomorrow, within 90 days)
+and the pay-by date (today to 60 days after delivery), rebuilds totals and the split (`buildOrder`), and
+refuses if the total differs from the one the page showed, so a restaurant is never charged a price it
+did not see. Each basket view carries a random `checkout_key`; `create_order_tx` returns the existing
+order for a repeated key (double click, retry). The minimum order is not a hard minimum: below it the
+delivery charge applies (brief). Ordered lines are removed from the basket after the order is created
+(not inside the transaction, because migrations avoid DELETE, D20); a failure there leaves the lines in
+the basket and cannot create a second order for the same checkout.
+
+## D34. Supplier notification at order time
+`create_order_tx` writes the in-portal notification for every active login of each supplier and queues
+the supplier's "new order" email and the restaurant's confirmation in `email_log` in the same
+transaction, so an order never exists without its notifications. Sending queued emails is Phase 8.
+Suppliers see order lines only through `supplier_order_lines` (no prices), as before.

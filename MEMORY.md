@@ -37,8 +37,6 @@
 - Restart the prod server with `scripts/serve.sh` (kills by PID; `lsof`/`ss` are not installed).
 - Playwright: Next renders an empty `role="alert"` route announcer; scope alerts to `main`.
   Labels of required fields include a visual `*`, so locate password inputs by `name`.
-- Domain `PaymentTerms` uses `7_days`/`date` but the DB enum is `within_7_days`/`on_date`:
-  reconcile in Phase 5.
 - `promote_to_admin(email)` is the only way to create the first admin on a fresh project.
 
 ## Phase 3 additions
@@ -85,3 +83,17 @@
 - E2E `signIn()` zeroes the `login%` rate-limit counters first: the suite signs in > 50 times from 127.0.0.1.
 - Security tests compare admin row counts with the owner's (`asOwner`) because E2E runs add rows.
 - `fetchAll()` (`src/lib/supabase/fetch-all.ts`) pages past PostgREST's 1000-row cap.
+
+## Phase 5 additions
+- `settings.delivery_days` holds ISO weekdays (1 = Mon … 7 = Sun); the domain uses JS weekdays
+  (0 = Sun). Convert with `fromIsoWeekdays`. `PaymentTerms` = DB enum (`on_delivery`, `within_7_days`, `on_date`).
+- Security tests assume a freshly reset DB (order counter 1002 after the seed): run
+  `npm run db:reset && npm run test:security` before E2E, which places real orders.
+- The seed's two orders go through `create_order_tx`, so they also create supplier notifications and
+  queued emails.
+- Shop E2E restores restaurant A's mango-drink fixed price (£17.00) and empties the seed baskets after
+  running; `scripts/screens.mts` fills both seed baskets for the basket screenshots.
+- `refresh()` from `next/cache` (server actions only) re-renders the current page and layout (used for
+  the basket badge). The basket client keeps its own quantities and resyncs only when the server list changes.
+- Basket rows can be inserted straight through PostgREST by the restaurant (RLS allows its own rows),
+  including sizes it may not see: that is why the basket view flags them and `placeOrder` refuses them.
