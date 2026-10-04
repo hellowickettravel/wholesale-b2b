@@ -74,3 +74,14 @@
   belongs to another process: `rm -f /var/run/docker.pid` and start it again.
 - Local dev DB for tests must be the seeded one (`npm run db:reset`); the real catalogue is only for looking at
   (`npx supabase db reset --no-seed && psql … -f data/import/catalogue-import.sql`).
+
+## Phase 4 additions
+- **React 19 resets a `<form action={…}>` after the action finishes.** Text inputs keep controlled values, but a
+  controlled `<select>` falls back to its first option in the DOM while React state still holds the old value, so
+  the next submit posts the wrong value. Forms with controlled selects submit by hand:
+  `onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget, submitter); startTransition(() => formAction(fd)); }}`
+  (sizes editor, CSV import). Uncontrolled `defaultValue` selects are fine.
+- PostgREST ordering by an embedded column (`.order("categories(sort)")`) needs that column in the embed's select.
+- E2E `signIn()` zeroes the `login%` rate-limit counters first: the suite signs in > 50 times from 127.0.0.1.
+- Security tests compare admin row counts with the owner's (`asOwner`) because E2E runs add rows.
+- `fetchAll()` (`src/lib/supabase/fetch-all.ts`) pages past PostgREST's 1000-row cap.

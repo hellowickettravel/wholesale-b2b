@@ -1,6 +1,6 @@
 # HANDOVER: start here
 
-Last updated: **4 Oct 2026**, end of Phase 3. A fresh session should read, in order: this file, then
+Last updated: **4 Oct 2026**, end of Phase 4. A fresh session should read, in order: this file, then
 `docs/BRIEF.md` (the owner's full original brief, verbatim), `PLAN.md`, `DECISIONS.md`, `MEMORY.md`
 and `CLAUDE.md`.
 
@@ -26,8 +26,9 @@ and `CLAUDE.md`.
 | 1. Foundation, design system, pure domain logic | **Done.** Merged to `main` (PR #1). |
 | 2. Auth, roles, RLS | **Done** on branch `claude/sleepy-cori-mq31fu` (draft PR #2). Migrations applied to hosted Supabase. |
 | 3. Catalogue, import, public pages | **Done** on the same branch and PR (the session is pinned to one branch). Migrations 0005–0006 applied to hosted. |
-| 4. Customer approval and per-customer pricing | **Next.** |
-| 5–10 | Not started (see `PLAN.md` §2). |
+| 4. Customer approval and per-customer pricing | **Done** on the same branch and PR. No schema change. **Real catalogue loaded on hosted.** |
+| 5. Shop, basket, checkout, order creation and split | **Next.** |
+| 6–10 | Not started (see `PLAN.md` §2). |
 
 ### Done in Phase 2 (verified locally: `npm run verify` green, 96 unit, 257 security, 24 E2E)
 - Migrations `0001_schema` (all tables, pence/bp, enums, indexes, counters, settings row), `0002_rls`
@@ -76,22 +77,45 @@ and `CLAUDE.md`.
   admin create → price → photo → publish → hide, CSV import twice, missing list admin-only).
 - Screenshots of 37 screens at 390 and 1280 reviewed (`npx tsx scripts/screens.mts`); no horizontal overflow.
 
-**The hosted catalogue has the 11 categories and no products yet**: the client's PDFs have not
-arrived. Once they are in `/data/source/`, convert each to a CSV (`pdftotext -layout`, then tidy) and
-import via `/admin/products/import` or the CLI. Never import `tests/fixtures/catalogue-sample.csv` there.
+### Real catalogue (done at the start of Phase 4)
+The client's three lists are in `data/source/` and converted to `data/import/*.csv`
+(`scripts/convert-sources.mts`; notes for the owner in `data/import/CONVERSION-NOTES.md`).
+**Hosted now has 837 products / 1,225 sizes / 327 photos**, supplier Shrivi Limited, every size
+"needs price"; the catalogue fingerprint equals the local import (MEMORY.md, D30). Category photos:
+the owner's images (D31). Never import `tests/fixtures/catalogue-sample.csv` into hosted.
 
-### Next: Phase 4 (customer approval and per-customer pricing). Concrete to-do
-1. `/admin/approvals`: pending registrations → approve (choose category set) / reject with reason;
-   `status_reason`; notification row (email in Phase 8, logged to `email_log` meanwhile).
-2. `/admin/customers` list + `/new` (admin-created customer, optional invite) + `/[id]` (details, status,
-   suspend, notes in `customer_private`).
-3. `/admin/customers/[id]/pricing` (key screen): category access set, product allow/deny,
-   default margin, per-category margins, fixed overrides per size, copy pricing from another customer,
-   live preview of resolved prices using `src/domain/pricing.ts` server-side; sizes without cost shown
-   as not orderable.
-4. A server-only resolver `src/server/pricing.ts` (service role after `requireRole`) that returns
-   only resolved prices for one customer; unit + security tests that another customer's prices and
-   any cost never cross over. Settings: global margin (`/admin/settings` minimal).
+### Done in Phase 4 (verified locally: `npm run verify` green, 134 unit, 325 security, 36 E2E twice)
+- `/admin/approvals` (pending registrations, oldest first) → `/admin/customers/[id]`: approve with
+  chosen categories and optional default margin, reject with reason, put on hold, reactivate (D28);
+  edit details; logins list + invite another login; private notes.
+- `/admin/customers` (status tabs with counts, search) and `/admin/customers/new` (approved at once,
+  optional login invitation; the invite code is shared with `/admin/users` via `src/server/invite.ts`).
+- `/admin/customers/[id]/pricing` (the key screen, D29): categories on/off + margin per category,
+  default margin, per-product Always/Never show, fixed price per size, live preview with the reason
+  for every price, "what they see" count, copy from another restaurant, one save bar.
+- `/admin/settings`: global margin, inc-VAT display, minimum order, delivery charge, delivery VAT
+  mode, delivery days, business and bank details (placeholders flagged).
+- Domain: `src/domain/visibility.ts` (D27); `src/server/pricing.ts` loads one customer's rules.
+- Fixed on the way: React resets a form after an action and controlled `<select>`s fell back to
+  their first option, so a second save of product sizes cleared supplier and VAT (now caught by E2E).
+- Tests: `tests/unit/visibility.test.ts`; Phase 4 block in `tests/security/rls.test.ts` (every
+  non-admin is refused granting itself categories/rules/margins/prices/notes/emails, changing any
+  account status or the global margin); `tests/e2e/customers.spec.ts` (approve → restaurant sees
+  only the chosen categories; reject/hold/reactivate with reasons shown to the restaurant; pricing
+  preview → save → reload → copy to a new customer; settings; non-admins get 403).
+
+### Next: Phase 5 (shop, basket, checkout, order creation and split). Concrete to-do
+1. `/shop` catalogue for the signed-in restaurant: `loadCustomerRules(createAdminClient(), viewer.customer.id)`
+   + products/variants (service role, server-only), filter with `isProductVisible`, price with
+   `resolvePrice`; only the resolved price leaves the server. Unpriced sizes shown but not orderable.
+   `/shop/p/[slug]` with size dropdown. Search/category/pagination like the public catalogue.
+2. Basket (cookie or table; server recomputes everything), live VAT and delivery charge from
+   `src/domain/totals.ts` and settings; delivery date from `delivery_days`; payment terms
+   (reconcile `PaymentTerms` with the DB enum, MEMORY); minimum order rule.
+3. Checkout → `create_order_tx` (service role) with server-recomputed lines; order split by supplier;
+   confirmation page with bank details (`shop_settings`); orders list/detail for the restaurant.
+4. Security: customer A can never obtain B's prices or any cost through pages, RSC payloads or
+   actions; tampered basket prices are ignored. E2E: order across two suppliers.
 
 ## Owner checklist (what Touseef must do)
 **A. Vercel → Project wholesale-b2b → Settings → Environment Variables** (already set by the agent:
@@ -124,7 +148,18 @@ Confirm with: `select email, role from public.profiles;`
 launch, or switch it off now for client review (Vercel → Settings → Deployment Protection). And whether to move
 Supabase to London before data exists (DECISIONS D21).
 
-**G. Photos** (owner allowed stock photos, 4 Oct): to let the agent fetch licence-safe stock photos,
+**H. Review the catalogue import** (`data/import/CONVERSION-NOTES.md`): confirm the Drinks_List items are
+supplied by Shrivi; check the flagged sizes ("8cc", "120 oz", two "Qty ???" items, the Coca Cola 1.75L line);
+which Shrivi address deliveries come from (two different addresses in the PDFs). Then enter costs: every size is
+"needs price" (`/admin/products?status=needs-price`, or send a price list and it can be imported).
+
+**I. Settings** (`/admin/settings`, after the first admin exists): legal name, address, VAT number, bank details
+and invoice footer are placeholders. Delivery days, minimum order (£150) and delivery charge (£12) are defaults.
+
+**J. Optional clean-up**: the hosted database has the `http` extension (used once to load the catalogue; execute
+revoked from public/anon/authenticated). To remove it, run `drop extension http;` in the SQL editor.
+
+**G. Photos** (owner allowed stock photos, 4 Oct; four photos supplied and used): to let the agent fetch licence-safe stock photos,
 add `images.unsplash.com`, `unsplash.com`, `images.pexels.com`, `www.pexels.com`, `upload.wikimedia.org`
 to the cloud environment's **Network access → Custom → Allowed domains** (keep the package-manager
 defaults). Or send photo files you own or have licensed. Until then products and categories show
@@ -150,6 +185,7 @@ npm run verify
 
 ## Waiting on the owner (content; nothing blocks Phase 3)
 1. `/brand/`: logo (SVG + PNG for PDF), business name, colours. Until then the brand stays "Order Desk".
+   (Source lists received 4 Oct and imported: see "Real catalogue" above.)
 2. `/data/source/`: `SHRIVI_ITEMS.pdf`, `Drinks_List.pdf`, `Shrivi_Limited_Packaging_Catalogue_.pdf`
    (the packaging one is image-only and must be read visually, because `tesseract` is not installed).
    **This is now the only thing between the hosted site and a real catalogue** (the import is built).

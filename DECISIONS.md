@@ -183,3 +183,45 @@ hosted in our own storage. The container cannot reach those sites yet (network p
 ## D26. Admin product list view
 `admin_product_list` (security_invoker, filtered by `is_admin()`) gives sizes, needs-price counts
 and supplier names per product so the admin list can filter and paginate in the database.
+
+## D27. What a restaurant sees (Phase 4)
+`visible = (category granted AND product not denied) OR product explicitly allowed`
+(`src/domain/visibility.ts`). Categories are granted per customer (`customer_category_access`);
+single products can be forced on ("Always show") or off ("Never show") with `customer_product_rules`.
+No categories and no rules means an empty catalogue. Inactive products, categories and sizes are
+never shown whatever the rules. Prices follow D4 (fixed price > category margin > customer default
+> global). A size with no cost and no fixed price has no price and cannot be ordered (Phase 5).
+
+## D28. Account status
+`pending -> approved | rejected`, `approved -> suspended`, `suspended | rejected -> approved`.
+Approving chooses the categories (all ticked by default) and an optional default margin. Rejecting
+or putting on hold needs a reason; the restaurant sees it on its account page. The update is
+conditional on the status the admin saw, so two admins cannot overwrite each other. Admin-created
+restaurants are approved at once with every active category. Approval and rejection emails are
+queued in `email_log` (status `queued`); sending them is Phase 8 (Resend).
+
+## D29. The pricing screen
+`/admin/customers/[id]/pricing` sends costs to the browser on purpose: it is admin-only
+(`requireRole("admin")` on the page and on every action; RLS on every table it reads), and the
+admin needs costs to set margins and fixed prices. The live preview runs the same
+`src/domain/pricing.ts` as the server. Saving sends the full category list plus only the changed
+product rules and fixed prices. "Copy from another restaurant" replaces this restaurant's
+categories, rules, margins and fixed prices, one table at a time (PostgREST has no multi-table
+transaction); repeating a copy after a failure gives the same result.
+
+## D30. Source lists and the hosted import
+The client's PDFs are converted to CSVs by `scripts/convert-sources.mts`; the image-only packaging
+catalogue was transcribed by hand (`data/source/shrivi-packaging-transcribed.psv`) and its product
+photos cropped from the pages (`scripts/crop-catalogue-photos.mts`). Every item is imported with
+supplier Shrivi Limited and no cost. Assumptions to confirm, all listed in
+`data/import/CONVERSION-NOTES.md`: the Drinks_List items are also supplied by Shrivi; obvious
+misprints are corrected (Evain -> Evian, Thumsup -> Thums Up, mislabelled lid tiles); three
+catalogue tiles whose label and photo disagree were not imported. The hosted database was loaded
+with `data/import/catalogue-import.sql`, fetched by the database itself pinned to a commit and
+checked by MD5 before running (MEMORY.md), then verified with a catalogue fingerprint.
+
+## D31. Photos
+Category and home photos are the four images the owner supplied (the fifth, an Alamy preview with
+watermarks, is not used: it needs a paid licence). Product photos for the packaging range are the
+supplier's own catalogue pictures, used to sell the supplier's products. All are served from our
+own site (`public/images/…`, image_path `/images/…`); admin uploads go to Supabase Storage.

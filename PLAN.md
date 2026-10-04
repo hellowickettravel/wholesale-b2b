@@ -1,6 +1,6 @@
 # PLAN — B2B wholesale grocery ordering portal
 
-Owner: Touseef · Client: Nagaraju Vardanam (UK) · Status: **Phases 1–3 done (Phases 2–3 in draft PR #2, migrations 0001–0006 live on hosted Supabase). Phase 4 next.** See `HANDOVER.md`.
+Owner: Touseef · Client: Nagaraju Vardanam (UK) · Status: **Phases 1–4 done (Phases 2–4 in draft PR #2, migrations 0001–0006 live on hosted Supabase, real catalogue loaded). Phase 5 next.** See `HANDOVER.md`.
 
 This is the living plan. Decisions and their reasons live in `DECISIONS.md`; traps and
 non-obvious facts live in `CLAUDE.md` / `MEMORY.md`.
@@ -12,7 +12,7 @@ non-obvious facts live in `CLAUDE.md` / `MEMORY.md`.
 | Input | Status | Effect |
 |---|---|---|
 | `/brand/` (name, logo, colours) | **Missing** | Neutral working name "Order Desk" + text wordmark, all behind `src/config/brand.ts` and `src/app/tokens.css`. Re-skin = edit those two files + drop logo into `/public/brand/`. |
-| `/data/source/SHRIVI_ITEMS.pdf`, `Drinks_List.pdf`, `Shrivi_Limited_Packaging_Catalogue_.pdf` | **Missing** | Name/size parser and importer built and unit-tested against representative names; real import runs as soon as the PDFs land. |
+| `/data/source/SHRIVI_ITEMS.pdf`, `Drinks_List.pdf`, `Shrivi_Limited_Packaging_Catalogue_.pdf` | **Received 4 Oct, imported** | Name/size parser and importer built and unit-tested against representative names; real import runs as soon as the PDFs land. |
 | `/design-reference/mockup.html` | **Missing** | Not needed: screen list is in the brief. Designing from scratch anyway. |
 | Supabase project, Vercel project | Not yet | Developing against a **local Supabase stack** (Supabase CLI + Docker) so migrations, RLS and E2E tests run for real. |
 
