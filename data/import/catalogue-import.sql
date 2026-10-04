@@ -123,8 +123,13 @@ from (values ('rice','Basant Basmati Rice','basant-basmati-rice',null,null,'shri
 ('restaurant-packing-and-cleaning','Compacters 18"X29"X34" - 20S 6X5 Rolls','compacters-18-x29-x34-20s-6x5-rolls',null,null,'shrivi_items','COMPACTERS 18 X29 X34 20S 6X5 ROLLS'),
 ('restaurant-packing-and-cleaning','2OZ/4OZ/7OZ Trans Vented Lid - Dart-6JLTRPF','2oz-4oz-7oz-trans-vented-lid-dart-6jltrpf',null,null,'shrivi_items','2OZ 4OZ 7OZ TRANS VENTED LID DART 6JLTRPF'),
 ('restaurant-packing-and-cleaning','Dart - 12JL 12 Oz Vented White Lid','dart-12jl-12-oz-vented-white-lid',null,null,'shrivi_items','DART 12JL 12 OZ VENTED WHITE LID'),
-('restaurant-packing-and-cleaning','Dart - 12LX12 12 Oz Drinking Cups','dart-12lx12-12-oz-drinking-cups',null,null,'shrivi_items','DART 12LX12 12 OZ DRINKING CUPS'),
-('restaurant-packing-and-cleaning','Dart - 2J6 2OZ Sauce Cups','dart-2j6-2oz-sauce-cups',null,null,'shrivi_items','DART 2J6 2OZ SAUCE CUPS'),
+('restaurant-packing-and-cleaning','Dart - 12LX12 12 Oz Drinking Cups','dart-12lx12-12-oz-drinking-cups',null,null,'shrivi_items','DART 12LX12 12 OZ DRINKING CUPS')) v(category, name, slug, description, image_path, source, name_key)
+join public.categories c on c.slug = v.category
+on conflict do nothing;
+
+insert into public.products (category_id, name, slug, description, image_path, source, source_ref)
+select c.id, v.name, v.slug, v.description, v.image_path, v.source, c.id || '::' || v.name_key
+from (values ('restaurant-packing-and-cleaning','Dart - 2J6 2OZ Sauce Cups','dart-2j6-2oz-sauce-cups',null,null,'shrivi_items','DART 2J6 2OZ SAUCE CUPS'),
 ('restaurant-packing-and-cleaning','Dart - 4J6 4OZ Sauce Cups','dart-4j6-4oz-sauce-cups',null,null,'shrivi_items','DART 4J6 4OZ SAUCE CUPS'),
 ('restaurant-packing-and-cleaning','Dart -8JL 8OZ Vent White Lid','dart-8jl-8oz-vent-white-lid',null,null,'shrivi_items','DART 8JL 8OZ VENT WHITE LID'),
 ('restaurant-packing-and-cleaning','Dart-8LX8 Drinking White Cup (1000 Peices)','dart-8lx8-drinking-white-cup-1000-peices',null,null,'shrivi_items','DART 8LX8 DRINKING WHITE CUP 1000 PEICES'),
@@ -243,8 +248,13 @@ from (values ('rice','Basant Basmati Rice','basant-basmati-rice',null,null,'shri
 ('restaurant-groceries','Chick Peas Canned','chick-peas-canned',null,null,'shrivi_items','CHICK PEAS CANNED'),
 ('restaurant-groceries','Sweet Mango Chutney','sweet-mango-chutney',null,null,'shrivi_items','SWEET MANGO CHUTNEY'),
 ('restaurant-groceries','Natco Mango Slices Alphonso','natco-mango-slices-alphonso',null,null,'shrivi_items','NATCO MANGO SLICES ALPHONSO'),
-('restaurant-groceries','Lychees Whole In Syrup','lychees-whole-in-syrup',null,null,'shrivi_items','LYCHEES WHOLE IN SYRUP'),
-('restaurant-groceries','Chick Peas Can','chick-peas-can',null,null,'shrivi_items','CHICK PEAS CAN'),
+('restaurant-groceries','Lychees Whole In Syrup','lychees-whole-in-syrup',null,null,'shrivi_items','LYCHEES WHOLE IN SYRUP')) v(category, name, slug, description, image_path, source, name_key)
+join public.categories c on c.slug = v.category
+on conflict do nothing;
+
+insert into public.products (category_id, name, slug, description, image_path, source, source_ref)
+select c.id, v.name, v.slug, v.description, v.image_path, v.source, c.id || '::' || v.name_key
+from (values ('restaurant-groceries','Chick Peas Can','chick-peas-can',null,null,'shrivi_items','CHICK PEAS CAN'),
 ('restaurant-groceries','Pineapple Slice ( Ring )','pineapple-slice-ring',null,null,'shrivi_items','PINEAPPLE SLICE RING'),
 ('restaurant-groceries','Kerrymaid Double Cream','kerrymaid-double-cream',null,null,'shrivi_items','KERRYMAID DOUBLE CREAM'),
 ('restaurant-groceries','Kerrymaid Single Cream','kerrymaid-single-cream',null,null,'shrivi_items','KERRYMAID SINGLE CREAM'),
@@ -253,13 +263,8 @@ from (values ('rice','Basant Basmati Rice','basant-basmati-rice',null,null,'shri
 ('restaurant-groceries','MR Naga','mr-naga',null,null,'shrivi_items','MR NAGA'),
 ('restaurant-groceries','Kissan Mixed Fruit Jam','kissan-mixed-fruit-jam',null,null,'shrivi_items','KISSAN MIXED FRUIT JAM'),
 ('food-colours','KTC Food Colour Bright Red','ktc-food-colour-bright-red',null,null,'shrivi_items','KTC FOOD COLOUR BRIGHT RED'),
-('food-colours','KTC Food Colour Deep Orange','ktc-food-colour-deep-orange',null,null,'shrivi_items','KTC FOOD COLOUR DEEP ORANGE')) v(category, name, slug, description, image_path, source, name_key)
-join public.categories c on c.slug = v.category
-on conflict do nothing;
-
-insert into public.products (category_id, name, slug, description, image_path, source, source_ref)
-select c.id, v.name, v.slug, v.description, v.image_path, v.source, c.id || '::' || v.name_key
-from (values ('food-colours','KTC Food Colour Egg Yellow','ktc-food-colour-egg-yellow',null,null,'shrivi_items','KTC FOOD COLOUR EGG YELLOW'),
+('food-colours','KTC Food Colour Deep Orange','ktc-food-colour-deep-orange',null,null,'shrivi_items','KTC FOOD COLOUR DEEP ORANGE'),
+('food-colours','KTC Food Colour Egg Yellow','ktc-food-colour-egg-yellow',null,null,'shrivi_items','KTC FOOD COLOUR EGG YELLOW'),
 ('food-colours','KTC Food Colour Green','ktc-food-colour-green',null,null,'shrivi_items','KTC FOOD COLOUR GREEN'),
 ('food-colours','Natco Food Colour Egg Yellow','natco-food-colour-egg-yellow',null,null,'shrivi_items','NATCO FOOD COLOUR EGG YELLOW'),
 ('food-colours','Natco Food Colour Red','natco-food-colour-red',null,null,'shrivi_items','NATCO FOOD COLOUR RED'),
@@ -368,8 +373,13 @@ from (values ('food-colours','KTC Food Colour Egg Yellow','ktc-food-colour-egg-y
 ('pulses-nuts-and-groceries','Village Soya Chunks Large','village-soya-chunks-large',null,null,'shrivi_items','VILLAGE SOYA CHUNKS LARGE'),
 ('pulses-nuts-and-groceries','Village Soya Chunks Medium','village-soya-chunks-medium',null,null,'shrivi_items','VILLAGE SOYA CHUNKS MEDIUM'),
 ('pulses-nuts-and-groceries','British Sugar','british-sugar',null,null,'shrivi_items','BRITISH SUGAR'),
-('pulses-nuts-and-groceries','Village Sugar','village-sugar',null,null,'shrivi_items','VILLAGE SUGAR'),
-('pulses-nuts-and-groceries','Village Tamarind Seedless','village-tamarind-seedless',null,null,'shrivi_items','VILLAGE TAMARIND SEEDLESS'),
+('pulses-nuts-and-groceries','Village Sugar','village-sugar',null,null,'shrivi_items','VILLAGE SUGAR')) v(category, name, slug, description, image_path, source, name_key)
+join public.categories c on c.slug = v.category
+on conflict do nothing;
+
+insert into public.products (category_id, name, slug, description, image_path, source, source_ref)
+select c.id, v.name, v.slug, v.description, v.image_path, v.source, c.id || '::' || v.name_key
+from (values ('pulses-nuts-and-groceries','Village Tamarind Seedless','village-tamarind-seedless',null,null,'shrivi_items','VILLAGE TAMARIND SEEDLESS'),
 ('pulses-nuts-and-groceries','Village Toor Dal','village-toor-dal',null,null,'shrivi_items','VILLAGE TOOR DAL'),
 ('pulses-nuts-and-groceries','Village Toor Dal Oily','village-toor-dal-oily',null,null,'shrivi_items','VILLAGE TOOR DAL OILY'),
 ('pulses-nuts-and-groceries','Village Urid Beans (Black Urid Gota)','village-urid-beans-black-urid-gota',null,null,'shrivi_items','VILLAGE URID BEANS BLACK URID GOTA'),
@@ -488,8 +498,13 @@ from (values ('food-colours','KTC Food Colour Egg Yellow','ktc-food-colour-egg-y
 ('flours-atta-and-rava','Victoria Self Raising Flour','victoria-self-raising-flour',null,null,'shrivi_items','VICTORIA SELF RAISING FLOUR'),
 ('flours-atta-and-rava','Village Corn Flour','village-corn-flour',null,null,'shrivi_items','VILLAGE CORN FLOUR'),
 ('flours-atta-and-rava','Village Gram Flour','village-gram-flour-2',null,null,'shrivi_items','VILLAGE GRAM FLOUR'),
-('flours-atta-and-rava','Village Ragi Flour','village-ragi-flour',null,null,'shrivi_items','VILLAGE RAGI FLOUR'),
-('flours-atta-and-rava','Village Rice Flour','village-rice-flour',null,null,'shrivi_items','VILLAGE RICE FLOUR'),
+('flours-atta-and-rava','Village Ragi Flour','village-ragi-flour',null,null,'shrivi_items','VILLAGE RAGI FLOUR')) v(category, name, slug, description, image_path, source, name_key)
+join public.categories c on c.slug = v.category
+on conflict do nothing;
+
+insert into public.products (category_id, name, slug, description, image_path, source, source_ref)
+select c.id, v.name, v.slug, v.description, v.image_path, v.source, c.id || '::' || v.name_key
+from (values ('flours-atta-and-rava','Village Rice Flour','village-rice-flour',null,null,'shrivi_items','VILLAGE RICE FLOUR'),
 ('flours-atta-and-rava','Village Yellow Jowar Flour','village-yellow-jowar-flour',null,null,'shrivi_items','VILLAGE YELLOW JOWAR FLOUR'),
 ('flours-atta-and-rava','Aashirvaad Atta','aashirvaad-atta',null,null,'shrivi_items','AASHIRVAAD ATTA'),
 ('flours-atta-and-rava','Aashirvaad Multigrain Atta','aashirvaad-multigrain-atta',null,null,'shrivi_items','AASHIRVAAD MULTIGRAIN ATTA'),
@@ -508,13 +523,8 @@ from (values ('food-colours','KTC Food Colour Egg Yellow','ktc-food-colour-egg-y
 ('drinks','Coca Cola Zero','coca-cola-zero',null,null,'drinks_list','COCA COLA ZERO'),
 ('drinks','Fanta','fanta',null,null,'drinks_list','FANTA'),
 ('drinks','7UP','7up',null,null,'drinks_list','7UP'),
-('drinks','Mirinda Orange','mirinda-orange',null,null,'drinks_list','MIRINDA ORANGE')) v(category, name, slug, description, image_path, source, name_key)
-join public.categories c on c.slug = v.category
-on conflict do nothing;
-
-insert into public.products (category_id, name, slug, description, image_path, source, source_ref)
-select c.id, v.name, v.slug, v.description, v.image_path, v.source, c.id || '::' || v.name_key
-from (values ('drinks','Mirinda Strawberry','mirinda-strawberry',null,null,'drinks_list','MIRINDA STRAWBERRY'),
+('drinks','Mirinda Orange','mirinda-orange',null,null,'drinks_list','MIRINDA ORANGE'),
+('drinks','Mirinda Strawberry','mirinda-strawberry',null,null,'drinks_list','MIRINDA STRAWBERRY'),
 ('drinks','Pepsi','pepsi',null,null,'drinks_list','PEPSI'),
 ('drinks','Nurture','nurture',null,null,'drinks_list','NURTURE'),
 ('drinks','Thums Up Tins','thums-up-tins',null,null,'drinks_list','THUMS UP TINS'),
@@ -613,8 +623,13 @@ from (values ('drinks','Mirinda Strawberry','mirinda-strawberry',null,null,'drin
 ('restaurant-packing-and-cleaning','Lid For Large Oval Black Microwavable Take Away Container','lid-for-large-oval-black-microwavable-take-away-container',null,'/images/products/lid-for-large-oval-black-microwavable-take-away-container.webp','shrivi_packaging','LID FOR LARGE OVAL BLACK MICROWAVABLE TAKE AWAY CONTAINER'),
 ('restaurant-packing-and-cleaning','Oval Black Microwavable Take Away Container','oval-black-microwavable-take-away-container',null,'/images/products/oval-black-microwavable-take-away-container.webp','shrivi_packaging','OVAL BLACK MICROWAVABLE TAKE AWAY CONTAINER'),
 ('restaurant-packing-and-cleaning','Lid For Oval Black Microwavable Take Away Container','lid-for-oval-black-microwavable-take-away-container',null,'/images/products/lid-for-oval-black-microwavable-take-away-container.webp','shrivi_packaging','LID FOR OVAL BLACK MICROWAVABLE TAKE AWAY CONTAINER'),
-('restaurant-packing-and-cleaning','Square Black Microwave Take Away Container','square-black-microwave-take-away-container',null,'/images/products/square-black-microwave-take-away-container.webp','shrivi_packaging','SQUARE BLACK MICROWAVE TAKE AWAY CONTAINER'),
-('restaurant-packing-and-cleaning','Clear Microwave Lid For Small Black Microwave Take Away Container','clear-microwave-lid-for-small-black-microwave-take-away-container',null,'/images/products/clear-microwave-lid-for-small-black-microwave-take-away-container.webp','shrivi_packaging','CLEAR MICROWAVE LID FOR SMALL BLACK MICROWAVE TAKE AWAY CONTAINER'),
+('restaurant-packing-and-cleaning','Square Black Microwave Take Away Container','square-black-microwave-take-away-container',null,'/images/products/square-black-microwave-take-away-container.webp','shrivi_packaging','SQUARE BLACK MICROWAVE TAKE AWAY CONTAINER')) v(category, name, slug, description, image_path, source, name_key)
+join public.categories c on c.slug = v.category
+on conflict do nothing;
+
+insert into public.products (category_id, name, slug, description, image_path, source, source_ref)
+select c.id, v.name, v.slug, v.description, v.image_path, v.source, c.id || '::' || v.name_key
+from (values ('restaurant-packing-and-cleaning','Clear Microwave Lid For Small Black Microwave Take Away Container','clear-microwave-lid-for-small-black-microwave-take-away-container',null,'/images/products/clear-microwave-lid-for-small-black-microwave-take-away-container.webp','shrivi_packaging','CLEAR MICROWAVE LID FOR SMALL BLACK MICROWAVE TAKE AWAY CONTAINER'),
 ('restaurant-packing-and-cleaning','Kraft Hinged Take Away Food Container','kraft-hinged-take-away-food-container',null,'/images/products/kraft-hinged-take-away-food-container.webp','shrivi_packaging','KRAFT HINGED TAKE AWAY FOOD CONTAINER'),
 ('restaurant-packing-and-cleaning','Bags On Roll','bags-on-roll',null,'/images/products/bags-on-roll.webp','shrivi_packaging','BAGS ON ROLL'),
 ('restaurant-packing-and-cleaning','Black Bag on Roll','black-bag-on-roll',null,'/images/products/black-bag-on-roll.webp','shrivi_packaging','BLACK BAG ON ROLL'),
@@ -733,8 +748,13 @@ from (values ('drinks','Mirinda Strawberry','mirinda-strawberry',null,null,'drin
 ('restaurant-packing-and-cleaning','Plastic White Economy Dessert Spoons','plastic-white-economy-dessert-spoons',null,'/images/products/plastic-white-economy-dessert-spoons.webp','shrivi_packaging','PLASTIC WHITE ECONOMY DESSERT SPOONS'),
 ('restaurant-packing-and-cleaning','Plastic White Economy Forks','plastic-white-economy-forks',null,'/images/products/plastic-white-economy-forks.webp','shrivi_packaging','PLASTIC WHITE ECONOMY FORKS'),
 ('restaurant-packing-and-cleaning','Plastic White Economy Knives','plastic-white-economy-knives',null,'/images/products/plastic-white-economy-knives.webp','shrivi_packaging','PLASTIC WHITE ECONOMY KNIVES'),
-('restaurant-packing-and-cleaning','Pre-Cut Foil Sheets','pre-cut-foil-sheets',null,'/images/products/pre-cut-foil-sheets.webp','shrivi_packaging','PRE CUT FOIL SHEETS'),
-('restaurant-packing-and-cleaning','Sabert 4 in 1 Compostable Cutlery Pack (PUL3514)','sabert-4-in-1-compostable-cutlery-pack-pul3514',null,'/images/products/sabert-4-in-1-compostable-cutlery-pack-pul3514.webp','shrivi_packaging','SABERT 4 IN 1 COMPOSTABLE CUTLERY PACK PUL3514'),
+('restaurant-packing-and-cleaning','Pre-Cut Foil Sheets','pre-cut-foil-sheets',null,'/images/products/pre-cut-foil-sheets.webp','shrivi_packaging','PRE CUT FOIL SHEETS')) v(category, name, slug, description, image_path, source, name_key)
+join public.categories c on c.slug = v.category
+on conflict do nothing;
+
+insert into public.products (category_id, name, slug, description, image_path, source, source_ref)
+select c.id, v.name, v.slug, v.description, v.image_path, v.source, c.id || '::' || v.name_key
+from (values ('restaurant-packing-and-cleaning','Sabert 4 in 1 Compostable Cutlery Pack (PUL3514)','sabert-4-in-1-compostable-cutlery-pack-pul3514',null,'/images/products/sabert-4-in-1-compostable-cutlery-pack-pul3514.webp','shrivi_packaging','SABERT 4 IN 1 COMPOSTABLE CUTLERY PACK PUL3514'),
 ('restaurant-packing-and-cleaning','Somoplast Heavy Duty Ice Cream Spoon Blue','somoplast-heavy-duty-ice-cream-spoon-blue',null,'/images/products/somoplast-heavy-duty-ice-cream-spoon-blue.webp','shrivi_packaging','SOMOPLAST HEAVY DUTY ICE CREAM SPOON BLUE'),
 ('restaurant-packing-and-cleaning','Wooden Dessert Spoons','wooden-dessert-spoons',null,'/images/products/wooden-dessert-spoons.webp','shrivi_packaging','WOODEN DESSERT SPOONS'),
 ('restaurant-packing-and-cleaning','Wooden Forks','wooden-forks',null,'/images/products/wooden-forks.webp','shrivi_packaging','WOODEN FORKS'),
@@ -763,13 +783,8 @@ from (values ('drinks','Mirinda Strawberry','mirinda-strawberry',null,null,'drin
 ('restaurant-packing-and-cleaning','Supertouch Face Mask 3 Ply Blue','supertouch-face-mask-3-ply-blue',null,'/images/products/supertouch-face-mask-3-ply-blue.webp','shrivi_packaging','SUPERTOUCH FACE MASK 3 PLY BLUE'),
 ('restaurant-packing-and-cleaning','Antibacterial Cleaner & Sanitiser','antibacterial-cleaner-and-sanitiser',null,'/images/products/antibacterial-cleaner-and-sanitiser.webp','shrivi_packaging','ANTIBACTERIAL CLEANER AND SANITISER'),
 ('restaurant-packing-and-cleaning','Antibacterial Sanitiser','antibacterial-sanitiser',null,'/images/products/antibacterial-sanitiser.webp','shrivi_packaging','ANTIBACTERIAL SANITISER'),
-('restaurant-packing-and-cleaning','Bleach Extra Strong','bleach-extra-strong',null,'/images/products/bleach-extra-strong.webp','shrivi_packaging','BLEACH EXTRA STRONG')) v(category, name, slug, description, image_path, source, name_key)
-join public.categories c on c.slug = v.category
-on conflict do nothing;
-
-insert into public.products (category_id, name, slug, description, image_path, source, source_ref)
-select c.id, v.name, v.slug, v.description, v.image_path, v.source, c.id || '::' || v.name_key
-from (values ('restaurant-packing-and-cleaning','Detergent Dish Washer','detergent-dish-washer',null,'/images/products/detergent-dish-washer.webp','shrivi_packaging','DETERGENT DISH WASHER'),
+('restaurant-packing-and-cleaning','Bleach Extra Strong','bleach-extra-strong',null,'/images/products/bleach-extra-strong.webp','shrivi_packaging','BLEACH EXTRA STRONG'),
+('restaurant-packing-and-cleaning','Detergent Dish Washer','detergent-dish-washer',null,'/images/products/detergent-dish-washer.webp','shrivi_packaging','DETERGENT DISH WASHER'),
 ('restaurant-packing-and-cleaning','Dish Washer Salt','dish-washer-salt',null,'/images/products/dish-washer-salt.webp','shrivi_packaging','DISH WASHER SALT'),
 ('restaurant-packing-and-cleaning','Finish Quantum Tablets','finish-quantum-tablets',null,'/images/products/finish-quantum-tablets.webp','shrivi_packaging','FINISH QUANTUM TABLETS'),
 ('restaurant-packing-and-cleaning','Freescale Descaler','freescale-descaler',null,'/images/products/freescale-descaler.webp','shrivi_packaging','FREESCALE DESCALER'),
@@ -980,8 +995,15 @@ from (values ('rice','BASANT BASMATI RICE','5 kg',5000,null::int,null,'BASANT BA
 ('restaurant-packing-and-cleaning','NO 6 LIDS H POLY','Each',0,null::int,null,'NO. 6 LIDS H/POLY'),
 ('restaurant-packing-and-cleaning','NO 6A HEAVY POLY LIDS','Each',0,null::int,null,'NO. 6A HEAVY POLY LIDS'),
 ('restaurant-packing-and-cleaning','NO 6A LIDS','Each',0,null::int,null,'NO. 6A LIDS'),
-('restaurant-packing-and-cleaning','NO 9 LIDS','Each',0,null::int,null,'NO. 9 LIDS'),
-('restaurant-packing-and-cleaning','BIN BAGS 18X29X39','200 pcs',200,null::int,null,'BIN BAGS (18X29X39) 200PCS'),
+('restaurant-packing-and-cleaning','NO 9 LIDS','Each',0,null::int,null,'NO. 9 LIDS')) v(category, name_key, size_label, size_sort, vat_rate_bp, sku, source_ref)
+join public.categories c on c.slug = v.category
+join public.products p on p.source_ref = c.id || '::' || v.name_key
+cross join (select id from public.suppliers where lower(name) = lower('Shrivi Limited') order by created_at limit 1) s
+on conflict do nothing;
+
+insert into public.product_variants (product_id, size_label, size_sort, supplier_id, vat_rate_bp, sku, source_ref)
+select p.id, v.size_label, v.size_sort, s.id, coalesce(v.vat_rate_bp, c.default_vat_rate_bp), v.sku, v.source_ref
+from (values ('restaurant-packing-and-cleaning','BIN BAGS 18X29X39','200 pcs',200,null::int,null,'BIN BAGS (18X29X39) 200PCS'),
 ('restaurant-packing-and-cleaning','2 CUP HOLDERS 4X90','Each',0,null::int,null,'2 CUP HOLDERS 4X90'),
 ('restaurant-packing-and-cleaning','2 PLY SERVIETTE 33X33','2000 pcs',2000,null::int,null,'2 PLY SERVIETTE (2000) 33X33'),
 ('restaurant-packing-and-cleaning','SERVIETTES 1 PLY WHITE','280 pcs × 12',3360,null::int,null,'SERVIETTES 1 PLY - WHITE (12 X 280 PCS)'),
@@ -1100,8 +1122,15 @@ from (values ('rice','BASANT BASMATI RICE','5 kg',5000,null::int,null,'BASANT BA
 ('restaurant-groceries','CUSTARD','250 g × 6',1500,null::int,null,'CUSTARD 6X250G'),
 ('restaurant-groceries','ISLAND SUN CONDENSED MILK','397 g × 12',4764,null::int,null,'ISLAND SUN CONDENSED MILK (12X397GRAMS)'),
 ('restaurant-groceries','NATCO POMACE PURE OLIVE OIL','5 L',5000,null::int,null,'NATCO POMACE PURE OLIVE OIL 5 LITRE'),
-('restaurant-groceries','KTC VEGETABLE OIL','20 L',20000,null::int,null,'KTC VEGETABLE OIL 20 L'),
-('restaurant-groceries','KTC SUNFLOWER OIL PET','1 L × 6',6000,null::int,null,'KTC SUNFLOWER OIL (PET) 6 X 1 L'),
+('restaurant-groceries','KTC VEGETABLE OIL','20 L',20000,null::int,null,'KTC VEGETABLE OIL 20 L')) v(category, name_key, size_label, size_sort, vat_rate_bp, sku, source_ref)
+join public.categories c on c.slug = v.category
+join public.products p on p.source_ref = c.id || '::' || v.name_key
+cross join (select id from public.suppliers where lower(name) = lower('Shrivi Limited') order by created_at limit 1) s
+on conflict do nothing;
+
+insert into public.product_variants (product_id, size_label, size_sort, supplier_id, vat_rate_bp, sku, source_ref)
+select p.id, v.size_label, v.size_sort, s.id, coalesce(v.vat_rate_bp, c.default_vat_rate_bp), v.sku, v.source_ref
+from (values ('restaurant-groceries','KTC SUNFLOWER OIL PET','1 L × 6',6000,null::int,null,'KTC SUNFLOWER OIL (PET) 6 X 1 L'),
 ('restaurant-groceries','KTC SUNFLOWER OIL PET','5 L × 3',15000,null::int,null,'KTC SUNFLOWER OIL (PET) 3 X 5 L'),
 ('restaurant-groceries','KTC RAPESEED OIL','20 L',20000,null::int,null,'KTC RAPESEED OIL 20L'),
 ('restaurant-groceries','KTC ORGANIC VIRGIN COCONUT OIL','250 ml × 6',1500,null::int,null,'KTC ORGANIC VIRGIN COCONUT OIL 6 X 250 ML'),
@@ -1110,15 +1139,8 @@ from (values ('rice','BASANT BASMATI RICE','5 kg',5000,null::int,null,'BASANT BA
 ('restaurant-groceries','KTC COCONUT OIL','1 L × 6',6000,null::int,null,'KTC COCONUT OIL 6 X 1 L'),
 ('restaurant-groceries','KTC COCONUT COOKING OIL','650 ml × 6',3900,null::int,null,'KTC COCONUT COOKING OIL 6 X 650 ML'),
 ('restaurant-groceries','KTC COCONUT COOKING OIL','1 L × 6',6000,null::int,null,'KTC COCONUT COOKING OIL 6 X 1 L'),
-('restaurant-groceries','MUSTARD OIL','1 L × 6',6000,null::int,null,'MUSTARD OIL 6 X 1L')) v(category, name_key, size_label, size_sort, vat_rate_bp, sku, source_ref)
-join public.categories c on c.slug = v.category
-join public.products p on p.source_ref = c.id || '::' || v.name_key
-cross join (select id from public.suppliers where lower(name) = lower('Shrivi Limited') order by created_at limit 1) s
-on conflict do nothing;
-
-insert into public.product_variants (product_id, size_label, size_sort, supplier_id, vat_rate_bp, sku, source_ref)
-select p.id, v.size_label, v.size_sort, s.id, coalesce(v.vat_rate_bp, c.default_vat_rate_bp), v.sku, v.source_ref
-from (values ('restaurant-groceries','KTC CORN OIL','15 L',15000,null::int,null,'KTC CORN OIL 15L'),
+('restaurant-groceries','MUSTARD OIL','1 L × 6',6000,null::int,null,'MUSTARD OIL 6 X 1L'),
+('restaurant-groceries','KTC CORN OIL','15 L',15000,null::int,null,'KTC CORN OIL 15L'),
 ('restaurant-groceries','KTC SUNFLOWER OIL','15 L',15000,null::int,null,'KTC SUNFLOWER OIL 15 L'),
 ('restaurant-groceries','PURE BUTTER GHEE NATCO','1 kg × 12',12000,null::int,null,'PURE BUTTER GHEE (NATCO) 12X1 KG'),
 ('restaurant-groceries','KTC COW DESI GHEE','1 kg × 6',6000,null::int,null,'KTC COW DESI GHEE 6 X 1 KG'),
@@ -1227,8 +1249,15 @@ from (values ('restaurant-groceries','KTC CORN OIL','15 L',15000,null::int,null,
 ('whole-spices','MAMRA','500 g',500,null::int,null,'MAMRA 500 GM'),
 ('pulses-nuts-and-groceries','VILLAGE BROWN CHICK PEAS','1 kg',1000,null::int,null,'VILLAGE BROWN CHICK PEAS 1 KG'),
 ('pulses-nuts-and-groceries','AJINOMOTO','20 kg',20000,null::int,null,'AJINOMOTO 20 KGS'),
-('pulses-nuts-and-groceries','VILLAGE AJINOMOTO','100 g',100,null::int,null,'VILLAGE AJINOMOTO 100 GRAMS'),
-('pulses-nuts-and-groceries','VILLAGE AJINOMOTO','1 kg',1000,null::int,null,'VILLAGE AJINOMOTO 1 KG'),
+('pulses-nuts-and-groceries','VILLAGE AJINOMOTO','100 g',100,null::int,null,'VILLAGE AJINOMOTO 100 GRAMS')) v(category, name_key, size_label, size_sort, vat_rate_bp, sku, source_ref)
+join public.categories c on c.slug = v.category
+join public.products p on p.source_ref = c.id || '::' || v.name_key
+cross join (select id from public.suppliers where lower(name) = lower('Shrivi Limited') order by created_at limit 1) s
+on conflict do nothing;
+
+insert into public.product_variants (product_id, size_label, size_sort, supplier_id, vat_rate_bp, sku, source_ref)
+select p.id, v.size_label, v.size_sort, s.id, coalesce(v.vat_rate_bp, c.default_vat_rate_bp), v.sku, v.source_ref
+from (values ('pulses-nuts-and-groceries','VILLAGE AJINOMOTO','1 kg',1000,null::int,null,'VILLAGE AJINOMOTO 1 KG'),
 ('pulses-nuts-and-groceries','VILLAGE AJWAN SEEDS','100 g',100,null::int,null,'VILLAGE AJWAN SEEDS 100 GRAMS'),
 ('pulses-nuts-and-groceries','VILLAGE AJWAN SEEDS','1 kg',1000,null::int,null,'VILLAGE AJWAN SEEDS 1 KG'),
 ('pulses-nuts-and-groceries','VILLAGE AJWAN SEEDS','25 kg',25000,null::int,null,'VILLAGE AJWAN SEEDS 25KG'),
@@ -1347,8 +1376,15 @@ from (values ('restaurant-groceries','KTC CORN OIL','15 L',15000,null::int,null,
 ('pulses-nuts-and-groceries','BAMBINO VERMICELLI','850 g',850,null::int,null,'BAMBINO VERMICELLI 850 GRAMS'),
 ('pulses-nuts-and-groceries','BAMBINO VERMICELLI','1 kg',1000,null::int,null,'BAMBINO VERMICELLI 1 KG'),
 ('pulses-nuts-and-groceries','KTC VERMICELLI','200 g × 15',3000,null::int,null,'KTC VERMICELLI 15 X 200 G'),
-('pulses-nuts-and-groceries','MTR ROASTED VERMICELLI','850 g',850,null::int,null,'MTR ROASTED VERMICELLI 850 GRAMS'),
-('pulses-nuts-and-groceries','MTR VERMICELLI','850 g',850,null::int,null,'MTR VERMICELLI 850 GRAMS'),
+('pulses-nuts-and-groceries','MTR ROASTED VERMICELLI','850 g',850,null::int,null,'MTR ROASTED VERMICELLI 850 GRAMS')) v(category, name_key, size_label, size_sort, vat_rate_bp, sku, source_ref)
+join public.categories c on c.slug = v.category
+join public.products p on p.source_ref = c.id || '::' || v.name_key
+cross join (select id from public.suppliers where lower(name) = lower('Shrivi Limited') order by created_at limit 1) s
+on conflict do nothing;
+
+insert into public.product_variants (product_id, size_label, size_sort, supplier_id, vat_rate_bp, sku, source_ref)
+select p.id, v.size_label, v.size_sort, s.id, coalesce(v.vat_rate_bp, c.default_vat_rate_bp), v.sku, v.source_ref
+from (values ('pulses-nuts-and-groceries','MTR VERMICELLI','850 g',850,null::int,null,'MTR VERMICELLI 850 GRAMS'),
 ('pulses-nuts-and-groceries','VERMICELLI RSTD POLY','150 g × 48',7200,null::int,null,'VERMICELLI RSTD POLY 48X150 GRAMS'),
 ('pulses-nuts-and-groceries','KALA NAMAK','1 kg',1000,null::int,null,'KALA NAMAK 1 KG'),
 ('pulses-nuts-and-groceries','PINK SALT FINE','500 g × 36',18000,null::int,null,'PINK SALT FINE 36X500 GRAMS'),
@@ -1367,15 +1403,8 @@ from (values ('restaurant-groceries','KTC CORN OIL','15 L',15000,null::int,null,
 ('pulses-nuts-and-groceries','WHOLE FIGS','10 kg',10000,null::int,null,'WHOLE FIGS 10 KG'),
 ('pulses-nuts-and-groceries','TAMARIND SEEDLESS','200 g × 10',2000,null::int,null,'TAMARIND SEEDLESS 10X200 GRAMS'),
 ('pulses-nuts-and-groceries','VILLAGE FARFAR TUBES','250 g',250,null::int,null,'VILLAGE FARFAR TUBES 250 GRAMS'),
-('pulses-nuts-and-groceries','BROWN CHICK PEAS','25 kg',25000,null::int,null,'BROWN CHICK PEAS 25 KG')) v(category, name_key, size_label, size_sort, vat_rate_bp, sku, source_ref)
-join public.categories c on c.slug = v.category
-join public.products p on p.source_ref = c.id || '::' || v.name_key
-cross join (select id from public.suppliers where lower(name) = lower('Shrivi Limited') order by created_at limit 1) s
-on conflict do nothing;
-
-insert into public.product_variants (product_id, size_label, size_sort, supplier_id, vat_rate_bp, sku, source_ref)
-select p.id, v.size_label, v.size_sort, s.id, coalesce(v.vat_rate_bp, c.default_vat_rate_bp), v.sku, v.source_ref
-from (values ('pulses-nuts-and-groceries','CHICK PEAS','25 kg',25000,null::int,null,'CHICK PEAS 25KG'),
+('pulses-nuts-and-groceries','BROWN CHICK PEAS','25 kg',25000,null::int,null,'BROWN CHICK PEAS 25 KG'),
+('pulses-nuts-and-groceries','CHICK PEAS','25 kg',25000,null::int,null,'CHICK PEAS 25KG'),
 ('pulses-nuts-and-groceries','PUMPKIN SEEDS','1 kg',1000,null::int,null,'PUMPKIN SEEDS 1KG'),
 ('pulses-nuts-and-groceries','MTR GULAB JAMUN MIX','500 g',500,null::int,null,'MTR GULAB JAMUN MIX 500 GRAMS'),
 ('pulses-nuts-and-groceries','MTR GULAB JAMUN MIX BUY 1 GET 1','175 g',175,null::int,null,'MTR GULAB JAMUN MIX 175 GRAMS BUY 1 GET 1'),
@@ -1474,8 +1503,15 @@ from (values ('pulses-nuts-and-groceries','CHICK PEAS','25 kg',25000,null::int,n
 ('powders-and-ground-masala','VILLAGE SAMBAR POWDER','500 g',500,null::int,null,'VILLAGE SAMBAR POWDER 500 GRAMS'),
 ('powders-and-ground-masala','VILLAGE WHITE PEPPER POWDER','100 g',100,null::int,null,'VILLAGE WHITE PEPPER POWDER 100 GRAMS'),
 ('powders-and-ground-masala','CARDAMOM GREEN GROUND','25 kg',25000,null::int,null,'CARDAMOM GREEN GROUND 25KG'),
-('powders-and-ground-masala','VILLAGE WHITE PEPPER GROUND','1 kg',1000,null::int,null,'VILLAGE WHITE PEPPER GROUND 1 KG'),
-('powders-and-ground-masala','CHARMAGAZ','100 g',100,null::int,null,'CHARMAGAZ 100G'),
+('powders-and-ground-masala','VILLAGE WHITE PEPPER GROUND','1 kg',1000,null::int,null,'VILLAGE WHITE PEPPER GROUND 1 KG')) v(category, name_key, size_label, size_sort, vat_rate_bp, sku, source_ref)
+join public.categories c on c.slug = v.category
+join public.products p on p.source_ref = c.id || '::' || v.name_key
+cross join (select id from public.suppliers where lower(name) = lower('Shrivi Limited') order by created_at limit 1) s
+on conflict do nothing;
+
+insert into public.product_variants (product_id, size_label, size_sort, supplier_id, vat_rate_bp, sku, source_ref)
+select p.id, v.size_label, v.size_sort, s.id, coalesce(v.vat_rate_bp, c.default_vat_rate_bp), v.sku, v.source_ref
+from (values ('powders-and-ground-masala','CHARMAGAZ','100 g',100,null::int,null,'CHARMAGAZ 100G'),
 ('flours-atta-and-rava','CASE CORN FLOUR','3 kg × 4',12000,null::int,null,'CASE CORN FLOUR 4X3KG'),
 ('flours-atta-and-rava','ELEPHANT SELF RAISING FLOUR','25 kg',25000,null::int,null,'ELEPHANT SELF RAISING FLOUR 25 KG'),
 ('flours-atta-and-rava','GREEN DRAGON CORN FLOUR','3 kg × 4',12000,null::int,null,'GREEN DRAGON CORN FLOUR 4 X 3 KG'),
@@ -1594,8 +1630,15 @@ from (values ('pulses-nuts-and-groceries','CHICK PEAS','25 kg',25000,null::int,n
 ('restaurant-packing-and-cleaning','DART POLYSTYRENE CUP WHITE','14 oz · case of 1000',14,null::int,null,'Dart Polystyrene Cup White | 14 oz · case of 1000'),
 ('restaurant-packing-and-cleaning','DART POLYSTYRENE CUP WHITE','16 oz · case of 1000',16,null::int,null,'Dart Polystyrene Cup White | 16 oz · case of 1000'),
 ('restaurant-packing-and-cleaning','DISPO RIPPLE BLACK PAPER CUP HOT','4 oz · case of 1000',4,null::int,null,'Dispo Ripple Black Paper Cup Hot | 4 oz · case of 1000'),
-('restaurant-packing-and-cleaning','DISPO WHITE PAPER CUP HOT','6 oz · case of 1000',6,null::int,null,'Dispo White Paper Cup Hot | 6 oz · case of 1000'),
-('restaurant-packing-and-cleaning','GO PAK CARRY TRAY','2 cups · case of 120',120,null::int,null,'Go-Pak Carry Tray | 2 cups · case of 120'),
+('restaurant-packing-and-cleaning','DISPO WHITE PAPER CUP HOT','6 oz · case of 1000',6,null::int,null,'Dispo White Paper Cup Hot | 6 oz · case of 1000')) v(category, name_key, size_label, size_sort, vat_rate_bp, sku, source_ref)
+join public.categories c on c.slug = v.category
+join public.products p on p.source_ref = c.id || '::' || v.name_key
+cross join (select id from public.suppliers where lower(name) = lower('Shrivi Limited') order by created_at limit 1) s
+on conflict do nothing;
+
+insert into public.product_variants (product_id, size_label, size_sort, supplier_id, vat_rate_bp, sku, source_ref)
+select p.id, v.size_label, v.size_sort, s.id, coalesce(v.vat_rate_bp, c.default_vat_rate_bp), v.sku, v.source_ref
+from (values ('restaurant-packing-and-cleaning','GO PAK CARRY TRAY','2 cups · case of 120',120,null::int,null,'Go-Pak Carry Tray | 2 cups · case of 120'),
 ('restaurant-packing-and-cleaning','GO PAK CARRY TRAY','4 cups · case of 360',360,null::int,null,'Go-Pak Carry Tray | 4 cups · case of 360'),
 ('restaurant-packing-and-cleaning','GO PAK COFFEE CUP SLEEVES','8 oz · case of 1000',8,null::int,null,'Go-Pak Coffee Cup Sleeves | 8 oz · case of 1000'),
 ('restaurant-packing-and-cleaning','GO PAK COFFEE CUP SLEEVES','12 oz · case of 1000',12,null::int,null,'Go-Pak Coffee Cup Sleeves | 12 oz · case of 1000'),
@@ -1624,15 +1667,8 @@ from (values ('pulses-nuts-and-groceries','CHICK PEAS','25 kg',25000,null::int,n
 ('restaurant-packing-and-cleaning','SOLO SQUAT PLASTIC CLEAR CUP','9 oz · case of 1000',9,null::int,null,'Solo Squat Plastic Clear Cup | 9 oz · case of 1000'),
 ('restaurant-packing-and-cleaning','CLEAR CLOSED DOMED LIDS FOR PET COLD CUPS NO HOLE','250 cc · case of 1000',250,null::int,null,'Clear Closed Domed Lids for PET Cold Cups No Hole | 250 cc · case of 1000'),
 ('restaurant-packing-and-cleaning','CLEAR CLOSED DOMED LIDS FOR PET COLD CUPS NO HOLE','270 cc · case of 1000',270,null::int,null,'Clear Closed Domed Lids for PET Cold Cups No Hole | 270 cc · case of 1000'),
-('restaurant-packing-and-cleaning','CLEAR CLOSED DOMED LIDS FOR PET COLD CUPS NO HOLE','300 cc · case of 1000',300,null::int,null,'Clear Closed Domed Lids for PET Cold Cups No Hole | 300 cc · case of 1000')) v(category, name_key, size_label, size_sort, vat_rate_bp, sku, source_ref)
-join public.categories c on c.slug = v.category
-join public.products p on p.source_ref = c.id || '::' || v.name_key
-cross join (select id from public.suppliers where lower(name) = lower('Shrivi Limited') order by created_at limit 1) s
-on conflict do nothing;
-
-insert into public.product_variants (product_id, size_label, size_sort, supplier_id, vat_rate_bp, sku, source_ref)
-select p.id, v.size_label, v.size_sort, s.id, coalesce(v.vat_rate_bp, c.default_vat_rate_bp), v.sku, v.source_ref
-from (values ('restaurant-packing-and-cleaning','CLEAR CLOSED DOMED LIDS FOR PET COLD CUPS NO HOLE','400 cc · case of 1000',400,null::int,null,'Clear Closed Domed Lids for PET Cold Cups No Hole | 400 cc · case of 1000'),
+('restaurant-packing-and-cleaning','CLEAR CLOSED DOMED LIDS FOR PET COLD CUPS NO HOLE','300 cc · case of 1000',300,null::int,null,'Clear Closed Domed Lids for PET Cold Cups No Hole | 300 cc · case of 1000'),
+('restaurant-packing-and-cleaning','CLEAR CLOSED DOMED LIDS FOR PET COLD CUPS NO HOLE','400 cc · case of 1000',400,null::int,null,'Clear Closed Domed Lids for PET Cold Cups No Hole | 400 cc · case of 1000'),
 ('restaurant-packing-and-cleaning','CLEAR CLOSED DOMED LIDS FOR PET COLD CUPS NO HOLE','500 cc · case of 1000',500,null::int,null,'Clear Closed Domed Lids for PET Cold Cups No Hole | 500 cc · case of 1000'),
 ('restaurant-packing-and-cleaning','CLEAR CLOSED DOMED LIDS FOR PET COLD CUPS NO HOLE','660 cc · case of 1000',660,null::int,null,'Clear Closed Domed Lids for PET Cold Cups No Hole | 660 cc · case of 1000'),
 ('restaurant-packing-and-cleaning','CLEAR CLOSED DOMED LIDS FOR PET COLD CUPS STRAW SLOT','400 cc · case of 1000',400,null::int,null,'Clear Closed Domed Lids for PET Cold Cups Straw Slot | 400 cc · case of 1000'),
@@ -1721,8 +1757,15 @@ from (values ('restaurant-packing-and-cleaning','CLEAR CLOSED DOMED LIDS FOR PET
 ('restaurant-packing-and-cleaning','BLACK 3 COMPARTMENT MICROWAVABLE TAKE AWAY CONTAINER','1250 cc · case of 260',1250,null::int,null,'Black 3 Compartment Microwavable Take Away Container | 1250 cc · case of 260'),
 ('restaurant-packing-and-cleaning','CLEAR 3 COMPARTMENT MICROWAVABLE TAKE AWAY CONTAINER','1000 cc · case of 260',1000,null::int,null,'Clear 3 Compartment Microwavable Take Away Container | 1000 cc · case of 260'),
 ('restaurant-packing-and-cleaning','LID FOR BLACK 3 COMPARTMENT MICROWAVABLE TAKE AWAY CONTAINER','1000 cc · case of 260',1000,null::int,null,'Lid For Black 3 Compartment Microwavable Take Away Container | 1000 cc · case of 260'),
-('restaurant-packing-and-cleaning','LID FOR BLACK 3 COMPARTMENT MICROWAVABLE TAKE AWAY CONTAINER','1250 cc · case of 260',1250,null::int,null,'Lid For Black 3 Compartment Microwavable Take Away Container | 1250 cc · case of 260'),
-('restaurant-packing-and-cleaning','SOMOPLAST BROWN MICROWAVABLE TAKE AWAY BOWL','250 cc · case of 300',250,null::int,null,'Somoplast Brown Microwavable Take Away Bowl | 250 cc · case of 300'),
+('restaurant-packing-and-cleaning','LID FOR BLACK 3 COMPARTMENT MICROWAVABLE TAKE AWAY CONTAINER','1250 cc · case of 260',1250,null::int,null,'Lid For Black 3 Compartment Microwavable Take Away Container | 1250 cc · case of 260')) v(category, name_key, size_label, size_sort, vat_rate_bp, sku, source_ref)
+join public.categories c on c.slug = v.category
+join public.products p on p.source_ref = c.id || '::' || v.name_key
+cross join (select id from public.suppliers where lower(name) = lower('Shrivi Limited') order by created_at limit 1) s
+on conflict do nothing;
+
+insert into public.product_variants (product_id, size_label, size_sort, supplier_id, vat_rate_bp, sku, source_ref)
+select p.id, v.size_label, v.size_sort, s.id, coalesce(v.vat_rate_bp, c.default_vat_rate_bp), v.sku, v.source_ref
+from (values ('restaurant-packing-and-cleaning','SOMOPLAST BROWN MICROWAVABLE TAKE AWAY BOWL','250 cc · case of 300',250,null::int,null,'Somoplast Brown Microwavable Take Away Bowl | 250 cc · case of 300'),
 ('restaurant-packing-and-cleaning','SOMOPLAST BROWN MICROWAVABLE TAKE AWAY BOWL','375 cc · case of 300',375,null::int,null,'Somoplast Brown Microwavable Take Away Bowl | 375 cc · case of 300'),
 ('restaurant-packing-and-cleaning','SOMOPLAST BROWN MICROWAVABLE TAKE AWAY BOWL','500 cc · case of 300',500,null::int,null,'Somoplast Brown Microwavable Take Away Bowl | 500 cc · case of 300'),
 ('restaurant-packing-and-cleaning','SOMOPLAST BROWN MICROWAVABLE TAKE AWAY BOWL','750 cc · case of 300',750,null::int,null,'Somoplast Brown Microwavable Take Away Bowl | 750 cc · case of 300'),
@@ -1841,8 +1884,15 @@ from (values ('restaurant-packing-and-cleaning','CLEAR CLOSED DOMED LIDS FOR PET
 ('restaurant-packing-and-cleaning','PVC STRETCH FILM XL 10 MICRON','430 x 1500 mm',0,null::int,null,'PVC Stretch Film XL 10 Micron | 430 x 1500 mm'),
 ('restaurant-packing-and-cleaning','PVC STRETCH FILM XL 10 MICRON','450 x 1500 mm',0,null::int,null,'PVC Stretch Film XL 10 Micron | 450 x 1500 mm'),
 ('restaurant-packing-and-cleaning','PVC STRETCH FILM XL 10 MICRON','910 x 1500 mm',0,null::int,null,'PVC Stretch Film XL 10 Micron | 910 x 1500 mm'),
-('restaurant-packing-and-cleaning','COMPOSTABLE BAGASSE STRIPED CLAMSHELL MEAL BOX','9 inch · case of 200',200,null::int,null,'Compostable Bagasse Striped Clamshell Meal Box | 9 inch · case of 200'),
-('restaurant-packing-and-cleaning','BAGASSE 6 COMPARTMENT RECTANGULAR TRAY','280 x 200 x 30 mm · case of 200',200,null::int,null,'Bagasse 6 Compartment Rectangular Tray | 280 x 200 x 30 mm · case of 200'),
+('restaurant-packing-and-cleaning','COMPOSTABLE BAGASSE STRIPED CLAMSHELL MEAL BOX','9 inch · case of 200',200,null::int,null,'Compostable Bagasse Striped Clamshell Meal Box | 9 inch · case of 200')) v(category, name_key, size_label, size_sort, vat_rate_bp, sku, source_ref)
+join public.categories c on c.slug = v.category
+join public.products p on p.source_ref = c.id || '::' || v.name_key
+cross join (select id from public.suppliers where lower(name) = lower('Shrivi Limited') order by created_at limit 1) s
+on conflict do nothing;
+
+insert into public.product_variants (product_id, size_label, size_sort, supplier_id, vat_rate_bp, sku, source_ref)
+select p.id, v.size_label, v.size_sort, s.id, coalesce(v.vat_rate_bp, c.default_vat_rate_bp), v.sku, v.source_ref
+from (values ('restaurant-packing-and-cleaning','BAGASSE 6 COMPARTMENT RECTANGULAR TRAY','280 x 200 x 30 mm · case of 200',200,null::int,null,'Bagasse 6 Compartment Rectangular Tray | 280 x 200 x 30 mm · case of 200'),
 ('restaurant-packing-and-cleaning','BAGASSE 9 COMPARTMENT ROUND TRAY','320 x 320 x 30 mm · case of 100',100,null::int,null,'Bagasse 9 Compartment Round Tray | 320 x 320 x 30 mm · case of 100'),
 ('restaurant-packing-and-cleaning','BAGASSE COMPOSTABLE REGULAR CLAMSHELL PORTION BOX','500 pcs',500,null::int,null,'Bagasse Compostable Regular Clamshell Portion Box | case of 500'),
 ('restaurant-packing-and-cleaning','BAGASSE DINNER PLATE','9 inch · case of 500',500,null::int,null,'Bagasse Dinner Plate | 9 inch · case of 500'),
@@ -1881,15 +1931,8 @@ from (values ('restaurant-packing-and-cleaning','CLEAR CLOSED DOMED LIDS FOR PET
 ('restaurant-packing-and-cleaning','GPI TRAITIPACK CLEAR HINGED BAKERY CONTAINER','5300 cc XXL rectangular · case of 100',5300,null::int,null,'GPI Traitipack Clear Hinged Bakery Container | 5300 cc XXL rectangular · case of 100'),
 ('restaurant-packing-and-cleaning','GPI TRAITIPACK CLEAR HINGED SQUARE BAKERY CONTAINER','180 x 180 x 70 mm · case of 180',180,null::int,null,'GPI Traitipack Clear Hinged Square Bakery Container | 180 x 180 x 70 mm · case of 180'),
 ('restaurant-packing-and-cleaning','HINGED PLASTIC CONTAINER FOR BAGELS','279 x 107 x 60 mm · case of 390',390,null::int,null,'Hinged Plastic Container For Bagels | 279 x 107 x 60 mm · case of 390'),
-('restaurant-packing-and-cleaning','HINGED PLASTIC SAUCE CONTAINER ROUND','1 oz · case of 1000',1,null::int,null,'Hinged Plastic Sauce Container Round | 1 oz · case of 1000')) v(category, name_key, size_label, size_sort, vat_rate_bp, sku, source_ref)
-join public.categories c on c.slug = v.category
-join public.products p on p.source_ref = c.id || '::' || v.name_key
-cross join (select id from public.suppliers where lower(name) = lower('Shrivi Limited') order by created_at limit 1) s
-on conflict do nothing;
-
-insert into public.product_variants (product_id, size_label, size_sort, supplier_id, vat_rate_bp, sku, source_ref)
-select p.id, v.size_label, v.size_sort, s.id, coalesce(v.vat_rate_bp, c.default_vat_rate_bp), v.sku, v.source_ref
-from (values ('restaurant-packing-and-cleaning','HINGED PLASTIC SAUCE CONTAINER ROUND','2 oz · case of 1000',2,null::int,null,'Hinged Plastic Sauce Container Round | 2 oz · case of 1000'),
+('restaurant-packing-and-cleaning','HINGED PLASTIC SAUCE CONTAINER ROUND','1 oz · case of 1000',1,null::int,null,'Hinged Plastic Sauce Container Round | 1 oz · case of 1000'),
+('restaurant-packing-and-cleaning','HINGED PLASTIC SAUCE CONTAINER ROUND','2 oz · case of 1000',2,null::int,null,'Hinged Plastic Sauce Container Round | 2 oz · case of 1000'),
 ('restaurant-packing-and-cleaning','HINGED PLASTIC SAUCE CONTAINER ROUND','4 oz · case of 500',4,null::int,null,'Hinged Plastic Sauce Container Round | 4 oz · case of 500'),
 ('restaurant-packing-and-cleaning','PLASTIC CLEAR HINGED CAKE SLICE CONTAINER','232 x 144 x 36 mm · case of 600',600,null::int,null,'Plastic Clear Hinged Cake Slice Container | 232 x 144 x 36 mm · case of 600'),
 ('restaurant-packing-and-cleaning','1 COMPARTMENT CLEAR HINGED EXTRA LARGE RECTANGULAR CONTAINER','180 pcs',180,null::int,null,'1 Compartment Clear Hinged Extra Large Rectangular Container | case of 180'),
@@ -1968,8 +2011,15 @@ from (values ('restaurant-packing-and-cleaning','HINGED PLASTIC SAUCE CONTAINER 
 ('restaurant-packing-and-cleaning','WIDE SQUARE PULP BOWL','750 ml · case of 300',750,null::int,null,'Wide Square Pulp Bowl | 750 ml · case of 300'),
 ('restaurant-packing-and-cleaning','WIDE SQUARE PULP BOWL','1000 ml · case of 300',1000,null::int,null,'Wide Square Pulp Bowl | 1000 ml · case of 300'),
 ('restaurant-packing-and-cleaning','BLACK AND WHITE STRIPE PAPER STRAWS','205 x 7 mm · case of 300',300,null::int,null,'Black & White Stripe Paper Straws | 205 x 7 mm · case of 300'),
-('restaurant-packing-and-cleaning','BLACK COCKTAIL STRAWS STRAIGHT','140 x 4.3 mm · case of 1000',1000,null::int,null,'Black Cocktail Straws Straight | 140 x 4.3 mm · case of 1000'),
-('restaurant-packing-and-cleaning','BLACK STRAIGHT PAPER STRAWS','200 x 6 mm · case of 250',250,null::int,null,'Black Straight Paper Straws | 200 x 6 mm · case of 250'),
+('restaurant-packing-and-cleaning','BLACK COCKTAIL STRAWS STRAIGHT','140 x 4.3 mm · case of 1000',1000,null::int,null,'Black Cocktail Straws Straight | 140 x 4.3 mm · case of 1000')) v(category, name_key, size_label, size_sort, vat_rate_bp, sku, source_ref)
+join public.categories c on c.slug = v.category
+join public.products p on p.source_ref = c.id || '::' || v.name_key
+cross join (select id from public.suppliers where lower(name) = lower('Shrivi Limited') order by created_at limit 1) s
+on conflict do nothing;
+
+insert into public.product_variants (product_id, size_label, size_sort, supplier_id, vat_rate_bp, sku, source_ref)
+select p.id, v.size_label, v.size_sort, s.id, coalesce(v.vat_rate_bp, c.default_vat_rate_bp), v.sku, v.source_ref
+from (values ('restaurant-packing-and-cleaning','BLACK STRAIGHT PAPER STRAWS','200 x 6 mm · case of 250',250,null::int,null,'Black Straight Paper Straws | 200 x 6 mm · case of 250'),
 ('restaurant-packing-and-cleaning','RED AND WHITE STRIPE PAPER STRAWS','200 x 6 mm · case of 300',300,null::int,null,'Red & White Stripe Paper Straws | 200 x 6 mm · case of 300'),
 ('restaurant-packing-and-cleaning','WHITE PAPER STRAW SMOOTHIES','200 x 8 mm · case of 200',200,null::int,null,'White Paper Straw Smoothies | 200 x 8 mm · case of 200'),
 ('restaurant-packing-and-cleaning','WHITE STRAIGHT PAPER STRAWS','200 x 6 mm · case of 250',250,null::int,null,'White Straight Paper Straws | 200 x 6 mm · case of 250'),
@@ -2088,8 +2138,15 @@ from (values ('restaurant-packing-and-cleaning','HINGED PLASTIC SAUCE CONTAINER 
 ('restaurant-packing-and-cleaning','TOILET PAPER ROLL 2 PLY','200 sheets 105 x 95 mm · pack of 36',36,null::int,null,'Toilet Paper Roll 2 Ply | 200 sheets 105 x 95 mm · pack of 36'),
 ('restaurant-packing-and-cleaning','WHISPER TOILET PAPER ROLL 2 PLY','104 x 122 mm, 24 m per roll · pack of 40',40,null::int,null,'Whisper Toilet Paper Roll 2 Ply | 104 x 122 mm, 24 m per roll · pack of 40'),
 ('restaurant-packing-and-cleaning','DELUXE MOP BUCKET RED','12 L',12000,null::int,null,'Deluxe Mop Bucket Red | 12 L'),
-('restaurant-packing-and-cleaning','BUCKET AND WRINGER MOPPING COMBO','25 L red',25000,null::int,null,'Bucket & Wringer Mopping Combo | 25 L red'),
-('restaurant-packing-and-cleaning','BUCKET AND WRINGER MOPPING COMBO','25 L yellow',25000,null::int,null,'Bucket & Wringer Mopping Combo | 25 L yellow'),
+('restaurant-packing-and-cleaning','BUCKET AND WRINGER MOPPING COMBO','25 L red',25000,null::int,null,'Bucket & Wringer Mopping Combo | 25 L red')) v(category, name_key, size_label, size_sort, vat_rate_bp, sku, source_ref)
+join public.categories c on c.slug = v.category
+join public.products p on p.source_ref = c.id || '::' || v.name_key
+cross join (select id from public.suppliers where lower(name) = lower('Shrivi Limited') order by created_at limit 1) s
+on conflict do nothing;
+
+insert into public.product_variants (product_id, size_label, size_sort, supplier_id, vat_rate_bp, sku, source_ref)
+select p.id, v.size_label, v.size_sort, s.id, coalesce(v.vat_rate_bp, c.default_vat_rate_bp), v.sku, v.source_ref
+from (values ('restaurant-packing-and-cleaning','BUCKET AND WRINGER MOPPING COMBO','25 L yellow',25000,null::int,null,'Bucket & Wringer Mopping Combo | 25 L yellow'),
 ('restaurant-packing-and-cleaning','ANTIBACTERIAL SURFACE WIPES','tub of 1000',0,null::int,null,'Antibacterial Surface Wipes | tub of 1000'),
 ('restaurant-packing-and-cleaning','CAUSTIC SODA','5 kg',5000,null::int,null,'Caustic Soda | 5 kg'),
 ('restaurant-packing-and-cleaning','FULL BLUE BROOM METAL HANDLE','1200 mm',0,null::int,null,'Full Blue Broom Metal Handle | 1200 mm'),
