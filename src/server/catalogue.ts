@@ -112,7 +112,10 @@ export const searchPublicProducts = unstable_cache(
     let query = anonClient()
       .from("products")
       .select(CARD_COLUMNS, { count: "exact" })
+      // Category order first (Rice before packaging), then A–Z; id keeps pages stable.
+      .order("categories(sort)")
       .order("name")
+      .order("id")
       .range((page - 1) * CATALOGUE_PAGE_SIZE, page * CATALOGUE_PAGE_SIZE - 1);
     if (category) query = query.eq("categories.slug", category);
     for (const w of words) query = query.ilike("name", likePattern(w));
