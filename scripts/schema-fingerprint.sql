@@ -1,0 +1,14 @@
+-- Schema fingerprint: run on local (psql) and hosted (Supabase execute_sql); every row must match.
+select 'columns' k, md5(string_agg(x, '|' order by x)) h, count(*) n from (select table_name||'.'||column_name||':'||data_type||':'||is_nullable||':'||coalesce(column_default,'') x from information_schema.columns where table_schema='public') s
+union all select 'constraints', md5(string_agg(x,'|' order by x)), count(*) from (select conrelid::regclass::text||':'||conname||':'||pg_get_constraintdef(oid) x from pg_constraint where connamespace='public'::regnamespace) s
+union all select 'indexes', md5(string_agg(indexdef,'|' order by indexdef)), count(*) from pg_indexes where schemaname='public'
+union all select 'policies', md5(string_agg(x,'|' order by x)), count(*) from (select schemaname||'.'||tablename||':'||policyname||':'||cmd||':'||array_to_string(roles,',')||':'||coalesce(qual,'')||':'||coalesce(with_check,'') x from pg_policies where schemaname='public' or (schemaname='storage' and policyname like 'product_images%')) s
+union all select 'functions', md5(string_agg(x,'|' order by x)), count(*) from (select pg_get_functiondef(p.oid) x from pg_proc p where pronamespace='public'::regnamespace) s
+union all select 'views', md5(string_agg(x,'|' order by x)), count(*) from (select viewname||':'||definition x from pg_views where schemaname='public') s
+union all select 'triggers', md5(string_agg(x,'|' order by x)), count(*) from (select tgrelid::regclass::text||':'||pg_get_triggerdef(t.oid) x from pg_trigger t join pg_class c on c.oid=t.tgrelid where not tgisinternal and (c.relnamespace='public'::regnamespace or tgname like 'on_auth_user%')) s
+union all select 'table_grants', md5(string_agg(x,'|' order by x)), count(*) from (select table_name||':'||grantee||':'||privilege_type x from information_schema.role_table_grants where table_schema='public' and grantee in ('anon','authenticated','service_role')) s
+union all select 'column_grants', md5(string_agg(x,'|' order by x)), count(*) from (select table_name||'.'||column_name||':'||grantee||':'||privilege_type x from information_schema.column_privileges where table_schema='public' and grantee in ('anon','authenticated')) s
+union all select 'func_grants', md5(string_agg(x,'|' order by x)), count(*) from (select routine_name||':'||grantee x from information_schema.role_routine_grants where routine_schema='public' and grantee in ('anon','authenticated','service_role','PUBLIC')) s
+union all select 'rls_enabled', md5(string_agg(relname||':'||relrowsecurity,'|' order by relname)), count(*) from pg_class where relnamespace='public'::regnamespace and relkind='r'
+union all select 'buckets', md5(string_agg(id||':'||public||':'||file_size_limit||':'||array_to_string(allowed_mime_types,','),'|' order by id)), count(*) from storage.buckets
+order by 1;

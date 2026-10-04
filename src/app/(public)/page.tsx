@@ -2,8 +2,23 @@ import Link from "next/link";
 import { ArrowRight, BadgePercent, FileText, Landmark, Lock, Truck } from "lucide-react";
 import { brand } from "@/config/brand";
 import { LAUNCH_CATEGORIES } from "@/config/launch-categories";
+import { CategoryArt } from "@/components/catalogue/category-art";
 import { LinkButton } from "@/components/ui/button";
 import { slugify } from "@/lib/import/parse-name";
+import { categoryImageUrl } from "@/lib/storage";
+import { getPublicCategories, type PublicCategory } from "@/server/catalogue";
+
+export const revalidate = 3600;
+
+/** Categories from the database; the launch list if the database cannot be reached. */
+async function homeCategories(): Promise<Pick<PublicCategory, "name" | "slug" | "imagePath" | "productCount">[]> {
+  try {
+    return await getPublicCategories();
+  } catch (e) {
+    console.error("home categories:", (e as Error).message);
+    return LAUNCH_CATEGORIES.map((name) => ({ name, slug: slugify(name), imagePath: null, productCount: 0 }));
+  }
+}
 
 const ticket = [
   { name: "Basmati Rice", size: "20 kg", qty: 4, supplier: "A" },
@@ -12,7 +27,9 @@ const ticket = [
   { name: "Mango Drink", size: "330 ml × 24", qty: 3, supplier: "B" },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const categories = await homeCategories();
+  const productTotal = categories.reduce((n, c) => n + c.productCount, 0);
   return (
     <>
       {/* Hero */}
@@ -81,7 +98,7 @@ export default function HomePage() {
             ["Order and receive", "Pick a delivery day. Each supplier delivers to your door with signed proof of delivery."],
           ].map(([title, text], i) => (
             <li key={title} className="rounded-[var(--radius-lg)] border border-line bg-raised p-6">
-              <span className="font-display text-4xl font-extrabold text-accent">{String(i + 1).padStart(2, "0")}</span>
+              <span className="font-display text-4xl font-extrabold text-primary">{String(i + 1).padStart(2, "0")}</span>
               <h3 className="mt-3 text-lg font-semibold">{title}</h3>
               <p className="mt-1.5 text-[15px] leading-relaxed text-ink-muted">{text}</p>
             </li>
@@ -95,21 +112,29 @@ export default function HomePage() {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <h2 className="text-2xl font-bold sm:text-3xl">What you can order</h2>
-              <p className="mt-1 text-ink-muted">Hundreds of lines across {LAUNCH_CATEGORIES.length} categories.</p>
+              <p className="mt-1 text-ink-muted">
+                {productTotal > 0 ? `${productTotal} lines` : "Hundreds of lines"} across {categories.length} categories.
+              </p>
             </div>
             <Link href="/catalogue" className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline">
               See everything <ArrowRight className="size-4" aria-hidden="true" />
             </Link>
           </div>
           <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {LAUNCH_CATEGORIES.map((c) => (
-              <li key={c}>
+            {categories.map((c) => (
+              <li key={c.slug} className="min-w-0">
                 <Link
-                  href={`/catalogue?category=${slugify(c)}`}
-                  className="group flex h-full items-center justify-between gap-2 rounded-[var(--radius-md)] border border-line bg-surface px-4 py-4 text-[15px] font-semibold text-ink transition-colors hover:border-primary hover:bg-primary-soft"
+                  href={`/catalogue?category=${c.slug}`}
+                  className="group flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] border border-line bg-surface transition-[border-color,box-shadow] hover:border-primary hover:shadow-[0_10px_30px_-18px_rgba(24,33,29,0.45)]"
                 >
-                  {c}
-                  <ArrowRight className="size-4 shrink-0 text-ink-subtle transition-transform group-hover:translate-x-0.5 group-hover:text-primary" aria-hidden="true" />
+                  <CategoryArt slug={c.slug} imageUrl={categoryImageUrl(c.slug, c.imagePath)} className="aspect-[16/9] w-full" sizes="(min-width: 1024px) 270px, (min-width: 640px) 33vw, 50vw" />
+                  <span className="flex flex-1 items-start justify-between gap-2 px-3.5 py-3">
+                    <span className="min-w-0">
+                      <span className="block text-[15px] font-semibold leading-snug text-ink">{c.name}</span>
+                      {c.productCount > 0 ? <span className="tabular text-xs text-ink-subtle">{c.productCount} products</span> : null}
+                    </span>
+                    <ArrowRight className="mt-0.5 size-4 shrink-0 text-ink-subtle transition-transform group-hover:translate-x-0.5 group-hover:text-primary" aria-hidden="true" />
+                  </span>
                 </Link>
               </li>
             ))}

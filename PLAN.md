@@ -1,6 +1,6 @@
 # PLAN — B2B wholesale grocery ordering portal
 
-Owner: Touseef · Client: Nagaraju Vardanam (UK) · Status: **Phase 1 done (merged). Phase 2 next.** See `HANDOVER.md`.
+Owner: Touseef · Client: Nagaraju Vardanam (UK) · Status: **Phases 1–9 done; Phase 10 (deploy) prepared and waiting for the owner's go-ahead to merge PR #2. Email sending deferred by the owner (D40). Migrations 0001–0009 live on hosted Supabase, real catalogue loaded.** See `HANDOVER.md`.
 
 This is the living plan. Decisions and their reasons live in `DECISIONS.md`; traps and
 non-obvious facts live in `CLAUDE.md` / `MEMORY.md`.
@@ -12,7 +12,7 @@ non-obvious facts live in `CLAUDE.md` / `MEMORY.md`.
 | Input | Status | Effect |
 |---|---|---|
 | `/brand/` (name, logo, colours) | **Missing** | Neutral working name "Order Desk" + text wordmark, all behind `src/config/brand.ts` and `src/app/tokens.css`. Re-skin = edit those two files + drop logo into `/public/brand/`. |
-| `/data/source/SHRIVI_ITEMS.pdf`, `Drinks_List.pdf`, `Shrivi_Limited_Packaging_Catalogue_.pdf` | **Missing** | Name/size parser and importer built and unit-tested against representative names; real import runs as soon as the PDFs land. |
+| `/data/source/SHRIVI_ITEMS.pdf`, `Drinks_List.pdf`, `Shrivi_Limited_Packaging_Catalogue_.pdf` | **Received 4 Oct, imported** | Name/size parser and importer built and unit-tested against representative names; real import runs as soon as the PDFs land. |
 | `/design-reference/mockup.html` | **Missing** | Not needed: screen list is in the brief. Designing from scratch anyway. |
 | Supabase project, Vercel project | Not yet | Developing against a **local Supabase stack** (Supabase CLI + Docker) so migrations, RLS and E2E tests run for real. |
 
@@ -56,7 +56,8 @@ screenshots of the new screens at 390px and 1280px reviewed, commit, push, PR, s
 `(public)` — no login
 - `/` home · `/catalogue` (+ `?category=&q=&page=`) · `/catalogue/[slug]` product
 - `/register` · `/register/pending` · `/login` · `/forgot-password` · `/reset-password`
-- `/auth/callback` (Supabase code exchange) · `/auth/invite` (set password for admin-created users)
+- `/auth/confirm` (token_hash verify for every auth email) · `/auth/callback` (PKCE fallback)
+- `/auth/invite` (set password for admin-created users) · `/account-disabled` · POST `/auth/signout`
 
 `(shop)` — role customer
 - `/shop` my catalogue (home) · `/shop/p/[slug]` product with price + size select
@@ -67,7 +68,7 @@ screenshots of the new screens at 390px and 1280px reviewed, commit, push, PR, s
 `/admin` — role admin
 - `/admin` dashboard · `/admin/approvals` · `/admin/customers` (+ `/new`, `/[id]`)
 - `/admin/customers/[id]/pricing` **key screen** · `/admin/products` (+ `/[id]`, `/import`)
-- `/admin/categories` · `/admin/orders` · `/admin/orders/[id]` · `/admin/payments`
+- `/admin/categories` (+ `/[id]`) · `/admin/products/missing.csv` · `/admin/orders` · `/admin/orders/[id]` · `/admin/payments`
 - `/admin/suppliers` (+ `/[id]`) · `/admin/invoices` · `/admin/settings` · `/admin/users` · `/admin/audit`
 
 `/supplier` — role supplier
@@ -75,17 +76,18 @@ screenshots of the new screens at 390px and 1280px reviewed, commit, push, PR, s
 
 `/d/[token]` — driver, no account (mobile first) · `/d/[token]/done` confirmation
 
-Route handlers: `/api/invoices/[id]/pdf`, `/api/driver/[token]/submit`, `/api/proofs/[id]/url`.
-Everything else is server actions.
+Route handlers: `/api/invoices/[id]/pdf`. Everything else is server actions, including the driver's
+proof upload (bound to the token) and short-lived signed URLs made at render time (DECISIONS D35).
 
 ## 4. Data model (Postgres, all money in integer pence, rates in basis points)
 
-- `profiles(id → auth.users, role[customer|admin|supplier], full_name, email, customer_id?, supplier_id?, active)` — role only writable by admin/service.
+- `profiles(id → auth.users, role[customer|admin|supplier], full_name, email, customer_id?, supplier_id?, active)` — role only writable by admin/service (guard trigger).
+- `customer_private(customer_id, default_margin_bp, admin_notes)` — admin only (split out of `customers`, DECISIONS D15).
 - `customers(id, business_name, contact_name, email, phone, address_line1/2, city, postcode, status[pending|approved|rejected|suspended], default_margin_bp?, notes, approved_at, approved_by)`
 - `suppliers(id, name, email, phone, address, active, notes)`
-- `categories(id, name, slug, sort, active, image_path)`
-- `products(id, category_id, name, slug, description, image_path, active, needs_price (derived), source, source_ref)`
-- `product_variants(id, product_id, size_label, size_sort, supplier_id, cost_pence?, vat_rate_bp, sku, active, image_path)`
+- `categories(id, name, slug, sort, active, image_path, default_vat_rate_bp)`
+- `products(id, category_id, name, slug, description, image_path, active, needs_price (derived), source, source_ref = import key "<category id>::<name key>" unique)`
+- `product_variants(id, product_id, size_label, size_sort, supplier_id, cost_pence?, vat_rate_bp, sku, active, image_path, source_ref = source line)`
 - `customer_category_access(customer_id, category_id)` · `customer_product_rules(customer_id, product_id, mode[allow|deny])`
 - `customer_category_margins(customer_id, category_id, margin_bp)` · `customer_price_overrides(customer_id, variant_id, price_pence)`
 - `orders(id, number seq, customer_id, status, delivery_date, note, payment_terms[on_delivery|7_days|date], promised_pay_date, next_chase_date, payment_notes, subtotal/vat/delivery/total pence, delivery_vat_pence, cost_total_pence, placed_by, locked_at)`
@@ -98,7 +100,7 @@ Everything else is server actions.
 - `settings(singleton: min_order_pence, delivery_charge_pence, delivery_vat_mode, delivery_days[], global_margin_bp, bank_name, account_name, sort_code, account_number, iban, business_legal_name, business_address, vat_number, invoice_footer, price_display)`
 - `audit_log(id, actor, action, entity, entity_id, before jsonb, after jsonb, at)` · `email_log` · `notifications(user_id, kind, payload, read_at)` · `rate_limits(key, window_start, count)`
 
-RLS: deny by default. Customers read only their own orders/items/invoices/payments (no `unit_cost` via column privileges/views); suppliers read only their supplier_orders + a no-price item view; admins all. **Costs, margins and overrides are never selectable by non-admins.** Customer prices are computed server-side by the pure pricing engine and projected.
+RLS: deny by default. Priced base tables are admin-only; customers read own data via `customer_orders`, `customer_order_items` (no cost/supplier), `customer_deliveries`, `customer_payment_history`, `shop_settings` and `invoices`; suppliers via `my_supplier`, `supplier_order_list`, `supplier_order_lines` (no price); public via `categories`, `products`, `catalogue_variants`. See DECISIONS D15. **Costs, margins and overrides are never selectable by non-admins.** Customer prices are computed server-side by the pure pricing engine and projected.
 
 ## 5. Risks and mitigations
 

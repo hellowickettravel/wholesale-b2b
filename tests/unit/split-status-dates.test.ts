@@ -90,8 +90,16 @@ describe("dates", () => {
   });
   it("promised pay date", () => {
     expect(promisedPayDate("on_delivery", "2026-10-06")).toBe("2026-10-06");
-    expect(promisedPayDate("7_days", "2026-10-06")).toBe("2026-10-13");
-    expect(promisedPayDate("date", "2026-10-06", "2026-10-20")).toBe("2026-10-20");
-    expect(() => promisedPayDate("date", "2026-10-06")).toThrow();
+    expect(promisedPayDate("within_7_days", "2026-10-06")).toBe("2026-10-13");
+    expect(promisedPayDate("on_date", "2026-10-06", "2026-10-20")).toBe("2026-10-20");
+    expect(() => promisedPayDate("on_date", "2026-10-06")).toThrow();
+  });
+});
+
+describe("formatDate", () => {
+  it("uses the London calendar day", async () => {
+    const { formatDate } = await import("@/domain/dates");
+    expect(formatDate("2026-10-03T23:30:00Z")).toBe("4 Oct 2026");
+    expect(formatDate("2026-01-15T12:00:00Z")).toBe("15 Jan 2026");
   });
 });

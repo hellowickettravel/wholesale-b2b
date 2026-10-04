@@ -4,7 +4,7 @@ import { cn } from "@/lib/cn";
 /** Horizontally scrollable on small screens; the page itself never scrolls sideways. */
 export function Table({ className, ...rest }: ComponentProps<"table">) {
   return (
-    <div className="-mx-px max-w-full overflow-x-auto">
+    <div className="relative -mx-px max-w-full overflow-x-auto">
       <table className={cn("w-full border-collapse text-sm", className)} {...rest} />
     </div>
   );

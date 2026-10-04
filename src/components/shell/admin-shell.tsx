@@ -4,6 +4,7 @@ import {
   Boxes,
   ClipboardList,
   FileText,
+  FolderTree,
   LayoutDashboard,
   ScrollText,
   Settings,
@@ -14,6 +15,8 @@ import {
   Wallet,
 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
+import { SignOutButton } from "@/components/auth/sign-out-button";
+import { ToastProvider } from "@/components/ui/toast";
 import { NavLink } from "./nav-link";
 
 const groups = [
@@ -38,6 +41,7 @@ const groups = [
     label: "Catalogue",
     items: [
       { href: "/admin/products", label: "Products", icon: Boxes },
+      { href: "/admin/categories", label: "Categories", icon: FolderTree },
       { href: "/admin/suppliers", label: "Suppliers", icon: Truck },
     ],
   },
@@ -59,6 +63,7 @@ const activeCls = "bg-white/10 !text-white shadow-[inset_3px_0_0_var(--brand-acc
 export function AdminShell({ children, userName, badges = {} }: { children: ReactNode; userName: string; badges?: Record<string, number> }) {
   const flat = groups.flatMap((g) => g.items);
   return (
+    <ToastProvider>
     <div className="min-h-dvh lg:grid lg:grid-cols-[248px_1fr]">
       <aside className="hidden bg-ink lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col">
         <div className="px-5 py-5">
@@ -67,7 +72,7 @@ export function AdminShell({ children, userName, badges = {} }: { children: Reac
         <nav aria-label="Admin" className="flex-1 space-y-5 overflow-y-auto px-3 pb-6">
           {groups.map((g) => (
             <div key={g.label}>
-              <div className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-white/35">{g.label}</div>
+              <div className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-white/60">{g.label}</div>
               <ul className="space-y-0.5">
                 {g.items.map(({ href, label, icon: Icon, exact }) => (
                   <li key={href}>
@@ -84,8 +89,11 @@ export function AdminShell({ children, userName, badges = {} }: { children: Reac
             </div>
           ))}
         </nav>
-        <div className="border-t border-white/10 px-5 py-4 text-sm text-white/60">
-          Signed in as <span className="font-medium text-white">{userName}</span>
+        <div className="space-y-2 border-t border-white/10 px-5 py-4 text-sm text-white/60">
+          <p className="truncate">
+            Signed in as <span className="font-medium text-white">{userName}</span>
+          </p>
+          <SignOutButton className="text-white/60 hover:text-white" />
         </div>
       </aside>
 
@@ -93,7 +101,10 @@ export function AdminShell({ children, userName, badges = {} }: { children: Reac
         <header className="sticky top-0 z-30 border-b border-line bg-ink lg:hidden">
           <div className="flex h-14 items-center justify-between px-4">
             <Logo href="/admin" inverted />
-            <span className="truncate text-sm text-white/60">{userName}</span>
+            <div className="flex min-w-0 items-center gap-4">
+              <span className="hidden truncate text-sm text-white/60 sm:inline">{userName}</span>
+              <SignOutButton className="text-white/70 hover:text-white" />
+            </div>
           </div>
           <nav aria-label="Admin" className="overflow-x-auto">
             <ul className="flex min-w-max gap-1 px-3 pb-2">
@@ -118,5 +129,6 @@ export function AdminShell({ children, userName, badges = {} }: { children: Reac
         </main>
       </div>
     </div>
+    </ToastProvider>
   );
 }

@@ -16,7 +16,8 @@
   /* Neutrals (warm) */
   --ink: #18211d;
   --ink-muted: #5e6863;
-  --ink-subtle: #8a928e;
+  /* Darkened from #8a928e for WCAG AA (4.5:1 on raised, surface and sunken backgrounds). */
+  --ink-subtle: #646d68;
   --surface: #f8f6f1;
   --surface-raised: #ffffff;
   --surface-sunken: #f0ede5;

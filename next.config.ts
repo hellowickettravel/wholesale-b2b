@@ -18,12 +18,16 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // react-pdf ships its own font and layout engines; keep it as a plain Node dependency.
+  serverExternalPackages: ["@react-pdf/renderer"],
   experimental: {
     // Enables forbidden() / unauthorized() with real 403/401 status codes.
     authInterrupts: true,
     serverActions: { bodySizeLimit: "12mb" },
   },
   images: {
+    // The local Supabase stack serves images from 127.0.0.1; hosted Supabase is a public host.
+    dangerouslyAllowLocalIP: supabaseHost ? ["127.0.0.1", "localhost"].includes(supabaseHost.hostname) : false,
     remotePatterns: supabaseHost
       ? [
           {

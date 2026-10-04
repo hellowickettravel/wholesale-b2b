@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { extractSize, groupItems, parseItemName, slugify, toDisplayCase } from "@/lib/import/parse-name";
+import { explicitSize, extractSize, groupItems, parseItemName, slugify, toDisplayCase } from "@/lib/import/parse-name";
 
 describe("extractSize", () => {
   it.each([
@@ -78,6 +78,43 @@ describe("groupItems", () => {
   it("uses an explicit size column when provided", () => {
     const r = groupItems([{ category: "Drinks", name: "THUMS UP", size: "330ML x 24" }]);
     expect(r.products[0].variants[0].sizeLabel).toBe("330 ml × 24");
+  });
+});
+
+describe("supplier list patterns (Phase 4 import)", () => {
+  it.each([
+    ["COCA COLA 1.5LITRE PACK OF 6", "1.5 L × 6"],
+    ["COCA COLA 330 ML PACK OF 24", "330 ml × 24"],
+    ["BAGASSE 5 COMPARTMENT PLATE (400)", "400 pcs"],
+    ["BAGASSE BOX LARGE WHITE (250PS)", "250 pcs"],
+    ["HINGED SALAD BOWL 370CC", "370 ml"],
+    ["EVIAN WATER 6 X1.5L", "1.5 L × 6"],
+  ])("%s -> %s", (name, label) => {
+    expect(extractSize(name)?.label).toBe(label);
+  });
+  it("strips a bracketed pack count from the product name", () => {
+    expect(parseItemName("BAGASSE 5 COMPARTMENT PLATE (400)").displayName).toBe("Bagasse 5 Compartment Plate");
+  });
+  it("keeps an explicit size as written unless it is exactly one size", () => {
+    expect(explicitSize("330ML X 24").label).toBe("330 ml × 24");
+    expect(explicitSize("8 oz · case of 1000")).toMatchObject({ label: "8 oz · case of 1000", sortKey: 8 });
+    expect(explicitSize("No. 6A").label).toBe("No. 6A");
+    expect(explicitSize("  250 cc  ·  case of 500 ").label).toBe("250 cc · case of 500");
+  });
+  it("sorts explicit sizes by their first size", () => {
+    const r = groupItems([
+      { category: "Packing", name: "CUP", size: "16 oz · case of 1000" },
+      { category: "Packing", name: "CUP", size: "8 oz · case of 1000" },
+      { category: "Packing", name: "CUP", size: "12 oz · case of 1000" },
+    ]);
+    expect(r.products[0].variants.map((v) => v.sizeLabel)).toEqual(["8 oz · case of 1000", "12 oz · case of 1000", "16 oz · case of 1000"]);
+  });
+});
+
+describe("toDisplayCase codes", () => {
+  it("keeps words containing digits in capitals", () => {
+    expect(toDisplayCase("CASHEW NUTS W320")).toBe("Cashew Nuts W320");
+    expect(toDisplayCase("7UP LEMON")).toBe("7UP Lemon");
   });
 });
 

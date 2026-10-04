@@ -32,8 +32,8 @@ export interface ParsedName {
 const UNIT_ALIASES: Array<[RegExp, SizeUnit]> = [
   [/^(KGS?|KILOS?|KILOGRAMS?)$/i, "kg"],
   [/^(G|GM|GMS|GR|GRS|GRM|GRMS|GRAMS?)$/i, "g"],
-  [/^(ML|MLS)$/i, "ml"],
-  [/^(L|LT|LTR|LTRS|LITRES?|LITERS?)$/i, "l"],
+  [/^(ML|MLS|CC)$/i, "ml"],
+  [/^(L|LT|LIT|LTR|LTRS|LITRES?|LITERS?)$/i, "l"],
   [/^(OZ)$/i, "oz"],
   [/^(PCS?|PIECES?|NOS?|PC)$/i, "pcs"],
 ];
@@ -43,12 +43,17 @@ function unitOf(token: string): SizeUnit | null {
   return null;
 }
 
-const UNIT_RE = "KGS?|KILOS?|KILOGRAMS?|GMS?|GRMS?|GRS?|GRAMS?|G|MLS?|LTRS?|LITRES?|LITERS?|LT|L|OZ|PCS?|PIECES?|NOS?";
+const UNIT_RE = "KGS?|KILOS?|KILOGRAMS?|GMS?|GRMS?|GRS?|GRAMS?|G|MLS?|CC|LTRS?|LITRES?|LITERS?|LIT|LT|L|OZ|PCS?|PIECES?|NOS?";
 const NUM_RE = "\\d+(?:[.,]\\d+)?";
 const X_RE = "\\s*[X×*]\\s*";
 
 // Order matters: most specific first.
 const PATTERNS: Array<{ re: RegExp; read: (m: RegExpExecArray) => [number, string, number] }> = [
+  // 1.5 LITRE PACK OF 6 / 330 ML PACK OF 24
+  {
+    re: new RegExp(`(${NUM_RE})\\s*(${UNIT_RE})\\s*(?:PACK|PKT|BOX|CASE)\\s+OF\\s+(\\d+)\\b`, "gi"),
+    read: (m) => [parseNum(m[1]), m[2], Number(m[3])],
+  },
   // 330ML X 24 / 1.5 L x 6
   {
     re: new RegExp(`(${NUM_RE})\\s*(${UNIT_RE})${X_RE}(\\d+)(?:\\s*(?:PCS?|PACK|PK|CANS?|BOTTLES?|BTLS?))?\\b`, "gi"),
@@ -62,6 +67,11 @@ const PATTERNS: Array<{ re: RegExp; read: (m: RegExpExecArray) => [number, strin
   // PACK OF 100 / BOX OF 50
   {
     re: /\b(?:PACK|PKT|BOX|CASE)\s+OF\s+(\d+)\b/gi,
+    read: (m) => [Number(m[1]), "pcs", 1],
+  },
+  // Trailing pack count in brackets: "(400)", "(250PCS)", "(150 PCS)"
+  {
+    re: /\((\d+)\s*(?:PCS?|PS|PIECES)?\)/gi,
     read: (m) => [Number(m[1]), "pcs", 1],
   },
   // 20 KGS / 100G / 1.5L / 100 PCS
@@ -89,8 +99,11 @@ function makeSize(amount: number, unitToken: string, count: number, raw: string)
   return { label, amount, unit, count, sortKey: Math.round(base * count * 1000) / 1000, raw: raw.trim() };
 }
 
-/** Find the LAST size expression in the name (sizes are normally at the end). */
-export function extractSize(name: string): ParsedSize | null {
+/**
+ * Find the LAST size expression in the name (sizes are normally at the end), or the first one
+ * with which = "first".
+ */
+export function extractSize(name: string, which: "last" | "first" = "last"): ParsedSize | null {
   let best: { index: number; end: number; size: ParsedSize } | null = null;
   for (const { re, read } of PATTERNS) {
     re.lastIndex = 0;
@@ -102,12 +115,29 @@ export function extractSize(name: string): ParsedSize | null {
       const end = m.index + m[0].length;
       // Prefer the match that ends last; on tie prefer the longer (more specific) match,
       // so "24 X 330ML" beats the bare "330ML" inside it.
-      if (!best || end > best.end || (end === best.end && m.index < best.index)) {
+      const better =
+        which === "last"
+          ? !best || end > best.end || (end === best.end && m.index < best.index)
+          : !best || m.index < best.index || (m.index === best.index && end > best.end);
+      if (better) {
         best = { index: m.index, end, size };
       }
     }
   }
   return best?.size ?? null;
+}
+
+/**
+ * An explicit size column. Normalised when it is exactly one size expression ("330ML X 24" ->
+ * "330 ml × 24"); otherwise kept as written ("8 oz · case of 1000", "No. 6A") and sorted by
+ * the first size in it.
+ */
+export function explicitSize(text: string): ParsedSize {
+  const t = text.replace(/\s+/g, " ").trim();
+  const whole = extractSize(t);
+  if (whole && whole.raw.length === t.length) return whole;
+  const first = extractSize(t, "first");
+  return { label: t, amount: first?.amount ?? 0, unit: first?.unit ?? "pcs", count: 1, sortKey: first?.sortKey ?? 0, raw: t };
 }
 
 export function normaliseKey(s: string): string {
@@ -130,10 +160,15 @@ export function toDisplayCase(s: string): string {
       const up = w.toUpperCase();
       if (KEEP_UPPER.has(up)) return up;
       if (/^[a-z]{2,4}$/.test(w) && !/[aeiouy]/.test(w)) return up;
-      if (/^\d/.test(w)) return w.toUpperCase();
+      if (/\d/.test(w)) return w.toUpperCase(); // codes like 7UP, W320, E2E
       return w.charAt(0).toUpperCase() + w.slice(1);
     })
     .join("");
+}
+
+function mostlyUpper(s: string): boolean {
+  const letters = s.replace(/[^A-Za-z]/g, "");
+  return letters.length > 0 && letters.replace(/[^A-Z]/g, "").length / letters.length >= 0.8;
 }
 
 export function parseItemName(source: string): ParsedName {
@@ -154,7 +189,8 @@ export function parseItemName(source: string): ParsedName {
   return {
     source,
     baseName: base,
-    displayName: toDisplayCase(base),
+    // Supplier lists shout ("BASANT BASMATI RICE"); names already in mixed case are kept as written.
+    displayName: mostlyUpper(base) ? toDisplayCase(base) : base,
     size,
     groupKey: normaliseKey(base),
   };
@@ -166,6 +202,13 @@ export interface ImportRow {
   /** Optional explicit size, overrides parsing (e.g. drinks list has its own column). */
   size?: string;
   sku?: string;
+  /** Optional VAT rate for this size in basis points (else the category default). */
+  vatBp?: number;
+  description?: string;
+  /** Optional product photo: a site path under /images/ (bundled with the site). */
+  image?: string;
+  /** 1-based source line, for reports. */
+  line?: number;
 }
 
 export interface GroupedVariant {
@@ -173,12 +216,19 @@ export interface GroupedVariant {
   sortKey: number;
   source: string;
   sku?: string;
+  vatBp?: number;
+  line?: number;
 }
 
 export interface GroupedProduct {
   category: string;
   name: string;
   groupKey: string;
+  /** normaliseKey(category) and normaliseKey(base name), the two halves of groupKey. */
+  categoryKey: string;
+  nameKey: string;
+  description?: string;
+  image?: string;
   variants: GroupedVariant[];
 }
 
@@ -198,23 +248,30 @@ export function groupItems(rows: ImportRow[]): GroupingReport {
   for (const row of rows) {
     const parsed = parseItemName(row.name);
     let size = parsed.size;
-    if (row.size) {
-      const explicit = extractSize(row.size);
-      size = explicit ?? { label: row.size.trim(), amount: 0, unit: "pcs", count: 1, sortKey: 0, raw: row.size };
-    }
-    const key = `${normaliseKey(row.category)}::${parsed.groupKey}`;
+    if (row.size) size = explicitSize(row.size);
+    const categoryKey = normaliseKey(row.category);
+    const key = `${categoryKey}::${parsed.groupKey}`;
     let product = map.get(key);
     if (!product) {
-      product = { category: row.category.trim(), name: parsed.displayName, groupKey: key, variants: [] };
+      product = { category: row.category.trim(), name: parsed.displayName, groupKey: key, categoryKey, nameKey: parsed.groupKey, variants: [] };
       map.set(key, product);
     }
+    if (!product.description && row.description?.trim()) product.description = row.description.trim();
+    if (!product.image && row.image) product.image = row.image;
     const sizeLabel = size?.label ?? "Each";
     if (!size) noSize.push(row.name);
     if (product.variants.some((v) => v.sizeLabel.toLowerCase() === sizeLabel.toLowerCase())) {
       duplicates.push(row.name);
       continue;
     }
-    product.variants.push({ sizeLabel, sortKey: size?.sortKey ?? 0, source: row.name, sku: row.sku });
+    product.variants.push({
+      sizeLabel,
+      sortKey: size?.sortKey ?? 0,
+      source: row.size ? `${row.name} | ${row.size}` : row.name,
+      sku: row.sku,
+      vatBp: row.vatBp,
+      line: row.line,
+    });
   }
 
   const products = [...map.values()];

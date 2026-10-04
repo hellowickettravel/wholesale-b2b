@@ -107,6 +107,13 @@ export function formatDayDate(iso: string): string {
   }).format(toUtc(iso));
 }
 
+/** Timestamp → "6 Oct 2026" (London calendar day). */
+export function formatDate(ts: string | Date): string {
+  return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: BUSINESS_TZ }).format(
+    typeof ts === "string" ? new Date(ts) : ts,
+  );
+}
+
 /** Timestamp (ISO with time) → "6 Oct, 14:05" in London. */
 export function formatTimestamp(ts: string | Date): string {
   return new Intl.DateTimeFormat("en-GB", {
@@ -118,17 +125,24 @@ export function formatTimestamp(ts: string | Date): string {
   }).format(typeof ts === "string" ? new Date(ts) : ts);
 }
 
-export type PaymentTerms = "on_delivery" | "7_days" | "date";
+/** Same values as the DB enum public.payment_terms. */
+export const PAYMENT_TERMS = ["on_delivery", "within_7_days", "on_date"] as const;
+export type PaymentTerms = (typeof PAYMENT_TERMS)[number];
 
 /** The date the customer promised to pay, from their checkout choice. */
 export function promisedPayDate(terms: PaymentTerms, deliveryDate: string, chosen?: string): string {
   switch (terms) {
     case "on_delivery":
       return deliveryDate;
-    case "7_days":
+    case "within_7_days":
       return addDays(deliveryDate, 7);
-    case "date":
+    case "on_date":
       if (!chosen || !isIsoDate(chosen)) throw new RangeError("a pay date is required");
       return chosen;
   }
+}
+
+/** settings.delivery_days stores ISO weekdays (1 = Monday … 7 = Sunday); convert to JS 0–6. */
+export function fromIsoWeekdays(days: readonly number[]): Weekday[] {
+  return [...new Set(days.filter((d) => Number.isInteger(d) && d >= 1 && d <= 7).map((d) => (d % 7) as Weekday))].sort();
 }
