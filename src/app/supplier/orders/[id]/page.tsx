@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MapPin, Phone } from "lucide-react";
+import { DriverLinkCard, ProofUpload } from "@/components/delivery/driver-link";
 import { ProofView } from "@/components/delivery/proof-view";
 import { DeliveryStatusBadge } from "@/components/shop/order-status";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -11,7 +12,8 @@ import { orderRef } from "@/domain/status";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/server/auth";
 import { activeLink, signProofs } from "@/server/delivery";
-import { DriverLinkCard, OwnProof, StatusButtons } from "./controls";
+import { newDriverLink, uploadOwnProof } from "./actions";
+import { StatusButtons } from "./controls";
 
 export const metadata: Metadata = { title: "Order" };
 
@@ -114,13 +116,13 @@ export default async function SupplierOrderPage({ params }: PageProps<"/supplier
                 <CardHeader title="Driver link" />
                 <CardBody>
                   <DriverLinkCard
-                    id={id}
+                    makeLink={newDriverLink.bind(null, id)}
                     customerName={so.customer_name ?? "the restaurant"}
                     active={active ? { createdAt: active.created_at!, expiresAt: active.expires_at! } : null}
                   />
                 </CardBody>
               </Card>
-              <OwnProof id={id} />
+              <ProofUpload upload={uploadOwnProof.bind(null, id)} />
             </>
           ) : null}
         </div>

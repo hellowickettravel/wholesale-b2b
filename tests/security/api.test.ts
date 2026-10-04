@@ -280,3 +280,33 @@ describe("proof of delivery through the API (Phase 6)", () => {
     }
   });
 });
+
+describe("admin orders and payments through the API (Phase 7)", () => {
+  it("no non-admin can call the admin order functions or read the ledger views", async () => {
+    const order = (await db.query<{ id: string }>("select id from public.orders limit 1")).rows[0].id;
+    for (const c of [anon(), customerA, customerB, pending, supplierA]) {
+      const edit = await c.rpc("admin_edit_order", { p: { order_id: order, totals: {}, lines: [] } });
+      expect(edit.error).not.toBeNull();
+      const cancel = await c.rpc("admin_cancel_order", { p_order: order, p_actor: null, p_reason: "x" });
+      expect(cancel.error).not.toBeNull();
+      for (const view of ["admin_order_summary", "admin_supplier_order_summary"] as const) {
+        const { data } = await c.from(view).select("*");
+        expect(data ?? []).toHaveLength(0);
+      }
+    }
+  });
+
+  it("a restaurant cannot record a payment, cancel its order or clear its chase date", async () => {
+    const { rows } = await db.query<{ id: string; status: string; next_chase_date: string | null }>(
+      "select id, status::text, next_chase_date::text from public.orders where customer_id = '20000000-0000-4000-a000-000000000001' limit 1",
+    );
+    const o = rows[0];
+    const pay = await customerA.from("customer_payments").insert({ order_id: o.id, customer_id: "20000000-0000-4000-a000-000000000001", amount_pence: 999999, paid_on: "2026-10-01" });
+    expect(pay.error).not.toBeNull();
+    await customerA.from("orders").update({ status: "cancelled", next_chase_date: null }).eq("id", o.id);
+    const after = (await db.query<{ status: string }>("select status::text from public.orders where id = $1", [o.id])).rows[0];
+    expect(after.status).toBe(o.status);
+    const paid = (await db.query<{ n: number }>("select count(*)::int n from public.customer_payments where amount_pence = 999999")).rows[0];
+    expect(paid.n).toBe(0);
+  });
+});

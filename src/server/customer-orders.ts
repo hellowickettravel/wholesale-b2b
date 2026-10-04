@@ -31,7 +31,9 @@ export async function getCustomerOrder(id: string) {
   const parts = (deliveries.data ?? [])
     .filter((d) => d.id)
     .sort((a, b) => (firstSort.get(a.id!) ?? 0) - (firstSort.get(b.id!) ?? 0))
-    .map((d) => ({ ...d, items: (items.data ?? []).filter((it) => it.supplier_order_id === d.id), proof: proofFor(d.id!) }));
+    .map((d) => ({ ...d, items: (items.data ?? []).filter((it) => it.supplier_order_id === d.id), proof: proofFor(d.id!) }))
+    // A delivery emptied by an admin change (its lines moved or taken off) is not shown.
+    .filter((d) => d.items.length > 0);
 
   return { order, items: items.data ?? [], parts, invoice: invoice.data, payments: payments.data ?? [] };
 }

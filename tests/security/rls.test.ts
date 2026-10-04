@@ -135,6 +135,13 @@ describe("signed-in non-admins cannot write prices, payments, orders or approval
     ["edit an order", "update public.orders set total_pence = 0 returning id"],
     ["edit an order line", "update public.order_items set qty = 999 returning id"],
     ["mark a supplier order delivered", "update public.supplier_orders set status = 'delivered' returning id"],
+    ["mark a supplier paid", "update public.supplier_orders set paid_to_supplier = true returning id"],
+    ["change chase dates or payment notes", "update public.orders set next_chase_date = null, promised_pay_date = '2099-01-01', payment_notes = 'x' returning id"],
+    ["cancel an order", "update public.orders set status = 'cancelled', cancel_reason = 'x' returning id"],
+    ["take a line off an order", "update public.order_items set removed_at = now() returning id"],
+    ["switch a supplier off", "update public.suppliers set active = false returning id"],
+    ["switch a login off", `update public.profiles set active = false where id = '${IDS.users.admin}' returning id`],
+    ["queue an email", "insert into public.email_log (to_email, template, subject) values ('x@example.com', 'payment_reminder', 'x') returning id"],
     ["change settings", "update public.settings set min_order_pence = 0 returning id"],
     ["change the global margin", "update public.settings set global_margin_bp = 0 returning id"],
     ["delete audit history", "delete from public.audit_log returning id"],
@@ -879,5 +886,200 @@ describe("supplier orders and proof of delivery (Phase 6)", () => {
       return { read, write };
     });
     expect(r).toEqual({ read: 0, write: DENIED });
+  });
+});
+
+describe("admin orders, payments and suppliers (Phase 7)", () => {
+  type Q = Parameters<Parameters<typeof asOwner>[1]>[0];
+  /** Rice (A, 0%) £11.80 + mango (B, 20%) £17.00, no delivery charge. */
+  async function order(q: Q) {
+    const r = (await q<{ r: { order_id: string } }>("select public.create_order_tx($1::jsonb) r", [JSON.stringify({
+      customer_id: IDS.customers.A, placed_by: IDS.users.customerA, delivery_date: "2026-10-10", payment_terms: "on_delivery",
+      totals: { goods_net_pence: 2880, goods_vat_pence: 340, delivery_net_pence: 0, delivery_vat_pence: 0, vat_pence: 340, total_pence: 3220 },
+      supplier_orders: [
+        { supplier_id: IDS.suppliers.A, items: [{ variant_id: IDS.variants.rice5, product_name: "Rice", size_label: "5 kg", qty: 1, unit_price_pence: 1180, unit_cost_pence: 1000, vat_rate_bp: 0, line_net_pence: 1180, line_vat_pence: 0 }] },
+        { supplier_id: IDS.suppliers.B, items: [{ variant_id: IDS.variants.mango, product_name: "Mango", size_label: "330 ml", qty: 1, unit_price_pence: 1700, unit_cost_pence: 1450, vat_rate_bp: 2000, line_net_pence: 1700, line_vat_pence: 340 }] },
+      ],
+    })]))[0].r;
+    const items = await q<{ id: string; supplier_id: string; supplier_order_id: string }>("select id, supplier_id, supplier_order_id from public.order_items where order_id = $1", [r.order_id]);
+    const [o] = await q<{ updated_at: string }>("select updated_at::text from public.orders where id = $1", [r.order_id]);
+    const rice = items.find((i) => i.supplier_id === IDS.suppliers.A)!;
+    const mango = items.find((i) => i.supplier_id === IDS.suppliers.B)!;
+    return { orderId: r.order_id, rice: rice.id, mango: mango.id, soA: rice.supplier_order_id, soB: mango.supplier_order_id, updatedAt: o.updated_at };
+  }
+  const totals = (net: number, vat: number) => ({ goods_net_pence: net, goods_vat_pence: vat, delivery_net_pence: 0, delivery_vat_pence: 0, vat_pence: vat, total_pence: net + vat });
+  const editSql = "select public.admin_edit_order($1::jsonb) r";
+  const asAdmin = async (q: Q) => {
+    await q("set local role authenticated");
+    await q("select set_config('request.jwt.claims', $1, true)", [JSON.stringify({ sub: IDS.users.admin, role: "authenticated" })]);
+  };
+
+  it.each(NON_ADMINS.concat(["admin"]))("%s cannot call the admin order functions through the API", async (actor) => {
+    for (const sql of [
+      "select public.admin_edit_order('{}'::jsonb)",
+      "select public.admin_cancel_order(gen_random_uuid(), null, 'x')",
+      "select public.notify_supplier_order(gen_random_uuid(), 'k', 't', 'b')",
+      "select public.notify_customer_order(gen_random_uuid(), 'k', 't', 'b')",
+    ]) {
+      expect(await as(db, actor, (q) => outcome(q(sql))), `${actor}: ${sql}`).toBe(DENIED);
+    }
+  });
+
+  it.each(["admin_order_summary", "admin_supplier_order_summary"])("%s: anon denied, other roles 0 rows, admin sees every order", async (view) => {
+    expect(await rowsOrDenied("anon", `select * from public.${view}`)).toBe(DENIED);
+    for (const actor of SIGNED_IN_NON_ADMINS) expect(await rowsOrDenied(actor, `select * from public.${view}`), actor).toBe(0);
+    const all = await asOwner(db, (q) => q(`select 1 from public.${view === "admin_order_summary" ? "orders" : "supplier_orders"}`));
+    expect(await rowsOrDenied("admin", `select * from public.${view}`)).toBe(all.length);
+  });
+
+  it("an edit changes quantities, moves a line, re-splits, follows through to the invoice and tells people", async () => {
+    await asOwner(db, async (q) => {
+      const o = await order(q);
+      // Rice ×2, mango moved to supplier A at a cost of £13.00.
+      const r = (await q<{ r: { cancelled_parts: string[]; new_parts: string[] } }>(editSql, [JSON.stringify({
+        order_id: o.orderId, actor: IDS.users.admin, expected_updated_at: o.updatedAt, totals: totals(4060, 340),
+        lines: [
+          { id: o.rice, qty: 2, supplier_id: IDS.suppliers.A, unit_cost_pence: 1000, line_net_pence: 2360, line_vat_pence: 0 },
+          { id: o.mango, qty: 1, supplier_id: IDS.suppliers.A, unit_cost_pence: 1300, line_net_pence: 1700, line_vat_pence: 340 },
+        ],
+      })]))[0].r;
+      expect(r.cancelled_parts).toEqual([o.soB]);
+      const parts = await q<{ id: string; status: string }>("select id, status::text from public.supplier_orders where order_id = $1", [o.orderId]);
+      expect(Object.fromEntries(parts.map((p) => [p.id, p.status]))).toEqual({ [o.soA]: "placed", [o.soB]: "cancelled" });
+      const [ord] = await q<{ total_pence: string; inv: string }>("select o.total_pence::text, i.total_pence::text inv from public.orders o join public.invoices i on i.order_id = o.id where o.id = $1", [o.orderId]);
+      expect(ord).toEqual({ total_pence: "4400", inv: "4400" });
+      const [mango] = await q<{ so: string; cost: string }>("select supplier_order_id so, unit_cost_pence::text cost from public.order_items where id = $1", [o.mango]);
+      expect(mango).toEqual({ so: o.soA, cost: "1300" });
+      const notes = await q<{ kind: string; email: string }>(
+        "select n.kind, p.email from public.notifications n join public.profiles p on p.id = n.user_id where n.link in ($1, $2, $3) and n.kind <> 'supplier_order_new' order by p.email",
+        [`/supplier/orders/${o.soA}`, `/supplier/orders/${o.soB}`, `/orders/${o.orderId}`],
+      );
+      expect(notes).toEqual([
+        { kind: "order_changed", email: "restaurant.a@example.com" },
+        { kind: "supplier_order_changed", email: "supplier.a@example.com" },
+        { kind: "supplier_order_cancelled", email: "supplier.b@example.com" },
+      ]);
+      const audit = await q("select 1 from public.audit_log where entity = 'order_items' and entity_id = $1 and actor_id = $2", [o.mango, IDS.users.admin]);
+      expect(audit.length).toBe(1);
+    });
+  });
+
+  it("a line taken off is hidden from the restaurant and the supplier, but kept for the record", async () => {
+    await asOwner(db, async (q) => {
+      const o = await order(q);
+      await q(editSql, [JSON.stringify({
+        order_id: o.orderId, actor: IDS.users.admin, totals: totals(1180, 0),
+        lines: [
+          { id: o.rice, qty: 1, supplier_id: IDS.suppliers.A, unit_cost_pence: 1000, line_net_pence: 1180, line_vat_pence: 0 },
+          { id: o.mango, qty: 0, supplier_id: IDS.suppliers.B, unit_cost_pence: 1450, line_net_pence: 0, line_vat_pence: 0 },
+        ],
+      })]);
+      const seen: Record<string, number> = {};
+      for (const actor of ["customerA", "supplierB"] as const) {
+        await q("savepoint v");
+        await q("set local role authenticated");
+        await q("select set_config('request.jwt.claims', $1, true)", [JSON.stringify({ sub: IDS.users[actor], role: "authenticated" })]);
+        seen[actor] = (await q(`select 1 from public.${actor === "customerA" ? "customer_order_items" : "supplier_order_lines"} where id = $1`, [o.mango])).length;
+        await q("rollback to savepoint v");
+      }
+      expect(seen).toEqual({ customerA: 0, supplierB: 0 });
+      const [kept] = await q<{ removed: boolean }>("select removed_at is not null removed from public.order_items where id = $1", [o.mango]);
+      expect(kept.removed).toBe(true);
+    });
+  });
+
+  it("refuses a stale page, wrong totals, missing lines, an inactive supplier and an empty order", async () => {
+    await asOwner(db, async (q) => {
+      const o = await order(q);
+      const ok = [
+        { id: o.rice, qty: 1, supplier_id: IDS.suppliers.A, unit_cost_pence: 1000, line_net_pence: 1180, line_vat_pence: 0 },
+        { id: o.mango, qty: 1, supplier_id: IDS.suppliers.B, unit_cost_pence: 1450, line_net_pence: 1700, line_vat_pence: 340 },
+      ];
+      const cases: [string, unknown, string][] = [
+        ["stale", { expected_updated_at: "2000-01-01T00:00:00Z", totals: totals(2880, 340), lines: ok }, "P0004"],
+        ["wrong totals", { totals: totals(1, 340), lines: ok }, "P0001"],
+        ["missing line", { totals: totals(1180, 0), lines: [ok[0]] }, "P0001"],
+        ["duplicate line", { totals: totals(2360, 0), lines: [ok[0], ok[0]] }, "P0001"],
+        ["empty", { totals: totals(0, 0), lines: ok.map((l) => ({ ...l, qty: 0, line_net_pence: 0, line_vat_pence: 0 })) }, "P0001"],
+      ];
+      for (const [label, extra, code] of cases) {
+        await q("savepoint s");
+        expect(await outcome(q(editSql, [JSON.stringify({ order_id: o.orderId, actor: IDS.users.admin, ...(extra as object) })])), label).toBe(code);
+        await q("rollback to savepoint s");
+      }
+      await q("update public.suppliers set active = false where id = $1", [IDS.suppliers.B]);
+      await q("savepoint s");
+      expect(await outcome(q(editSql, [JSON.stringify({ order_id: o.orderId, actor: IDS.users.admin, totals: totals(2880, 340), lines: [{ ...ok[0], supplier_id: IDS.suppliers.B }, ok[1]] })]))).toBe("P0001");
+      await q("rollback to savepoint s");
+    });
+  });
+
+  it("locks the order once a delivery is made; cancelling voids the invoice and revokes links", async () => {
+    await asOwner(db, async (q) => {
+      const o = await order(q);
+      await q("select public.create_driver_link($1, decode(repeat('ab', 32), 'hex'), now() + interval '1 hour', null)", [o.soB]);
+      await q("select public.admin_cancel_order($1, $2, 'Restaurant closed for refit')", [o.orderId, IDS.users.admin]);
+      const [c] = await q<{ status: string; reason: string; voided: boolean; open: number; parts: string }>(
+        `select o.status::text, o.cancel_reason reason, i.voided_at is not null voided,
+                (select count(*)::int from public.delivery_proofs dp join public.supplier_orders so on so.id = dp.supplier_order_id where so.order_id = o.id and dp.revoked_at is null and dp.submitted_at is null) open,
+                (select string_agg(distinct status::text, ',') from public.supplier_orders where order_id = o.id) parts
+           from public.orders o join public.invoices i on i.order_id = o.id where o.id = $1`, [o.orderId]);
+      expect(c).toEqual({ status: "cancelled", reason: "Restaurant closed for refit", voided: true, open: 0, parts: "cancelled" });
+      await q("savepoint s");
+      expect(await outcome(q("select public.admin_cancel_order($1, null, 'again')", [o.orderId]))).toBe("P0003");
+      await q("rollback to savepoint s");
+
+      const o2 = await order(q);
+      await q("select public.record_delivery_proof($1::jsonb)", [JSON.stringify({ supplier_order_id: o2.soA, submitted_by_kind: "supplier", photo_path: "p.jpg", signature_path: "s.png" })]);
+      for (const sql of [
+        [editSql, JSON.stringify({ order_id: o2.orderId, totals: totals(2880, 340), lines: [] })],
+        ["select public.admin_cancel_order($1, null, 'x')", o2.orderId],
+      ] as const) {
+        await q("savepoint s");
+        expect(await outcome(q(sql[0], [sql[1]]))).toBe("P0003");
+        await q("rollback to savepoint s");
+      }
+    });
+  });
+
+  it("only the admin may add a second proof to a delivered part, and it changes nothing else", async () => {
+    await asOwner(db, async (q) => {
+      const o = await order(q);
+      const p = (kind: string) => JSON.stringify({ supplier_order_id: o.soA, submitted_by_kind: kind, photo_path: "p.jpg", signature_path: "s.png" });
+      await q("select public.record_delivery_proof($1::jsonb)", [p("supplier")]);
+      const before = (await q("select 1 from public.notifications")).length;
+      for (const kind of ["supplier", "driver"]) {
+        await q("savepoint s");
+        expect(await outcome(q("select public.record_delivery_proof($1::jsonb)", [p(kind)]))).toBe("P0002");
+        await q("rollback to savepoint s");
+      }
+      const r = (await q<{ r: { order_status: string } }>("select public.record_delivery_proof($1::jsonb) r", [p("admin")]))[0].r;
+      expect(r.order_status).toBe("partially_delivered");
+      expect((await q("select 1 from public.delivery_proofs where supplier_order_id = $1 and submitted_at is not null", [o.soA])).length).toBe(2);
+      expect((await q("select 1 from public.notifications")).length).toBe(before);
+    });
+  });
+
+  it("the admin records payments with its own login; the restaurant sees amounts, never notes or chase dates", async () => {
+    await asOwner(db, async (q) => {
+      const o = await order(q);
+      await q("savepoint a");
+      await asAdmin(q);
+      await q("insert into public.customer_payments (order_id, customer_id, amount_pence, paid_on, reference, note) values ($1, $2, 1000, current_date, 'ORDER-x', 'paid in cash at the door')", [o.orderId, IDS.customers.A]);
+      await q("update public.orders set next_chase_date = current_date, payment_notes = 'says Friday' where id = $1", [o.orderId]);
+      const [s] = await q<{ paid: string; balance: string; state: string }>("select paid_pence::text paid, balance_pence::text balance, payment_state state from public.admin_order_summary where id = $1", [o.orderId]);
+      expect(s).toEqual({ paid: "1000", balance: "2220", state: "part_paid" });
+      await q("release savepoint a");
+      await q("reset role");
+      await q("savepoint c");
+      await q("set local role authenticated");
+      await q("select set_config('request.jwt.claims', $1, true)", [JSON.stringify({ sub: IDS.users.customerA, role: "authenticated" })]);
+      const [pay] = await q("select * from public.customer_payment_history where order_id = $1", [o.orderId]);
+      expect(Object.keys(pay)).not.toContain("note");
+      const [mine] = await q("select * from public.customer_orders where id = $1", [o.orderId]);
+      expect(Object.keys(mine)).not.toContain("payment_notes");
+      expect(Object.keys(mine)).not.toContain("next_chase_date");
+      await q("rollback to savepoint c");
+    });
   });
 });

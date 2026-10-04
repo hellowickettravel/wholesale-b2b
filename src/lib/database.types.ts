@@ -164,6 +164,12 @@ isOneToOne: false
       foreignKeyName: "customer_payments_order_id_fkey"
       columns: ["order_id"]
 isOneToOne: false
+      referencedRelation: "admin_order_summary"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "customer_payments_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: false
       referencedRelation: "customer_orders"
       referencedColumns: ["id"]
     },{
@@ -283,6 +289,12 @@ isOneToOne: false
       foreignKeyName: "delivery_proofs_supplier_order_id_fkey"
       columns: ["supplier_order_id"]
 isOneToOne: false
+      referencedRelation: "admin_supplier_order_summary"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "delivery_proofs_supplier_order_id_fkey"
+      columns: ["supplier_order_id"]
+isOneToOne: false
       referencedRelation: "customer_deliveries"
       referencedColumns: ["id"]
     },{
@@ -333,6 +345,12 @@ isOneToOne: false
       foreignKeyName: "invoices_order_id_fkey"
       columns: ["order_id"]
 isOneToOne: true
+      referencedRelation: "admin_order_summary"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "invoices_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: true
       referencedRelation: "customer_orders"
       referencedColumns: ["id"]
     },{
@@ -358,16 +376,22 @@ isOneToOne: true
                   ]
                 },"order_items": {
                   Row: {
-                    "created_at": string,"id": string,"line_net_pence": number,"line_vat_pence": number,"order_id": string,"product_id": string | null,"product_name": string,"qty": number,"size_label": string,"sku": string | null,"sort": number,"supplier_id": string,"supplier_order_id": string,"unit_cost_pence": number | null,"unit_price_pence": number,"updated_at": string,"variant_id": string | null,"vat_rate_bp": number
+                    "created_at": string,"id": string,"line_net_pence": number,"line_vat_pence": number,"order_id": string,"product_id": string | null,"product_name": string,"qty": number,"removed_at": string | null,"size_label": string,"sku": string | null,"sort": number,"supplier_id": string,"supplier_order_id": string,"unit_cost_pence": number | null,"unit_price_pence": number,"updated_at": string,"variant_id": string | null,"vat_rate_bp": number
                   }
                   Insert: {
-                    "created_at"?: string,"id"?: string,"line_net_pence": number,"line_vat_pence": number,"order_id": string,"product_id"?: string | null,"product_name": string,"qty": number,"size_label": string,"sku"?: string | null,"sort"?: number,"supplier_id": string,"supplier_order_id": string,"unit_cost_pence"?: number | null,"unit_price_pence": number,"updated_at"?: string,"variant_id"?: string | null,"vat_rate_bp": number
+                    "created_at"?: string,"id"?: string,"line_net_pence": number,"line_vat_pence": number,"order_id": string,"product_id"?: string | null,"product_name": string,"qty": number,"removed_at"?: string | null,"size_label": string,"sku"?: string | null,"sort"?: number,"supplier_id": string,"supplier_order_id": string,"unit_cost_pence"?: number | null,"unit_price_pence": number,"updated_at"?: string,"variant_id"?: string | null,"vat_rate_bp": number
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"line_net_pence"?: number,"line_vat_pence"?: number,"order_id"?: string,"product_id"?: string | null,"product_name"?: string,"qty"?: number,"size_label"?: string,"sku"?: string | null,"sort"?: number,"supplier_id"?: string,"supplier_order_id"?: string,"unit_cost_pence"?: number | null,"unit_price_pence"?: number,"updated_at"?: string,"variant_id"?: string | null,"vat_rate_bp"?: number
+                    "created_at"?: string,"id"?: string,"line_net_pence"?: number,"line_vat_pence"?: number,"order_id"?: string,"product_id"?: string | null,"product_name"?: string,"qty"?: number,"removed_at"?: string | null,"size_label"?: string,"sku"?: string | null,"sort"?: number,"supplier_id"?: string,"supplier_order_id"?: string,"unit_cost_pence"?: number | null,"unit_price_pence"?: number,"updated_at"?: string,"variant_id"?: string | null,"vat_rate_bp"?: number
                   }
                   Relationships: [
                     {
+      foreignKeyName: "order_items_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: false
+      referencedRelation: "admin_order_summary"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "order_items_order_id_fkey"
       columns: ["order_id"]
 isOneToOne: false
@@ -407,6 +431,12 @@ isOneToOne: false
       foreignKeyName: "order_items_supplier_order_id_fkey"
       columns: ["supplier_order_id"]
 isOneToOne: false
+      referencedRelation: "admin_supplier_order_summary"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "order_items_supplier_order_id_fkey"
+      columns: ["supplier_order_id"]
+isOneToOne: false
       referencedRelation: "customer_deliveries"
       referencedColumns: ["id"]
     },{
@@ -437,13 +467,13 @@ isOneToOne: false
                   ]
                 },"orders": {
                   Row: {
-                    "cancelled_at": string | null,"checkout_key": string | null,"completed_at": string | null,"created_at": string,"customer_id": string,"delivery_address": string,"delivery_date": string,"delivery_net_pence": number,"delivery_vat_pence": number,"goods_net_pence": number,"goods_vat_pence": number,"id": string,"locked_at": string | null,"next_chase_date": string | null,"note": string | null,"number": number,"payment_notes": string | null,"payment_terms": Database["public"]['Enums']["payment_terms"],"placed_by": string | null,"promised_pay_date": string | null,"status": Database["public"]['Enums']["order_status"],"total_pence": number,"updated_at": string,"vat_pence": number
+                    "cancel_reason": string | null,"cancelled_at": string | null,"checkout_key": string | null,"completed_at": string | null,"created_at": string,"customer_id": string,"delivery_address": string,"delivery_date": string,"delivery_net_pence": number,"delivery_vat_pence": number,"goods_net_pence": number,"goods_vat_pence": number,"id": string,"locked_at": string | null,"next_chase_date": string | null,"note": string | null,"number": number,"payment_notes": string | null,"payment_terms": Database["public"]['Enums']["payment_terms"],"placed_by": string | null,"promised_pay_date": string | null,"status": Database["public"]['Enums']["order_status"],"total_pence": number,"updated_at": string,"vat_pence": number
                   }
                   Insert: {
-                    "cancelled_at"?: string | null,"checkout_key"?: string | null,"completed_at"?: string | null,"created_at"?: string,"customer_id": string,"delivery_address": string,"delivery_date": string,"delivery_net_pence"?: number,"delivery_vat_pence"?: number,"goods_net_pence": number,"goods_vat_pence": number,"id"?: string,"locked_at"?: string | null,"next_chase_date"?: string | null,"note"?: string | null,"number": number,"payment_notes"?: string | null,"payment_terms"?: Database["public"]['Enums']["payment_terms"],"placed_by"?: string | null,"promised_pay_date"?: string | null,"status"?: Database["public"]['Enums']["order_status"],"total_pence": number,"updated_at"?: string,"vat_pence": number
+                    "cancel_reason"?: string | null,"cancelled_at"?: string | null,"checkout_key"?: string | null,"completed_at"?: string | null,"created_at"?: string,"customer_id": string,"delivery_address": string,"delivery_date": string,"delivery_net_pence"?: number,"delivery_vat_pence"?: number,"goods_net_pence": number,"goods_vat_pence": number,"id"?: string,"locked_at"?: string | null,"next_chase_date"?: string | null,"note"?: string | null,"number": number,"payment_notes"?: string | null,"payment_terms"?: Database["public"]['Enums']["payment_terms"],"placed_by"?: string | null,"promised_pay_date"?: string | null,"status"?: Database["public"]['Enums']["order_status"],"total_pence": number,"updated_at"?: string,"vat_pence": number
                   }
                   Update: {
-                    "cancelled_at"?: string | null,"checkout_key"?: string | null,"completed_at"?: string | null,"created_at"?: string,"customer_id"?: string,"delivery_address"?: string,"delivery_date"?: string,"delivery_net_pence"?: number,"delivery_vat_pence"?: number,"goods_net_pence"?: number,"goods_vat_pence"?: number,"id"?: string,"locked_at"?: string | null,"next_chase_date"?: string | null,"note"?: string | null,"number"?: number,"payment_notes"?: string | null,"payment_terms"?: Database["public"]['Enums']["payment_terms"],"placed_by"?: string | null,"promised_pay_date"?: string | null,"status"?: Database["public"]['Enums']["order_status"],"total_pence"?: number,"updated_at"?: string,"vat_pence"?: number
+                    "cancel_reason"?: string | null,"cancelled_at"?: string | null,"checkout_key"?: string | null,"completed_at"?: string | null,"created_at"?: string,"customer_id"?: string,"delivery_address"?: string,"delivery_date"?: string,"delivery_net_pence"?: number,"delivery_vat_pence"?: number,"goods_net_pence"?: number,"goods_vat_pence"?: number,"id"?: string,"locked_at"?: string | null,"next_chase_date"?: string | null,"note"?: string | null,"number"?: number,"payment_notes"?: string | null,"payment_terms"?: Database["public"]['Enums']["payment_terms"],"placed_by"?: string | null,"promised_pay_date"?: string | null,"status"?: Database["public"]['Enums']["order_status"],"total_pence"?: number,"updated_at"?: string,"vat_pence"?: number
                   }
                   Relationships: [
                     {
@@ -582,6 +612,12 @@ isOneToOne: false
       foreignKeyName: "supplier_orders_order_id_fkey"
       columns: ["order_id"]
 isOneToOne: false
+      referencedRelation: "admin_order_summary"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "supplier_orders_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: false
       referencedRelation: "customer_orders"
       referencedColumns: ["id"]
     },{
@@ -631,6 +667,12 @@ isOneToOne: false
       foreignKeyName: "supplier_payments_supplier_order_id_fkey"
       columns: ["supplier_order_id"]
 isOneToOne: false
+      referencedRelation: "admin_supplier_order_summary"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "supplier_payments_supplier_order_id_fkey"
+      columns: ["supplier_order_id"]
+isOneToOne: false
       referencedRelation: "customer_deliveries"
       referencedColumns: ["id"]
     },{
@@ -663,7 +705,20 @@ isOneToOne: false
                 }
           }
           Views: {
-            "admin_product_list": {
+            "admin_order_summary": {
+                  Row: {
+                    "balance_pence": number | null,"cost_missing": boolean | null,"cost_pence": number | null,"created_at": string | null,"customer_id": string | null,"customer_name": string | null,"delivery_date": string | null,"delivery_net_pence": number | null,"goods_net_pence": number | null,"id": string | null,"line_count": number | null,"next_chase_date": string | null,"number": number | null,"paid_pence": number | null,"payment_notes": string | null,"payment_state": string | null,"payment_terms": Database["public"]['Enums']["payment_terms"] | null,"promised_pay_date": string | null,"status": Database["public"]['Enums']["order_status"] | null,"supplier_ids": (string)[] | null,"total_pence": number | null,"updated_at": string | null,"vat_pence": number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "orders_customer_id_fkey"
+      columns: ["customer_id"]
+isOneToOne: false
+      referencedRelation: "customers"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"admin_product_list": {
                   Row: {
                     "active": boolean | null,"category_id": string | null,"category_name": string | null,"id": string | null,"image_path": string | null,"name": string | null,"needs_price_count": number | null,"size_count": number | null,"slug": string | null,"source": string | null,"supplier_names": string | null,"updated_at": string | null
                   }
@@ -673,6 +728,49 @@ isOneToOne: false
       columns: ["category_id"]
 isOneToOne: false
       referencedRelation: "categories"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"admin_supplier_order_summary": {
+                  Row: {
+                    "created_at": string | null,"customer_id": string | null,"customer_name": string | null,"delivered_at": string | null,"delivery_date": string | null,"id": string | null,"order_id": string | null,"order_number": number | null,"order_status": Database["public"]['Enums']["order_status"] | null,"paid_pence": number | null,"paid_to_supplier": boolean | null,"status": Database["public"]['Enums']["supplier_order_status"] | null,"supplier_id": string | null,"supplier_name": string | null,"supplier_paid_at": string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "orders_customer_id_fkey"
+      columns: ["customer_id"]
+isOneToOne: false
+      referencedRelation: "customers"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "supplier_orders_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: false
+      referencedRelation: "admin_order_summary"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "supplier_orders_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: false
+      referencedRelation: "customer_orders"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "supplier_orders_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: false
+      referencedRelation: "orders"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "supplier_orders_supplier_id_fkey"
+      columns: ["supplier_id"]
+isOneToOne: false
+      referencedRelation: "my_supplier"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "supplier_orders_supplier_id_fkey"
+      columns: ["supplier_id"]
+isOneToOne: false
+      referencedRelation: "suppliers"
       referencedColumns: ["id"]
     }
                   ]
@@ -704,6 +802,12 @@ isOneToOne: false
       foreignKeyName: "supplier_orders_order_id_fkey"
       columns: ["order_id"]
 isOneToOne: false
+      referencedRelation: "admin_order_summary"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "supplier_orders_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: false
       referencedRelation: "customer_orders"
       referencedColumns: ["id"]
     },{
@@ -720,6 +824,12 @@ isOneToOne: false
                   }
                   Relationships: [
                     {
+      foreignKeyName: "delivery_proofs_supplier_order_id_fkey"
+      columns: ["supplier_order_id"]
+isOneToOne: false
+      referencedRelation: "admin_supplier_order_summary"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "delivery_proofs_supplier_order_id_fkey"
       columns: ["supplier_order_id"]
 isOneToOne: false
@@ -741,6 +851,12 @@ isOneToOne: false
       foreignKeyName: "supplier_orders_order_id_fkey"
       columns: ["order_id"]
 isOneToOne: false
+      referencedRelation: "admin_order_summary"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "supplier_orders_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: false
       referencedRelation: "customer_orders"
       referencedColumns: ["id"]
     },{
@@ -757,6 +873,12 @@ isOneToOne: false
                   }
                   Relationships: [
                     {
+      foreignKeyName: "order_items_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: false
+      referencedRelation: "admin_order_summary"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "order_items_order_id_fkey"
       columns: ["order_id"]
 isOneToOne: false
@@ -784,6 +906,12 @@ isOneToOne: false
       foreignKeyName: "order_items_supplier_order_id_fkey"
       columns: ["supplier_order_id"]
 isOneToOne: false
+      referencedRelation: "admin_supplier_order_summary"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "order_items_supplier_order_id_fkey"
+      columns: ["supplier_order_id"]
+isOneToOne: false
       referencedRelation: "customer_deliveries"
       referencedColumns: ["id"]
     },{
@@ -802,13 +930,13 @@ isOneToOne: false
                   ]
                 },"customer_orders": {
                   Row: {
-                    "created_at": string | null,"delivery_address": string | null,"delivery_date": string | null,"delivery_net_pence": number | null,"delivery_vat_pence": number | null,"goods_net_pence": number | null,"goods_vat_pence": number | null,"id": string | null,"note": string | null,"number": number | null,"payment_terms": Database["public"]['Enums']["payment_terms"] | null,"promised_pay_date": string | null,"status": Database["public"]['Enums']["order_status"] | null,"total_pence": number | null,"updated_at": string | null,"vat_pence": number | null
+                    "cancel_reason": string | null,"created_at": string | null,"delivery_address": string | null,"delivery_date": string | null,"delivery_net_pence": number | null,"delivery_vat_pence": number | null,"goods_net_pence": number | null,"goods_vat_pence": number | null,"id": string | null,"note": string | null,"number": number | null,"payment_terms": Database["public"]['Enums']["payment_terms"] | null,"promised_pay_date": string | null,"status": Database["public"]['Enums']["order_status"] | null,"total_pence": number | null,"updated_at": string | null,"vat_pence": number | null
                   }
                   Insert: {
-                           "created_at"?: string | null,"delivery_address"?: string | null,"delivery_date"?: string | null,"delivery_net_pence"?: number | null,"delivery_vat_pence"?: number | null,"goods_net_pence"?: number | null,"goods_vat_pence"?: number | null,"id"?: string | null,"note"?: string | null,"number"?: number | null,"payment_terms"?: Database["public"]['Enums']["payment_terms"] | null,"promised_pay_date"?: string | null,"status"?: Database["public"]['Enums']["order_status"] | null,"total_pence"?: number | null,"updated_at"?: string | null,"vat_pence"?: number | null
+                           "cancel_reason"?: string | null,"created_at"?: string | null,"delivery_address"?: string | null,"delivery_date"?: string | null,"delivery_net_pence"?: number | null,"delivery_vat_pence"?: number | null,"goods_net_pence"?: number | null,"goods_vat_pence"?: number | null,"id"?: string | null,"note"?: string | null,"number"?: number | null,"payment_terms"?: Database["public"]['Enums']["payment_terms"] | null,"promised_pay_date"?: string | null,"status"?: Database["public"]['Enums']["order_status"] | null,"total_pence"?: number | null,"updated_at"?: string | null,"vat_pence"?: number | null
                          }
                         Update: {
-                           "created_at"?: string | null,"delivery_address"?: string | null,"delivery_date"?: string | null,"delivery_net_pence"?: number | null,"delivery_vat_pence"?: number | null,"goods_net_pence"?: number | null,"goods_vat_pence"?: number | null,"id"?: string | null,"note"?: string | null,"number"?: number | null,"payment_terms"?: Database["public"]['Enums']["payment_terms"] | null,"promised_pay_date"?: string | null,"status"?: Database["public"]['Enums']["order_status"] | null,"total_pence"?: number | null,"updated_at"?: string | null,"vat_pence"?: number | null
+                           "cancel_reason"?: string | null,"created_at"?: string | null,"delivery_address"?: string | null,"delivery_date"?: string | null,"delivery_net_pence"?: number | null,"delivery_vat_pence"?: number | null,"goods_net_pence"?: number | null,"goods_vat_pence"?: number | null,"id"?: string | null,"note"?: string | null,"number"?: number | null,"payment_terms"?: Database["public"]['Enums']["payment_terms"] | null,"promised_pay_date"?: string | null,"status"?: Database["public"]['Enums']["order_status"] | null,"total_pence"?: number | null,"updated_at"?: string | null,"vat_pence"?: number | null
                          }
                         Relationships: [
                     
@@ -825,6 +953,12 @@ isOneToOne: false
                          }
                         Relationships: [
                     {
+      foreignKeyName: "customer_payments_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: false
+      referencedRelation: "admin_order_summary"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "customer_payments_order_id_fkey"
       columns: ["order_id"]
 isOneToOne: false
@@ -873,6 +1007,12 @@ isOneToOne: false
       foreignKeyName: "delivery_proofs_supplier_order_id_fkey"
       columns: ["supplier_order_id"]
 isOneToOne: false
+      referencedRelation: "admin_supplier_order_summary"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "delivery_proofs_supplier_order_id_fkey"
+      columns: ["supplier_order_id"]
+isOneToOne: false
       referencedRelation: "customer_deliveries"
       referencedColumns: ["id"]
     },{
@@ -895,6 +1035,12 @@ isOneToOne: false
                   }
                   Relationships: [
                     {
+      foreignKeyName: "order_items_supplier_order_id_fkey"
+      columns: ["supplier_order_id"]
+isOneToOne: false
+      referencedRelation: "admin_supplier_order_summary"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "order_items_supplier_order_id_fkey"
       columns: ["supplier_order_id"]
 isOneToOne: false
@@ -923,6 +1069,12 @@ isOneToOne: false
       foreignKeyName: "supplier_orders_order_id_fkey"
       columns: ["order_id"]
 isOneToOne: false
+      referencedRelation: "admin_order_summary"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "supplier_orders_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: false
       referencedRelation: "customer_orders"
       referencedColumns: ["id"]
     },{
@@ -936,7 +1088,13 @@ isOneToOne: false
                 }
           }
           Functions: {
-            "app_role":
+            "admin_cancel_order":
+{ Args: { "p_actor": string,"p_order": string,"p_reason": string }; Returns: undefined
+                           },
+"admin_edit_order":
+{ Args: { "p": Json }; Returns: Json
+                           },
+"app_role":
 { Args: Record<PropertyKey, never>; Returns: Database["public"]['Enums']["user_role"]
                            },
 "clean_text":
@@ -968,6 +1126,12 @@ isOneToOne: false
                            },
 "next_counter":
 { Args: { "p_name": string }; Returns: number
+                           },
+"notify_customer_order":
+{ Args: { "p_body": string,"p_kind": string,"p_order": string,"p_title": string }; Returns: undefined
+                           },
+"notify_supplier_order":
+{ Args: { "p_body": string,"p_kind": string,"p_supplier_order": string,"p_title": string }; Returns: undefined
                            },
 "promote_to_admin":
 { Args: { "p_email": string }; Returns: undefined

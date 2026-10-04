@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import type { LinkResult } from "@/components/delivery/driver-link";
 import { siteUrl } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -34,8 +35,6 @@ export async function setStatus(id: string, status: "sent" | "out_for_delivery")
   revalidatePath("/supplier");
   return {};
 }
-
-export type LinkResult = { url?: string; expiresAt?: string; error?: string };
 
 export async function newDriverLink(id: string): Promise<LinkResult> {
   const viewer = await requireRole("supplier");

@@ -74,7 +74,17 @@ const shots: Shot[] = [
   { name: "forbidden", path: "/admin", as: "restaurant.a@example.com" },
   { name: "admin", path: "/admin", as: "admin@example.com" },
   { name: "admin-users", path: "/admin/users", as: "admin@example.com" },
-  { name: "admin-soon", path: "/admin/orders", as: "admin@example.com" },
+  { name: "admin-soon", path: "/admin/invoices", as: "admin@example.com" },
+  { name: "admin-orders", path: "/admin/orders", as: "admin@example.com" },
+  { name: "admin-orders-filtered", path: "/admin/orders?status=open&payment=unpaid", as: "admin@example.com" },
+  { name: "admin-order", path: "/admin/orders/{order1002}", as: "admin@example.com" },
+  { name: "admin-order-delivered", path: "/admin/orders/{deliveredOrderA}", as: "admin@example.com" },
+  { name: "admin-payments", path: "/admin/payments", as: "admin@example.com" },
+  { name: "admin-payments-suppliers", path: "/admin/payments?tab=suppliers", as: "admin@example.com" },
+  { name: "admin-suppliers", path: "/admin/suppliers", as: "admin@example.com" },
+  { name: "admin-supplier", path: "/admin/suppliers/00000000-0000-4000-a000-000000000001", as: "admin@example.com" },
+  { name: "admin-supplier-new", path: "/admin/suppliers/new", as: "admin@example.com" },
+  { name: "admin-audit", path: "/admin/audit", as: "admin@example.com" },
   { name: "admin-approvals", path: "/admin/approvals", as: "admin@example.com" },
   { name: "admin-customers", path: "/admin/customers", as: "admin@example.com" },
   { name: "admin-customer-new", path: "/admin/customers/new", as: "admin@example.com" },
@@ -185,7 +195,11 @@ if (!reused && openA[2]) {
     [openA[2].id, driverToken],
   );
 }
+// Payments screens: seed order 1002 is overdue and due a chase today.
+await db.query("update public.orders set promised_pay_date = current_date - 2, next_chase_date = current_date where number = 1002 and status <> 'cancelled'");
+const { rows: o1002 } = await db.query<{ id: string }>("select id from public.orders where number = 1002");
 const vars: Record<string, string> = {
+  order1002: o1002[0]?.id ?? "none",
   latestA: latest[0]?.id ?? "none",
   openSoA: openA[0]?.id ?? "none",
   openSoA2: openA[1]?.id ?? "none",

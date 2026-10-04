@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProofView } from "@/components/delivery/proof-view";
 import { BankDetails } from "@/components/shop/bank-details";
+import { Alert } from "@/components/ui/alert";
 import { DeliveryStatusBadge, OrderStatusBadge } from "@/components/shop/order-status";
 import { formatDate, formatDayDate } from "@/domain/dates";
 import { formatBp, formatPence } from "@/domain/money";
@@ -40,6 +41,11 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
         <span className="w-full text-sm text-ink-muted sm:w-auto">Placed {formatDate(order.created_at!)}</span>
       </div>
 
+      {order.status === "cancelled" ? (
+        <Alert tone="danger" className="mb-5" title="This order was cancelled">
+          {order.cancel_reason ?? "Nothing will be delivered."}
+        </Alert>
+      ) : null}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
         <div className="min-w-0 space-y-4">
           {parts.map((part, i) => (
@@ -96,11 +102,11 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
             <dl className="mt-4 space-y-2 border-t border-line pt-4 text-sm">
               <Row label="Payment" value={PAYMENT_TERMS_LABEL[order.payment_terms!]} />
               <Row label="Status" value={PAID_LABEL[payState] + (paid > 0 && payState === "part_paid" ? ` (${formatPence(paid)})` : "")} />
-              {invoice ? <Row label="Invoice" value={invoiceRef(Number(invoice.number))} /> : null}
+              {invoice ? <Row label="Invoice" value={`${invoiceRef(Number(invoice.number))}${invoice.voided_at ? " (voided)" : ""}`} /> : null}
               <Row label="Deliver to" value={order.delivery_address ?? ""} />
             </dl>
           </section>
-          {payState === "unpaid" || payState === "part_paid" ? (
+          {order.status !== "cancelled" && (payState === "unpaid" || payState === "part_paid") ? (
             <BankDetails bank={bank} reference={ref} amountPence={total - paid} payBy={order.promised_pay_date} />
           ) : null}
         </div>

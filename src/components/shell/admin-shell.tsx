@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { ToastProvider } from "@/components/ui/toast";
 import { NavLink } from "./nav-link";
 
 const groups = [
@@ -62,6 +63,7 @@ const activeCls = "bg-white/10 !text-white shadow-[inset_3px_0_0_var(--brand-acc
 export function AdminShell({ children, userName, badges = {} }: { children: ReactNode; userName: string; badges?: Record<string, number> }) {
   const flat = groups.flatMap((g) => g.items);
   return (
+    <ToastProvider>
     <div className="min-h-dvh lg:grid lg:grid-cols-[248px_1fr]">
       <aside className="hidden bg-ink lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col">
         <div className="px-5 py-5">
@@ -127,5 +129,6 @@ export function AdminShell({ children, userName, badges = {} }: { children: Reac
         </main>
       </div>
     </div>
+    </ToastProvider>
   );
 }
