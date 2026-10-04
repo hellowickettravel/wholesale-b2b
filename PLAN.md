@@ -1,6 +1,6 @@
 # PLAN — B2B wholesale grocery ordering portal
 
-Owner: Touseef · Client: Nagaraju Vardanam (UK) · Status: **Phase 1 done (merged). Phase 2 next.** See `HANDOVER.md`.
+Owner: Touseef · Client: Nagaraju Vardanam (UK) · Status: **Phases 1–2 done (Phase 2 in draft PR, migrations live on hosted Supabase). Phase 3 next.** See `HANDOVER.md`.
 
 This is the living plan. Decisions and their reasons live in `DECISIONS.md`; traps and
 non-obvious facts live in `CLAUDE.md` / `MEMORY.md`.
@@ -56,7 +56,8 @@ screenshots of the new screens at 390px and 1280px reviewed, commit, push, PR, s
 `(public)` — no login
 - `/` home · `/catalogue` (+ `?category=&q=&page=`) · `/catalogue/[slug]` product
 - `/register` · `/register/pending` · `/login` · `/forgot-password` · `/reset-password`
-- `/auth/callback` (Supabase code exchange) · `/auth/invite` (set password for admin-created users)
+- `/auth/confirm` (token_hash verify for every auth email) · `/auth/callback` (PKCE fallback)
+- `/auth/invite` (set password for admin-created users) · `/account-disabled` · POST `/auth/signout`
 
 `(shop)` — role customer
 - `/shop` my catalogue (home) · `/shop/p/[slug]` product with price + size select
@@ -80,7 +81,8 @@ Everything else is server actions.
 
 ## 4. Data model (Postgres, all money in integer pence, rates in basis points)
 
-- `profiles(id → auth.users, role[customer|admin|supplier], full_name, email, customer_id?, supplier_id?, active)` — role only writable by admin/service.
+- `profiles(id → auth.users, role[customer|admin|supplier], full_name, email, customer_id?, supplier_id?, active)` — role only writable by admin/service (guard trigger).
+- `customer_private(customer_id, default_margin_bp, admin_notes)` — admin only (split out of `customers`, DECISIONS D15).
 - `customers(id, business_name, contact_name, email, phone, address_line1/2, city, postcode, status[pending|approved|rejected|suspended], default_margin_bp?, notes, approved_at, approved_by)`
 - `suppliers(id, name, email, phone, address, active, notes)`
 - `categories(id, name, slug, sort, active, image_path)`
@@ -98,7 +100,7 @@ Everything else is server actions.
 - `settings(singleton: min_order_pence, delivery_charge_pence, delivery_vat_mode, delivery_days[], global_margin_bp, bank_name, account_name, sort_code, account_number, iban, business_legal_name, business_address, vat_number, invoice_footer, price_display)`
 - `audit_log(id, actor, action, entity, entity_id, before jsonb, after jsonb, at)` · `email_log` · `notifications(user_id, kind, payload, read_at)` · `rate_limits(key, window_start, count)`
 
-RLS: deny by default. Customers read only their own orders/items/invoices/payments (no `unit_cost` via column privileges/views); suppliers read only their supplier_orders + a no-price item view; admins all. **Costs, margins and overrides are never selectable by non-admins.** Customer prices are computed server-side by the pure pricing engine and projected.
+RLS: deny by default. Priced base tables are admin-only; customers read own data via `customer_orders`, `customer_order_items` (no cost/supplier), `customer_deliveries`, `customer_payment_history`, `shop_settings` and `invoices`; suppliers via `my_supplier`, `supplier_order_list`, `supplier_order_lines` (no price); public via `categories`, `products`, `catalogue_variants`. See DECISIONS D15. **Costs, margins and overrides are never selectable by non-admins.** Customer prices are computed server-side by the pure pricing engine and projected.
 
 ## 5. Risks and mitigations
 

@@ -13,3 +13,30 @@
 - Parser rule: sizes are taken from the **last** size expression in a name; grouping only on exact normalised
   base name within the same category. Unparseable rows become a single "Each" variant and are reported.
 - Delivery VAT defaults to `apportioned` across the basket's VAT bands (DECISIONS D5): accountant to confirm.
+
+## Phase 2 additions
+- **Docker Hub 429s:** if `npm run db:start` fails pulling an image with 429, pull it from Google's
+  mirror and retag: `docker pull mirror.gcr.io/library/kong:2.8.1 && docker tag mirror.gcr.io/library/kong:2.8.1 kong:2.8.1`
+  (same for `postgrest/postgrest:<tag>`).
+- **Supabase MCP connector:** any SQL containing DROP or DELETE (even inside a function body or an
+  `execute format('drop …')` string) hangs until the 60 s timeout and does nothing (it waits for a
+  confirmation that never arrives). Write migrations without them (DECISIONS D20). Large chunks are
+  fine; apply in pieces of a few KB and verify with the fingerprint query in HANDOVER.md.
+- **New tables are private by default** (0002 revokes default privileges). Every new table/view/
+  function needs explicit GRANTs and RLS in its migration, plus security tests.
+- Hosted and local default privileges differ (hosted grants EXECUTE to PUBLIC); always revoke
+  `from public` explicitly on new functions.
+- `customer_*` and `supplier_*` views run as owner and MUST filter by the helper functions.
+- Role helper is `public.app_role()` (not `current_role()`: reserved word).
+- Local auth: email confirmations ON, emails land in Mailpit at http://127.0.0.1:54324 (E2E reads
+  its API). Seed accounts (password `Password123!`): admin@, supplier.a@, supplier.b@,
+  restaurant.a@, restaurant.b@, pending@ (all `@example.com`).
+- Auth config changes in `supabase/config.toml` need `npx supabase stop && npm run db:start`.
+- **Rate limits bite in tests:** >50 sign-ins from 127.0.0.1 in 15 min trips `loginPerIp`.
+  E2E global setup and `scripts/screens.mts` truncate `rate_limits` first.
+- Restart the prod server with `scripts/serve.sh` (kills by PID; `lsof`/`ss` are not installed).
+- Playwright: Next renders an empty `role="alert"` route announcer; scope alerts to `main`.
+  Labels of required fields include a visual `*`, so locate password inputs by `name`.
+- Domain `PaymentTerms` uses `7_days`/`date` but the DB enum is `within_7_days`/`on_date`:
+  reconcile in Phase 5.
+- `promote_to_admin(email)` is the only way to create the first admin on a fresh project.

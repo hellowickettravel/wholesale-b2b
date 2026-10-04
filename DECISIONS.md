@@ -80,3 +80,66 @@ Gapless sequential numbers via a counter row updated inside the order-creation t
 ## D14. Rejected alternatives
 - Card payments / Stripe: out of scope v1; `customer_payments.method` is an enum ready for `card`.
 - Edge runtime: Next 16 `proxy` is Node only; fine.
+
+## D15. Access model: admin-only base tables + filtered projection views (Phase 2)
+Postgres column grants cannot tell a customer from an admin (both use the `authenticated` role), so
+column-level revokes cannot hide costs from customers while letting admins read them. Instead:
+- Every table has RLS; `anon`/`authenticated` get no privileges unless granted explicitly
+  (default privileges are revoked too, so new tables are private until a migration grants them).
+- Tables holding costs, sell prices, margins, overrides, payments or admin notes are **admin-only**.
+- Customers and suppliers read those facts only through **views with explicit column lists** that
+  filter rows themselves (`customer_orders`, `customer_order_items` with no cost/supplier,
+  `supplier_order_list` / `supplier_order_lines` with no price at all, `catalogue_variants` with no
+  cost/supplier, `shop_settings` for approved customers only). The views run as their owner, so the
+  Supabase linter reports them as "security definer views"; this is intended and the SQL/API tests
+  prove each one filters correctly.
+- Admin-private customer facts (default margin, internal notes) live in `customer_private`.
+- Guard triggers stop non-admins changing protected columns on rows they may otherwise update
+  (`profiles.role/customer_id/supplier_id/active/email`, `customers.status/...`).
+- Helper functions `app_role()`, `is_admin()`, `my_customer_id()`, `my_approved_customer_id()`,
+  `my_supplier_id()` are SECURITY DEFINER and executable by anon/authenticated because RLS needs
+  them; they only ever describe the caller. (`current_role()` was not used: CURRENT_ROLE is a
+  reserved SQL function.)
+- Unapproved, rejected and suspended customers see nothing priced: every customer view and the
+  invoices policy gate on `my_approved_customer_id()`.
+
+## D16. Account provisioning
+- `handle_new_user` trigger always creates the profile with role `customer`; metadata can never set
+  a role or link a customer/supplier. Self-registration metadata (business details) creates a
+  **pending** customer.
+- Admin-created accounts: admin's own (RLS-bound, audited) client creates the customer or supplier
+  record and links the profile; the service-role client is used only to send the Auth invite.
+- First admin on a fresh project: create the user in Supabase Auth, then run
+  `select public.promote_to_admin('email');` in the SQL editor (not callable through the API).
+
+## D17. Auth emails use token_hash links to /auth/confirm
+Server-side `verifyOtp` works for every email type (signup, invite, recovery, email change) and does
+not depend on the browser that requested it. Templates in `supabase/templates/*.html`; hosted
+project must use the same (HANDOVER owner checklist). `/auth/callback` (PKCE code exchange) remains
+as a fallback for stock templates. Email confirmation is required for self-registration.
+
+## D18. Sessions and authorisation in Next
+`src/proxy.ts` refreshes the session and redirects signed-out visitors of signed-in areas
+(optimistic only). Every protected layout, page and action calls `requireRole()` from
+`src/server/auth.ts`, which reads the role from `profiles` per request. `?next=` is honoured only
+for same-origin paths inside the viewer's own area (no open redirects). Sign-out is POST-only.
+
+## D19. Rate limits (values)
+Login 50/15 min per IP and 10/15 min per account; register 5/h per IP; reset 20/h per IP and
+5/h per account; set-password 10/h per user; invites 60/h per admin. Keys are SHA-256 hashed.
+`hit_rate_limit` keeps one row per key (window resets in place) so the table needs no pruning.
+If the limiter itself is unavailable it fails open and logs, so an outage cannot lock everyone out.
+
+## D20. No destructive statements in migrations
+The Supabase connector stalls on DROP and on DELETE (it waits for an interactive confirmation),
+and re-runs are safer without them anyway. Migrations use `create or replace` (functions, views,
+triggers) and `public.ensure_policy()` (create policy if missing, otherwise ALTER POLICY in place).
+A change that genuinely needs DROP is given to the owner to run in the SQL editor.
+
+## D21. Hosted project
+Supabase `qtztjbnaofonazruovty` (region ap-south-1, Mumbai) and Vercel project `wholesale-b2b`
+(team Wicket Travel Portal, Git-connected; main = production). Migrations 0001–0004 applied via
+the connector; a schema fingerprint (columns, constraints, indexes, policies, function bodies,
+views, triggers, grants, RLS flags, buckets) matched the local stack exactly. The seed is local only.
+**Region note:** customers are in the UK; a London (eu-west-2) Supabase project would cut latency.
+The hosted database is empty, so moving now costs minutes; later it costs a migration.

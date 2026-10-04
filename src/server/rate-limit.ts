@@ -29,7 +29,14 @@ export async function clientIp(): Promise<string> {
 export async function hit(bucket: keyof typeof LIMITS, identifier: string): Promise<boolean> {
   const { limit, window } = LIMITS[bucket];
   const key = `${bucket}:${createHash("sha256").update(identifier.toLowerCase()).digest("hex").slice(0, 48)}`;
-  const { data, error } = await createAdminClient().rpc("hit_rate_limit", {
+  let admin: ReturnType<typeof createAdminClient>;
+  try {
+    admin = createAdminClient();
+  } catch (e) {
+    console.error("rate limiter unavailable:", (e as Error).message);
+    return true;
+  }
+  const { data, error } = await admin.rpc("hit_rate_limit", {
     p_key: key,
     p_limit: limit,
     p_window_seconds: window,

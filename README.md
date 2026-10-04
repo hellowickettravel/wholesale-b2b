@@ -16,7 +16,11 @@ npm run dev
 
 ## Checks
 ```bash
-npm run verify     # typecheck, lint, unit tests, build
+npm run verify          # typecheck, lint, unit tests, build
+npm run db:reset        # migrations + local seed
+npm run test:security   # RLS/API attacks as anon, customers, supplier, admin (local stack)
+npm run build && npm run test:e2e   # Playwright journeys (local stack, Mailpit)
+npx tsx scripts/screens.mts         # screenshots at 390/1280 into test-results/screens
 ```
 
 ## Docs
