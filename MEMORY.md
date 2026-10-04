@@ -110,3 +110,20 @@
   header comments that mention them when applying a migration through it.
 - React lint (`react-hooks/purity`) refuses `Date.now()` in a component body, even on the server:
   put time-dependent helpers in `src/server/*` (see `activeLink`).
+
+## Phase 7 additions
+- `order_items` rows are never removed: a line taken off has `removed_at`. Filter `removed_at is null`
+  everywhere you read lines directly (the customer/supplier views already do).
+- Supplier parts can be `cancelled` by an admin change and come back to `placed` if a line moves back.
+- Hosted grants EXECUTE on new functions to PUBLIC: when applying in parts, revoke in the same part
+  that creates the function (0009 did).
+- Order of local checks matters: `npm run db:reset` **then** `npm run build` (build prerenders the
+  public catalogue from whatever is in the DB), then security, then E2E. Building before a reset once
+  failed a catalogue E2E test against stale prerendered pages.
+- `scripts/screens.mts` makes seed order 1002 overdue and due a chase for the payments screenshots.
+- Admin confirmations go through `useToast` (AdminShell has a ToastProvider): an action can unmount
+  its own button (cancel, complete, a chase row that is dealt with).
+- `<details open={…}>` is only the initial state once the user has toggled it; tests open it with
+  a check (`openPaymentForm` in admin-orders.spec.ts).
+- Date inputs with `max` and textareas with `required` are stopped by the browser before the server
+  action; E2E checks `validity` for those.

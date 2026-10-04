@@ -1,6 +1,6 @@
 # HANDOVER: start here
 
-Last updated: **4 Oct 2026**, end of Phase 6. A fresh session should read, in order: this file, then
+Last updated: **4 Oct 2026**, end of Phase 7. A fresh session should read, in order: this file, then
 `docs/BRIEF.md` (the owner's full original brief, verbatim), `PLAN.md`, `DECISIONS.md`, `MEMORY.md`
 and `CLAUDE.md`.
 
@@ -29,8 +29,9 @@ and `CLAUDE.md`.
 | 4. Customer approval and per-customer pricing | **Done** on the same branch and PR. No schema change. **Real catalogue loaded on hosted.** |
 | 5. Shop, basket, checkout, order creation and split | **Done** on the same branch and PR. Migration 0007 applied to hosted. |
 | 6. Supplier portal and driver proof | **Done** on the same branch and PR. Migration 0008 applied to hosted. |
-| 7. Admin orders, payments, chasing, suppliers | **Next.** |
-| 8–10 | Not started (see `PLAN.md` §2). |
+| 7. Admin orders, payments, chasing, suppliers | **Done** on the same branch and PR. Migration 0009 applied to hosted. |
+| 8. Invoices (PDF) and email (Resend) | **Next.** |
+| 9–10 | Not started (see `PLAN.md` §2). |
 
 ### Done in Phase 2 (verified locally: `npm run verify` green, 96 unit, 257 security, 24 E2E)
 - Migrations `0001_schema` (all tables, pence/bp, enums, indexes, counters, settings row), `0002_rls`
@@ -180,18 +181,64 @@ the owner's images (D31). Never import `tests/fixtures/catalogue-sample.csv` int
       other suppliers' orders and restaurants 403.
 - Screenshots of 9 new screens at 390 and 1280 reviewed; no horizontal overflow.
 
-### Next: Phase 7 (admin orders, payments, chasing, suppliers). Concrete to-do
-1. `/admin` dashboard numbers: owed to you, owed to suppliers, chase today, pending approvals, latest orders.
-2. `/admin/orders` (filters: status, payment, supplier, dates) and `/admin/orders/[id]`:
-   - Split by supplier with costs, profit (D6) and the delivery proofs (`signProofs`).
-   - Adjust quantities and swap a line's supplier while unlocked (`isOrderLocked`); this needs a
-     server function that recomputes the totals and invoice snapshot, and re-notifies the supplier.
-   - Cancel, mark completed, timeline from `audit_log`.
-3. Customer payments (amount, date, method, reference), promised date, next chase date, notes;
-   `/admin/payments` with chase today / overdue and a reminder email (queued).
-4. Supplier payments and the paid-to-supplier flag; `/admin/suppliers` (+ `/[id]`): details, active,
-   logins. Deactivating a supplier blocks new orders for its sizes (D32 already checks).
-5. `/admin/audit` log viewer. Security + E2E for every write being admin-only.
+### Done in Phase 7 (verified locally: `npm run verify` green, 165 unit, 424 security, 48 E2E twice)
+- Migration `0009_admin_orders` (server-only functions, DECISIONS D36–D38):
+  - `order_items.removed_at` (a line taken off is kept but hidden from restaurant and supplier views),
+    `orders.cancel_reason` (shown to the restaurant).
+  - `admin_edit_order`: quantities, take a line off, move a line to another supplier with its cost,
+    delivery charge. Re-splits, cancels an emptied supplier part (revokes its links), updates the
+    order and invoice totals, notifies the suppliers involved and the restaurant (portal + queued
+    email). Refuses a stale page and anything after the first delivery.
+  - `admin_cancel_order`: cancels every part, revokes links, voids the invoice, tells everyone.
+  - `record_delivery_proof` v2: the admin can add a better proof to a delivered part.
+  - Views `admin_order_summary` and `admin_supplier_order_summary` (admin only, sums of payments).
+  - Applied to hosted in 5 parts (each revoking its functions straight away); fingerprint identical
+    (12/12); the advisor shows only the items already accepted (D15).
+- Domain `src/domain/ledger.ts`: `rebuildOrder`, `orderProfit`, `owedToSupplier`, `supplierPayState`,
+  `chaseFlags`, `nextChaseAfterReminder`. Wording for the timeline and audit log:
+  `src/lib/audit-format.ts`. Reads: `src/server/admin-orders.ts`.
+- Screens:
+  - `/admin`: owed to you (and overdue), owed to suppliers for delivered orders (and what comes once
+    the rest arrive), chase today, approvals, latest orders, this month's sales and profit.
+  - `/admin/orders`: status tabs with counts, payment, supplier, dates and search; total, payment
+    and profit per order.
+  - `/admin/orders/[id]`:
+    - Header and actions: totals, paid, still owed or to refund, and profit with margin. Mark completed
+      (warns if unpaid) and Cancel order (reason required).
+    - One card per supplier: lines with price and cost, owed to the supplier, paid tick, record a
+      supplier payment, the proof, the driver link, and upload or replace the proof.
+    - "Change the order" editor with a live preview, plus the lines taken off.
+    - Restaurant payments and refunds, the reminder, chasing (promised date, next chase, notes).
+    - A timeline built from the audit log.
+  - `/admin/payments`: Chase today, Overdue, All owed to you, To pay suppliers.
+  - `/admin/suppliers`, `/new`, `/[id]`: details, switch on/off, logins (invite, switch off), and
+    "To pay": tick the orders one transfer paid.
+  - `/admin/audit`: filter by what changed and dates, before → after per field.
+  - The sidebar shows a "chase today" count; admin confirmations appear as toasts.
+- Restaurant side: a cancelled order shows the reason and no bank details; a delivery emptied by a
+  change is hidden.
+- Tests:
+  - `tests/unit/ledger.test.ts`.
+  - Phase 7 blocks in both security files: no API role (admin included) can call the functions; the
+    ledger views are admin-only; edit, re-split, invoice, notifications, stale/locked/empty refusals;
+    cancel; admin proof redo; restaurants never see notes or chase dates. Mutation-checked: loosening
+    a grant, a view grant and the removed-line filter turned 7 tests red.
+  - `tests/e2e/admin-orders.spec.ts` (6 journeys): change, take off, pay, chase, remind, pay the
+    supplier, complete, cancel, suppliers, and 403s for restaurants and suppliers.
+- Screenshots of 11 new admin screens at 390 and 1280 reviewed; no horizontal overflow.
+
+### Next: Phase 8 (invoices and email). Concrete to-do
+1. Invoice PDF with `@react-pdf/renderer` at `/api/invoices/[id]/pdf`. Restaurant: own invoices only
+   (through RLS). Admin: all. Show the logo, VAT breakdown per rate, the delivery line, bank details
+   and the reference `ORDER-n`. A voided invoice is marked VOID. Use live lines only (`removed_at is null`).
+2. `/invoices` for restaurants and `/admin/invoices` (list, filters, download).
+3. Email sender (Resend, D11): a server job that sends `email_log` rows with status `queued`.
+   Templates: `supplier_order_new`, `supplier_order_changed`, `supplier_order_cancelled`,
+   `order_confirmation` (with the invoice), `order_changed`, `order_cancelled`, `order_delivered`,
+   `payment_reminder`, and the approval email. With no `RESEND_API_KEY`, mark rows `skipped`. A
+   failure never blocks an order; admin can retry failed ones.
+4. Security + E2E: PDF access per restaurant, no cost in the PDF, the email queue drains in tests
+   (fake transport).
 
 ## Owner checklist (what Touseef must do)
 **A. Vercel → Project wholesale-b2b → Settings → Environment Variables** (already set by the agent:

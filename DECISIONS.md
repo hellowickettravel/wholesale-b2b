@@ -276,3 +276,47 @@ Suppliers see order lines only through `supplier_order_lines` (no prices), as be
 - **Statuses:** suppliers move their part forward only (placed → accepted → out for delivery);
   "delivered" is set only with a proof. The order status is rolled up in the database with the
   order row locked, so two deliveries finishing together cannot race.
+
+## D36. Changing an order after it is placed (Phase 7)
+- **What the admin can change** (brief: "after speaking with the restaurant"): quantities, taking a line
+  off (quantity 0), moving a line to another supplier with that supplier's unit cost, the cost on a
+  line, and the delivery charge. **Sell prices stay as ordered**: the restaurant agreed them.
+- **Lines are never removed from the database.** A line taken off gets `order_items.removed_at`; the
+  restaurant and supplier views hide it, the admin sees it under "Taken off the order", the audit log
+  keeps it. (Also keeps migrations free of destructive statements, D20.) Anything that reads
+  `order_items` directly must filter `removed_at is null`.
+- **Delivery charge:** kept as charged unless the admin changes it; a change never adds a charge the
+  restaurant did not agree to just because the goods total moved across today's minimum. The screen
+  shows the usual charge for the new total as a hint. Delivery VAT is re-apportioned (D5).
+- **The server rebuilds everything** with `rebuildOrder` (src/domain) and sends every live line;
+  `admin_edit_order` checks counts and sums in one transaction, refuses a page that is out of date
+  (P0004) and refuses once any delivery is done or the order is completed/cancelled (P0003).
+- A supplier left with nothing has its part **cancelled** (open driver links revoked) and is told;
+  a supplier gaining lines gets "New order", others whose lines changed get "ORDER-n changed"; the
+  restaurant gets "ORDER-n was updated". All in the portal and as queued emails (sent in Phase 8).
+- **The invoice follows the order until the first delivery** (it is effectively pro forma until
+  then and has not been sent yet). After a delivery nothing changes. A cancelled order's invoice is
+  **voided** and keeps its number (gapless, D13).
+- **Proof redo (completes D35):** the admin can add a better proof to a delivered part; the newest is
+  shown. Suppliers and drivers still get one submission per delivery.
+
+## D37. Payments ledger and chasing (Phase 7)
+- Restaurant payments and refunds are rows in `customer_payments` (a refund is a negative amount).
+  Paid / part paid / overpaid is derived from their sum against the order total
+  (`admin_order_summary`); a cancelled order owes nothing, so money taken on it shows as "to refund".
+- Paid in full clears the next chase date. **Chase today** = money owed and the chase date has come;
+  **overdue** = money owed after the promised date (`chaseFlags`).
+- **Payment reminder:** queues one `payment_reminder` email per order at most every 20 hours and moves
+  the next chase three days on. It is sent in Phase 8.
+- **Supplier payments:** each payment is recorded against one supplier order. "Paid to supplier" is
+  ticked automatically when payments cover what is owed (cost + VAT on cost, D6), or by hand. On the
+  supplier's page, one transfer can pay several orders: each gets a payment for what is still owed.
+  A line with no cost blocks that, because the amount owed is unknown.
+- **Completed** is the admin's "done": allowed once delivered, with a warning if either side is unpaid.
+- Money maths is in `src/domain/ledger.ts`; the SQL views only sum.
+
+## D38. Suppliers and logins (Phase 7)
+Switching a supplier off stops new orders for its sizes (D32) and stops it being chosen when moving a
+line; orders already placed carry on. Its logins keep working so it can finish those. A login can be
+switched off on the supplier's page (it is sent to /account-disabled); an admin cannot switch off
+their own login.
