@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Download } from "lucide-react";
 import { ProofView } from "@/components/delivery/proof-view";
 import { BankDetails } from "@/components/shop/bank-details";
 import { Alert } from "@/components/ui/alert";
@@ -105,6 +106,16 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
               {invoice ? <Row label="Invoice" value={`${invoiceRef(Number(invoice.number))}${invoice.voided_at ? " (voided)" : ""}`} /> : null}
               <Row label="Deliver to" value={order.delivery_address ?? ""} />
             </dl>
+            {invoice ? (
+              <a
+                href={`/api/invoices/${invoice.id}/pdf`}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-[var(--radius-md)] border border-line-strong bg-raised text-sm font-semibold text-ink hover:bg-sunken"
+              >
+                <Download className="size-4" aria-hidden="true" /> Download invoice (PDF)
+              </a>
+            ) : null}
           </section>
           {order.status !== "cancelled" && (payState === "unpaid" || payState === "part_paid") ? (
             <BankDetails bank={bank} reference={ref} amountPence={total - paid} payBy={order.promised_pay_date} />

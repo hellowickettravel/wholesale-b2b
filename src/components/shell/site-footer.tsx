@@ -28,7 +28,7 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-white/10">
-        <div className="mx-auto max-w-6xl px-4 py-5 text-xs text-white/45 sm:px-6">
+        <div className="mx-auto max-w-6xl px-4 py-5 text-xs text-white/70 sm:px-6">
           © {new Date().getFullYear()} {brand.legalName}. All prices exclude VAT unless stated.
         </div>
       </div>

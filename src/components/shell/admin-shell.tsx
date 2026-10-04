@@ -72,7 +72,7 @@ export function AdminShell({ children, userName, badges = {} }: { children: Reac
         <nav aria-label="Admin" className="flex-1 space-y-5 overflow-y-auto px-3 pb-6">
           {groups.map((g) => (
             <div key={g.label}>
-              <div className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-white/35">{g.label}</div>
+              <div className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-white/60">{g.label}</div>
               <ul className="space-y-0.5">
                 {g.items.map(({ href, label, icon: Icon, exact }) => (
                   <li key={href}>

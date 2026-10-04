@@ -44,7 +44,7 @@ export function AuthShell({
         <div className="pointer-events-none absolute -right-24 -top-24 size-[420px] rounded-full bg-primary-strong" />
         <div className="pointer-events-none absolute -bottom-32 -left-20 size-[360px] rounded-full bg-white/[0.04]" />
         <div className="relative">
-          <p className="font-display text-sm font-bold uppercase tracking-[0.14em] text-accent">Trade accounts</p>
+          <p className="font-display text-sm font-bold uppercase tracking-[0.14em] text-white/80">Trade accounts</p>
           <p className="mt-4 max-w-md font-display text-[34px] font-extrabold leading-[1.1] text-white">
             One order. Every supplier. Your own prices.
           </p>

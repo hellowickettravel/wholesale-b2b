@@ -126,7 +126,7 @@ export default async function AuditPage({ searchParams }: PageProps<"/admin/audi
                   <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                     <p className="text-sm font-medium text-ink">
                       {describeAuditRow(r, ENTITIES[r.entity])}
-                      {link ? <> · <Link href={link} className="text-primary hover:underline">open</Link></> : null}
+                      {link ? <> · <Link href={link} className="text-primary underline underline-offset-2">open</Link></> : null}
                     </p>
                     <p className="text-xs text-ink-muted">{formatTimestamp(r.at)} · {who(r.actor_id, r.entity)}</p>
                   </div>

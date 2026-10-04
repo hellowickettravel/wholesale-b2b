@@ -98,7 +98,7 @@ export default async function HomePage() {
             ["Order and receive", "Pick a delivery day. Each supplier delivers to your door with signed proof of delivery."],
           ].map(([title, text], i) => (
             <li key={title} className="rounded-[var(--radius-lg)] border border-line bg-raised p-6">
-              <span className="font-display text-4xl font-extrabold text-accent">{String(i + 1).padStart(2, "0")}</span>
+              <span className="font-display text-4xl font-extrabold text-primary">{String(i + 1).padStart(2, "0")}</span>
               <h3 className="mt-3 text-lg font-semibold">{title}</h3>
               <p className="mt-1.5 text-[15px] leading-relaxed text-ink-muted">{text}</p>
             </li>

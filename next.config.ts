@@ -18,6 +18,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // react-pdf ships its own font and layout engines; keep it as a plain Node dependency.
+  serverExternalPackages: ["@react-pdf/renderer"],
   experimental: {
     // Enables forbidden() / unauthorized() with real 403/401 status codes.
     authInterrupts: true,

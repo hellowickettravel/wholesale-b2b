@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Lock, Phone } from "lucide-react";
+import { FileText, Lock, Phone } from "lucide-react";
 import { PaymentBadge, SupplierPayBadge } from "@/components/admin/payment-badge";
 import { DriverLinkCard, ProofUpload } from "@/components/delivery/driver-link";
 import { ProofView } from "@/components/delivery/proof-view";
 import { DeliveryStatusBadge, OrderStatusBadge } from "@/components/shop/order-status";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { buttonClasses } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Money } from "@/components/ui/money";
 import { Stat } from "@/components/ui/stat";
@@ -71,6 +72,11 @@ export default async function AdminOrderPage({ params }: PageProps<"/admin/order
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap items-start gap-2">
+          {d.invoice ? (
+            <a href={`/api/invoices/${d.invoice.id}/pdf`} target="_blank" rel="noreferrer" className={buttonClasses({ variant: "secondary", size: "sm" })}>
+              <FileText className="size-4" aria-hidden="true" /> Invoice PDF
+            </a>
+          ) : null}
           {order.status === "delivered" ? <CompleteButton action={completeOrder.bind(null, order.id)} warning={completeWarning} /> : null}
           {!locked ? <CancelOrder action={cancelOrder.bind(null, order.id)} reference={ref} /> : null}
         </div>
