@@ -46,6 +46,13 @@ and `CLAUDE.md`.
   `tests/security/api.test.ts` (same attacks through PostgREST/GoTrue + service-key bundle check),
   `tests/e2e/auth.spec.ts` (role routing, 403s, register→confirm→approve→shop, reset, invites, rate limit).
 - Screenshots of 21 screens at 390 and 1280 reviewed (`npx tsx scripts/screens.mts`); no horizontal overflow.
+- **Hosted:** migrations 0001–0004 applied to Supabase; fingerprint identical to local. Probes run inside the hosted
+  DB as `anon` and as a signed-in user with no profile: every priced/private table and privileged function denied or
+  0 rows. Vercel preview for this branch built **READY** with the public env vars.
+  **Not verified:** the deployed site itself. The agent's container cannot reach `*.vercel.app` or
+  `*.supabase.co` (egress policy), and the Vercel connector cannot pass Vercel Authentication on this team.
+  Owner smoke test after the checklist below: open `/login`, sign in as the first admin → `/admin`; invite a test
+  restaurant from `/admin/users` → email → set password → `/shop`.
 
 ### Next: Phase 3 (catalogue, import, public pages). Concrete to-do
 1. Public `/catalogue` (+ `?category=&q=&page=`) and `/catalogue/[slug]` from `categories`, `products`,
