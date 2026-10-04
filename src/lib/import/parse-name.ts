@@ -130,7 +130,7 @@ export function toDisplayCase(s: string): string {
       const up = w.toUpperCase();
       if (KEEP_UPPER.has(up)) return up;
       if (/^[a-z]{2,4}$/.test(w) && !/[aeiouy]/.test(w)) return up;
-      if (/^\d/.test(w)) return w.toUpperCase();
+      if (/\d/.test(w)) return w.toUpperCase(); // codes like 7UP, W320, E2E
       return w.charAt(0).toUpperCase() + w.slice(1);
     })
     .join("");

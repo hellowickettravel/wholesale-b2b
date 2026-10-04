@@ -157,6 +157,36 @@ describe("supplier through the API", () => {
   });
 });
 
+describe("catalogue through the API (Phase 3)", () => {
+  it("anon and customers get nothing from the admin product list", async () => {
+    const a = await anon().from("admin_product_list").select("*");
+    expect(a.data).toBeNull();
+    expect(a.error?.code).toBe("42501");
+    for (const c of [customerA, pending, supplierA]) {
+      const { data, error } = await c.from("admin_product_list").select("*");
+      expect(error).toBeNull();
+      expect(data).toEqual([]);
+    }
+  });
+
+  it("customers and suppliers cannot upload, overwrite or delete product photos", async () => {
+    const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0, 0]);
+    for (const c of [customerA, supplierA]) {
+      const up = await c.storage.from("product-images").upload(`products/attack/${Date.now()}.png`, png, { contentType: "image/png" });
+      expect(up.error).not.toBeNull();
+      const rm = await c.storage.from("product-images").remove(["products/anything.png"]);
+      expect(rm.data ?? []).toEqual([]);
+    }
+    const anonUp = await anon().storage.from("product-images").upload(`products/attack/${Date.now()}.png`, png, { contentType: "image/png" });
+    expect(anonUp.error).not.toBeNull();
+  });
+
+  it("public product rows carry no price, cost or supplier", async () => {
+    const { data } = await anon().from("products").select("*").limit(5);
+    for (const row of data ?? []) for (const k of Object.keys(row)) expect(k).not.toMatch(/price|cost|margin|supplier/);
+  });
+});
+
 describe("self sign-up through the public Auth API", () => {
   it("metadata claiming admin, a customer link or a supplier link creates only a pending customer", async () => {
     const email = `api-attacker-${Date.now()}@example.com`;

@@ -81,6 +81,13 @@ describe("groupItems", () => {
   });
 });
 
+describe("toDisplayCase codes", () => {
+  it("keeps words containing digits in capitals", () => {
+    expect(toDisplayCase("CASHEW NUTS W320")).toBe("Cashew Nuts W320");
+    expect(toDisplayCase("7UP LEMON")).toBe("7UP Lemon");
+  });
+});
+
 describe("slugify", () => {
   it("makes url-safe slugs", () => {
     expect(slugify("Tea Powders / Milk Mix")).toBe("tea-powders-milk-mix");

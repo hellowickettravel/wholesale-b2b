@@ -91,6 +91,9 @@ const shots: Shot[] = [
 const db = new Client({ connectionString: process.env.TEST_DATABASE_URL ?? "postgresql://postgres:postgres@127.0.0.1:54322/postgres" });
 await db.connect();
 await db.query("truncate public.rate_limits");
+// Leftovers from E2E runs would show up on the public pages.
+await db.query("delete from public.products where name like 'E2E %' or category_id in (select id from public.categories where name like 'E2E %')");
+await db.query("delete from public.categories where name like 'E2E %'");
 await db.end();
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? "/opt/pw-browsers/chromium-1194/chrome-linux/chrome" });

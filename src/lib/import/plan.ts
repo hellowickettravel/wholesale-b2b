@@ -176,7 +176,8 @@ export function planImport(
       });
       sizes.push({ label, isNew: true });
     }
-    if (preview.length < (opts.previewLimit ?? 200)) {
+    // The preview lists what will change; products with nothing new are only counted.
+    if ((!existing || sizes.some((sz) => sz.isNew)) && preview.length < (opts.previewLimit ?? 200)) {
       preview.push({ name: g.name, category: category.name, isNew: !existing, sizes });
     }
   }

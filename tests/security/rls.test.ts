@@ -529,3 +529,74 @@ describe("every non-admin role", () => {
     expect([0, DENIED]).toContain(r);
   });
 });
+
+describe("catalogue (Phase 3)", () => {
+  /** Arrange as owner, then query as `actor`, in one rolled-back transaction. */
+  async function arranged(actor: Actor, arrange: string, sql: string) {
+    await db.query("begin");
+    try {
+      await db.query(arrange);
+      if (actor === "anon") {
+        await db.query("set local role anon");
+        await db.query(`select set_config('request.jwt.claims', '{"role":"anon"}', true)`);
+      } else {
+        await db.query("set local role authenticated");
+        await db.query("select set_config('request.jwt.claims', $1, true)", [JSON.stringify({ sub: IDS.users[actor], role: "authenticated" })]);
+      }
+      return (await db.query(sql)).rows;
+    } finally {
+      await db.query("rollback");
+    }
+  }
+
+  it.each(NON_ADMINS)("%s cannot read the admin product list (needs-price counts, suppliers)", async (actor) => {
+    expect(await rowsOrDenied(actor, "select * from public.admin_product_list")).toBe(actor === "anon" ? DENIED : 0);
+  });
+
+  it("admin reads the admin product list with needs-price counts (positive control)", async () => {
+    const rows = await as(db, "admin", (q) => q<{ name: string; needs_price_count: number }>("select name, needs_price_count from public.admin_product_list"));
+    const owner = await asOwner(db, (q) => q<{ n: number }>("select count(*)::int as n from public.products"));
+    expect(rows.length).toBe(owner[0].n);
+  });
+
+  it.each(["anon", "customerA", "supplierA"] as Actor[])("%s cannot see products of a hidden category, or their sizes", async (actor) => {
+    const hide = `update public.categories set active = false where id = '${IDS.categories.rice}'`;
+    const products = await arranged(actor, hide, `select id from public.products where category_id = '${IDS.categories.rice}'`);
+    expect(products).toEqual([]);
+    const sizes = await arranged(actor, hide, `select id from public.catalogue_variants where id = '${IDS.variants.rice5}'`);
+    expect(sizes).toEqual([]);
+  });
+
+  it.each(["anon", "customerA"] as Actor[])("%s cannot see a hidden product", async (actor) => {
+    const rows = await arranged(actor, "update public.products set active = false where name = 'Basant Basmati Rice'", "select id from public.products where name = 'Basant Basmati Rice'");
+    expect(rows).toEqual([]);
+  });
+
+  it("admin still sees hidden categories and products (positive control)", async () => {
+    const rows = await arranged("admin", `update public.categories set active = false where id = '${IDS.categories.rice}'`, `select id from public.products where category_id = '${IDS.categories.rice}'`);
+    expect(rows.length).toBeGreaterThan(0);
+  });
+
+  it.each(SIGNED_IN_NON_ADMINS)("%s cannot change a category's default VAT, rename a product or add a size", async (actor) => {
+    expect(await rowsOrDenied(actor, `update public.categories set default_vat_rate_bp = 0 where id = '${IDS.categories.rice}' returning id`)).toBe(0);
+    expect(await rowsOrDenied(actor, "update public.products set name = 'x' returning id")).toBe(0);
+    expect(await rowsOrDenied(actor, `insert into public.product_variants (product_id, size_label) select id, 'x' from public.products limit 1 returning id`)).toBe(DENIED);
+  });
+
+  it("the import key of sizes is not exposed through the public sizes view", async () => {
+    const cols = await as(db, "anon", (q) => q<{ column_name: string }>("select column_name from information_schema.columns where table_schema = 'public' and table_name = 'catalogue_variants'"));
+    expect(cols.map((c) => c.column_name).sort()).toEqual(["id", "image_path", "product_id", "size_label", "size_sort", "sku", "vat_rate_bp"]);
+  });
+
+  it.each(SIGNED_IN_NON_ADMINS)("%s cannot upload into or delete from the product-images bucket", async (actor) => {
+    expect(
+      await rowsOrDenied(actor, "insert into storage.objects (bucket_id, name, owner_id) values ('product-images', 'products/x/evil.png', null) returning id"),
+    ).toBe(DENIED);
+    // Either refused outright or matches nothing; never deletes.
+    expect([0, DENIED]).toContain(await rowsOrDenied(actor, "delete from storage.objects where bucket_id = 'product-images' returning id"));
+  });
+
+  it("anon cannot upload into the product-images bucket", async () => {
+    expect(await rowsOrDenied("anon", "insert into storage.objects (bucket_id, name) values ('product-images', 'products/x/evil.png') returning id")).toBe(DENIED);
+  });
+});

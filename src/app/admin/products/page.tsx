@@ -82,7 +82,13 @@ export default async function ProductsPage({ searchParams }: PageProps<"/admin/p
         description="Everything restaurants can order. Sizes without a cost cannot be ordered until you add one."
         actions={
           <>
-            <LinkButton href="/admin/products/missing.csv" variant="secondary" size="sm" icon={<Download className="size-4" aria-hidden="true" />} prefetch={false}>
+            <LinkButton
+              href="/admin/products/missing.csv"
+              variant="secondary"
+              size="sm"
+              icon={<Download className="size-4" aria-hidden="true" />}
+              prefetch={false}
+            >
               Missing price/photo
             </LinkButton>
             <LinkButton href="/admin/products/import" variant="secondary" size="sm" icon={<FileSpreadsheet className="size-4" aria-hidden="true" />}>
@@ -114,19 +120,39 @@ export default async function ProductsPage({ searchParams }: PageProps<"/admin/p
 
       <form action="/admin/products" className="mb-4 flex flex-col gap-2 sm:flex-row">
         {status ? <input type="hidden" name="status" value={status} /> : null}
-        <label htmlFor="products-q" className="sr-only">Search products</label>
+        <label htmlFor="products-q" className="sr-only">
+          Search products
+        </label>
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-subtle" aria-hidden="true" />
-          <input id="products-q" name="q" type="search" defaultValue={q} placeholder="Search by name" className="block h-10 w-full rounded-[var(--radius-md)] border border-line-strong bg-raised pl-9 pr-3 text-[15px] focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
+          <input
+            id="products-q"
+            name="q"
+            type="search"
+            defaultValue={q}
+            placeholder="Search by name"
+            className="block h-10 w-full rounded-[var(--radius-md)] border border-line-strong bg-raised pl-9 pr-3 text-[15px] focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+          />
         </div>
-        <label htmlFor="products-category" className="sr-only">Category</label>
-        <select id="products-category" name="category" defaultValue={category} className="h-10 rounded-[var(--radius-md)] border border-line-strong bg-raised px-3 text-[15px] sm:w-56">
+        <label htmlFor="products-category" className="sr-only">
+          Category
+        </label>
+        <select
+          id="products-category"
+          name="category"
+          defaultValue={category}
+          className="h-10 rounded-[var(--radius-md)] border border-line-strong bg-raised px-3 text-[15px] sm:w-56"
+        >
           <option value="">All categories</option>
           {(categories ?? []).map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
           ))}
         </select>
-        <button type="submit" className="h-10 rounded-[var(--radius-md)] bg-primary px-4 text-sm font-semibold text-primary-ink hover:bg-primary-strong">Filter</button>
+        <button type="submit" className="h-10 rounded-[var(--radius-md)] bg-primary px-4 text-sm font-semibold text-primary-ink hover:bg-primary-strong">
+          Filter
+        </button>
       </form>
 
       <Card>
@@ -134,7 +160,15 @@ export default async function ProductsPage({ searchParams }: PageProps<"/admin/p
           <EmptyState
             icon={<PackageOpen />}
             title={q || category || status ? "No products match" : "No products yet"}
-            action={q || category || status ? <LinkButton href="/admin/products" variant="secondary">Clear filters</LinkButton> : <LinkButton href="/admin/products/import">Import a CSV</LinkButton>}
+            action={
+              q || category || status ? (
+                <LinkButton href="/admin/products" variant="secondary">
+                  Clear filters
+                </LinkButton>
+              ) : (
+                <LinkButton href="/admin/products/import">Import a CSV</LinkButton>
+              )
+            }
           >
             {q || category || status ? "Try another search or filter." : "Import the supplier lists, or add products one by one."}
           </EmptyState>
@@ -145,7 +179,7 @@ export default async function ProductsPage({ searchParams }: PageProps<"/admin/p
                 <TH>Product</TH>
                 <TH className="hidden md:table-cell">Category</TH>
                 <TH className="text-right">Sizes</TH>
-                <TH>Status</TH>
+                <TH className="hidden sm:table-cell">Status</TH>
                 <TH className="hidden lg:table-cell">Supplier</TH>
               </tr>
             </THead>
@@ -154,22 +188,26 @@ export default async function ProductsPage({ searchParams }: PageProps<"/admin/p
                 <TR key={p.id}>
                   <TD>
                     <Link href={`/admin/products/${p.id}`} className="group flex items-center gap-3">
-                      <ProductImage src={publicImageUrl(p.image_path)} alt="" name={p.name ?? ""} className="size-11 shrink-0 rounded-[var(--radius-sm)] border border-line [&_span]:text-sm" sizes="44px" />
+                      <ProductImage
+                        src={publicImageUrl(p.image_path)}
+                        alt=""
+                        name={p.name ?? ""}
+                        className="size-11 shrink-0 rounded-[var(--radius-sm)] border border-line [&_span]:text-sm"
+                        sizes="44px"
+                      />
                       <span className="min-w-0">
                         <span className="block font-medium group-hover:text-primary group-hover:underline">{p.name}</span>
                         <span className="block text-[13px] text-ink-muted md:hidden">{p.category_name}</span>
+                        <span className="mt-1 block sm:hidden">
+                          <StatusBadges p={p} />
+                        </span>
                       </span>
                     </Link>
                   </TD>
                   <TD className="hidden text-ink-muted md:table-cell">{p.category_name}</TD>
                   <TD className="tabular text-right">{p.size_count}</TD>
-                  <TD>
-                    <div className="flex flex-wrap gap-1">
-                      {p.needs_price_count ? <Badge tone="warning">Needs price{p.size_count && p.size_count > 1 ? ` (${p.needs_price_count})` : ""}</Badge> : null}
-                      {!p.image_path ? <Badge tone="neutral">No photo</Badge> : null}
-                      {!p.active ? <Badge tone="neutral">Hidden</Badge> : null}
-                      {p.active && p.image_path && !p.needs_price_count ? <Badge tone="success">Ready</Badge> : null}
-                    </div>
+                  <TD className="hidden sm:table-cell">
+                    <StatusBadges p={p} />
                   </TD>
                   <TD className="hidden text-ink-muted lg:table-cell">{p.supplier_names ?? "—"}</TD>
                 </TR>
@@ -180,5 +218,16 @@ export default async function ProductsPage({ searchParams }: PageProps<"/admin/p
       </Card>
       <Pagination page={Math.min(page, pageCount)} pageCount={pageCount} hrefFor={(n) => href({ page: n })} />
     </>
+  );
+}
+
+function StatusBadges({ p }: { p: { needs_price_count: number | null; size_count: number | null; image_path: string | null; active: boolean | null } }) {
+  return (
+    <span className="flex flex-wrap gap-1">
+      {p.needs_price_count ? <Badge tone="warning">Needs price{p.size_count && p.size_count > 1 ? ` (${p.needs_price_count})` : ""}</Badge> : null}
+      {!p.image_path ? <Badge tone="neutral">No photo</Badge> : null}
+      {!p.active ? <Badge tone="neutral">Hidden</Badge> : null}
+      {p.active && p.image_path && !p.needs_price_count ? <Badge tone="success">Ready</Badge> : null}
+    </span>
   );
 }
