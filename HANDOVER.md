@@ -1,6 +1,6 @@
 # HANDOVER: start here
 
-Last updated: **4 Oct 2026**, end of Phase 5. A fresh session should read, in order: this file, then
+Last updated: **4 Oct 2026**, end of Phase 6. A fresh session should read, in order: this file, then
 `docs/BRIEF.md` (the owner's full original brief, verbatim), `PLAN.md`, `DECISIONS.md`, `MEMORY.md`
 and `CLAUDE.md`.
 
@@ -28,8 +28,9 @@ and `CLAUDE.md`.
 | 3. Catalogue, import, public pages | **Done** on the same branch and PR (the session is pinned to one branch). Migrations 0005–0006 applied to hosted. |
 | 4. Customer approval and per-customer pricing | **Done** on the same branch and PR. No schema change. **Real catalogue loaded on hosted.** |
 | 5. Shop, basket, checkout, order creation and split | **Done** on the same branch and PR. Migration 0007 applied to hosted. |
-| 6. Supplier portal and driver proof | **Next.** |
-| 7–10 | Not started (see `PLAN.md` §2). |
+| 6. Supplier portal and driver proof | **Done** on the same branch and PR. Migration 0008 applied to hosted. |
+| 7. Admin orders, payments, chasing, suppliers | **Next.** |
+| 8–10 | Not started (see `PLAN.md` §2). |
 
 ### Done in Phase 2 (verified locally: `npm run verify` green, 96 unit, 257 security, 24 E2E)
 - Migrations `0001_schema` (all tables, pence/bp, enums, indexes, counters, settings row), `0002_rls`
@@ -139,18 +140,58 @@ the owner's images (D31). Never import `tests/fixtures/catalogue-sample.csv` int
   cost/margin/supplier fields and restaurant B's prices).
 - Screenshots of the 10 new screens at 390 and 1280 reviewed; no horizontal overflow.
 
-### Next: Phase 6 (supplier portal and driver proof). Concrete to-do
-1. `/supplier` list and `/supplier/orders/[id]` from `supplier_order_list` / `supplier_order_lines`
-   (no prices); in-portal notifications (`notifications`, created by `create_order_tx`) with read state;
-   supplier marks "sent" / "out for delivery". Roll the order status up with `rollupOrderStatus`.
-2. Driver link (D9): 256-bit token, SHA-256 at rest in `delivery_proofs`, 72 h expiry, one submission,
-   new link revokes the unused one; rate limits per token and IP.
-3. `/d/[token]` mobile page: delivery photo, signed document (photo or PDF), signature canvas; route
-   handler `/api/driver/[token]/submit` with magic-byte checks and size caps; private bucket; marks the
-   supplier order delivered. Supplier can upload the proof themselves.
-4. Customer `/orders/[id]` and (Phase 7) admin order detail show the proof via short-lived signed URLs.
-5. Security: expired/reused/forged tokens, oversized or wrong-type files, cross-supplier access; E2E:
-   supplier → driver link → phone upload → customer sees proof.
+### Done in Phase 6 (verified locally: `npm run verify` green, 145 unit, 372 security, 42 E2E twice)
+- Migration `0008_delivery` (all server-only functions):
+  - `rollup_order_status`: the order status follows its deliveries, same rules as `src/domain/status.ts`.
+  - `set_supplier_order_status`: the supplier can only move forward (placed → accepted → out for delivery).
+  - `create_driver_link`: stores only the SHA-256 of the link and revokes any unused link.
+  - `record_delivery_proof`: in one transaction, a link works once and not after it expires or is
+    replaced. It marks the delivery delivered, rolls up the order, notifies the restaurant's logins
+    and queues an `order_delivered` email.
+  - Views `customer_delivery_proofs` and `supplier_delivery_proofs`: file paths only, never the token hash.
+  - Applied to hosted; schema fingerprint identical (12/12). The advisor lists the two new views
+    under the same accepted "security definer view" item as the earlier filtered views (D15).
+- Supplier screens:
+  - `/supplier`: tabs To deliver / Delivered / All, plus unread updates with "Mark all read".
+  - `/supplier/orders/[id]`: items and quantities (no prices), restaurant contact and note, Accept /
+    Mark out for delivery, and the driver link. The link is shown once, with copy, WhatsApp and text
+    message buttons; making a new one warns that the old one stops working. "Upload the proof
+    yourself" is there too, and the proof shows once delivered.
+- Driver, `/d/[token]` (no login, mobile first):
+  - Shows the job (restaurant, address, tap-to-call, date, note, lines).
+  - Steps: photo (required; shrunk on the phone), signed note (photo or PDF), signature on screen,
+    and the name of the signer.
+  - Clear states for used, expired, replaced and invalid links; `/d/[token]/done` afterwards.
+  - Rate limited per IP and per token; `noindex` and `no-referrer`.
+- Proof files (D35): checked by their bytes (`src/lib/proof-files.ts`) and stored in the private
+  `delivery-proofs` bucket. They are shown to the restaurant (on `/orders/[id]`, per delivery) and
+  the supplier through 15-minute signed URLs.
+- Tests:
+  - `tests/unit/proof-files.test.ts`.
+  - Phase 6 blocks in both security files: delivery functions are not callable by any API role;
+    link states; forward-only status; proof visibility per restaurant and supplier; the private
+    bucket via SQL and the Storage API (download, list, sign, upload, overwrite). Mutation-checked:
+    loosening the proof view and two grants turned 7 tests red.
+  - `tests/e2e/delivery.spec.ts`:
+    - The full path: supplier accepts, sends a link, the driver submits on a phone, the restaurant
+      sees the photo and signature, and the order is part delivered.
+    - Supplier B uploads a photo and a PDF and the order becomes delivered.
+    - Forged, replaced and expired links; a text file named .jpg is refused; suppliers get 404 on
+      other suppliers' orders and restaurants 403.
+- Screenshots of 9 new screens at 390 and 1280 reviewed; no horizontal overflow.
+
+### Next: Phase 7 (admin orders, payments, chasing, suppliers). Concrete to-do
+1. `/admin` dashboard numbers: owed to you, owed to suppliers, chase today, pending approvals, latest orders.
+2. `/admin/orders` (filters: status, payment, supplier, dates) and `/admin/orders/[id]`:
+   - Split by supplier with costs, profit (D6) and the delivery proofs (`signProofs`).
+   - Adjust quantities and swap a line's supplier while unlocked (`isOrderLocked`); this needs a
+     server function that recomputes the totals and invoice snapshot, and re-notifies the supplier.
+   - Cancel, mark completed, timeline from `audit_log`.
+3. Customer payments (amount, date, method, reference), promised date, next chase date, notes;
+   `/admin/payments` with chase today / overdue and a reminder email (queued).
+4. Supplier payments and the paid-to-supplier flag; `/admin/suppliers` (+ `/[id]`): details, active,
+   logins. Deactivating a supplier blocks new orders for its sizes (D32 already checks).
+5. `/admin/audit` log viewer. Security + E2E for every write being admin-only.
 
 ## Owner checklist (what Touseef must do)
 **A. Vercel → Project wholesale-b2b → Settings → Environment Variables** (already set by the agent:
@@ -193,6 +234,10 @@ cannot order it**, so the shop cannot take a real order on hosted until some cos
 **I. Settings** (`/admin/settings`, after the first admin exists): legal name, address, VAT number, bank details
 and invoice footer are placeholders. Delivery days, minimum order (£150) and delivery charge (£12) are defaults.
 The bank details are shown to restaurants on every order confirmation, so fill them in before the first real order.
+
+**K. Supplier logins** (`/admin/users`, after the first admin exists): invite one login per supplier (for
+Shrivi: their email). They get new orders in the portal and make driver links there. Driver links only
+work on a site drivers can open: production (`NEXT_PUBLIC_SITE_URL`), not a Vercel-protected preview.
 
 **J. Optional clean-up**: the hosted database has the `http` extension (used once to load the catalogue; execute
 revoked from public/anon/authenticated). To remove it, run `drop extension http;` in the SQL editor.

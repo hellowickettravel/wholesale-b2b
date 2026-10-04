@@ -254,3 +254,25 @@ the basket and cannot create a second order for the same checkout.
 the supplier's "new order" email and the restaurant's confirmation in `email_log` in the same
 transaction, so an order never exists without its notifications. Sending queued emails is Phase 8.
 Suppliers see order lines only through `supplier_order_lines` (no prices), as before.
+
+## D35. Proof of delivery (Phase 6; refines D9)
+- **What makes a proof:** a delivery photo is required, plus a signed delivery note (photo or PDF)
+  **or** an on-screen signature (the brief lists all three; real deliveries do not always have a
+  paper note). The name of the signer is optional.
+- **Sizes:** Vercel limits a request body to 4.5 MB, so D9's 10 MB per file cannot be reached. The
+  phone shrinks photos to 1,600 px JPEG before upload (usually 200–600 KB). The server allows the
+  photo and document 4 MB each, the signature 512 KB, and 4.4 MB in total. Every file is checked by
+  its bytes: JPEG, PNG, WebP or HEIC for photos, plus PDF for the document, PNG for the signature.
+- **One submission per link:** a link that has been used, revoked by a newer one, or is past its
+  72 hours is refused inside the same transaction that records the proof (no race). To redo a proof
+  the admin will handle it in Phase 7. A supplier can upload the proof itself instead of using a
+  link; that also closes any open link.
+- **Server actions instead of `/api/driver/[token]/submit`:** the driver's upload is a server action
+  bound to the token, so it gets Next's origin checks for free. Files go to the private bucket under
+  `<supplier order>/<time>-<random>/`; if recording fails, they are removed again.
+- **Viewing:** restaurant and supplier read proof rows through their own filtered views (RLS); the
+  server then signs URLs for those paths only, valid for 15 minutes. No API role can read, list,
+  sign or write the bucket.
+- **Statuses:** suppliers move their part forward only (placed → accepted → out for delivery);
+  "delivered" is set only with a proof. The order status is rolled up in the database with the
+  order row locked, so two deliveries finishing together cannot race.

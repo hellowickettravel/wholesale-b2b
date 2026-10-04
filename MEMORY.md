@@ -97,3 +97,16 @@
   the basket badge). The basket client keeps its own quantities and resyncs only when the server list changes.
 - Basket rows can be inserted straight through PostgREST by the restaurant (RLS allows its own rows),
   including sizes it may not see: that is why the basket view flags them and `placeOrder` refuses them.
+
+## Phase 6 additions
+- PostgREST takes `bytea` as `"\\x<hex>"` (both in `.eq("token_hash", …)` and RPC arguments).
+- The seed's order 1001 has supplier A's part already `delivered` (no proof): supplier tests that
+  list it must use `/supplier?show=all`.
+- Playwright: scroll the signature canvas into view before drawing (`scrollIntoViewIfNeeded`), and
+  wait for the photo preview first, or the layout shift moves the canvas from under the mouse.
+- `scripts/screens.mts` creates a driver link with a fixed token for the driver screenshots
+  (only its hash is stored); re-runs reopen the same link.
+- The Supabase connector stalls on any SQL text containing DROP/DELETE, comments included: leave out
+  header comments that mention them when applying a migration through it.
+- React lint (`react-hooks/purity`) refuses `Date.now()` in a component body, even on the server:
+  put time-dependent helpers in `src/server/*` (see `activeLink`).

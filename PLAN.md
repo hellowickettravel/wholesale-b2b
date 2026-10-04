@@ -1,6 +1,6 @@
 # PLAN — B2B wholesale grocery ordering portal
 
-Owner: Touseef · Client: Nagaraju Vardanam (UK) · Status: **Phases 1–5 done (Phases 2–5 in draft PR #2, migrations 0001–0007 live on hosted Supabase, real catalogue loaded). Phase 6 next.** See `HANDOVER.md`.
+Owner: Touseef · Client: Nagaraju Vardanam (UK) · Status: **Phases 1–6 done (Phases 2–6 in draft PR #2, migrations 0001–0008 live on hosted Supabase, real catalogue loaded). Phase 7 next.** See `HANDOVER.md`.
 
 This is the living plan. Decisions and their reasons live in `DECISIONS.md`; traps and
 non-obvious facts live in `CLAUDE.md` / `MEMORY.md`.
@@ -76,8 +76,8 @@ screenshots of the new screens at 390px and 1280px reviewed, commit, push, PR, s
 
 `/d/[token]` — driver, no account (mobile first) · `/d/[token]/done` confirmation
 
-Route handlers: `/api/invoices/[id]/pdf`, `/api/driver/[token]/submit`, `/api/proofs/[id]/url`.
-Everything else is server actions.
+Route handlers: `/api/invoices/[id]/pdf`. Everything else is server actions, including the driver's
+proof upload (bound to the token) and short-lived signed URLs made at render time (DECISIONS D35).
 
 ## 4. Data model (Postgres, all money in integer pence, rates in basis points)
 
