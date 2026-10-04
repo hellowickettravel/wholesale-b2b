@@ -1,6 +1,6 @@
 # PLAN — B2B wholesale grocery ordering portal
 
-Owner: Touseef · Client: Nagaraju Vardanam (UK) · Status: **Phases 1–9 done; Phase 10 (deploy) prepared and waiting for the owner's go-ahead to merge PR #2. Email sending deferred by the owner (D40). Migrations 0001–0009 live on hosted Supabase, real catalogue loaded.** See `HANDOVER.md`.
+Owner: Touseef · Client: Nagaraju Vardanam (UK) · Status: **Phases 1–10 done; live on production since 4 Oct 2026 (PR #2 merged). Email sending deferred by the owner (D40). Migrations 0001–0009 live on hosted Supabase, real catalogue loaded.** See `HANDOVER.md`.
 
 This is the living plan. Decisions and their reasons live in `DECISIONS.md`; traps and
 non-obvious facts live in `CLAUDE.md` / `MEMORY.md`.

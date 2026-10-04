@@ -1,6 +1,6 @@
 # HANDOVER: start here
 
-Last updated: **4 Oct 2026**, Phases 1–9 done; Phase 10 (deploy) prepared and waiting for the owner's go-ahead. A fresh session should read, in order: this file, then
+Last updated: **4 Oct 2026**, Phases 1–9 done and **live on production** (PR #2 merged to `main` on the owner's go-ahead, Vercel production deployment completed). Email sending deferred (D40). A fresh session should read, in order: this file, then
 `docs/BRIEF.md` (the owner's full original brief, verbatim), `PLAN.md`, `DECISIONS.md`, `MEMORY.md`
 and `CLAUDE.md`.
 
@@ -32,7 +32,7 @@ and `CLAUDE.md`.
 | 7. Admin orders, payments, chasing, suppliers | **Done** on the same branch and PR. Migration 0009 applied to hosted. |
 | 8. Invoices (PDF) and email (Resend) | **Invoices done** on the same branch and PR. **Email sending deferred by the owner** (D40): messages are queued in `email_log`. |
 | 9. Polish and hardening | **Done** on the same branch and PR. No schema change. |
-| 10. Deploy | **Prepared.** Waiting for the owner's go-ahead to merge PR #2 to `main` (= production); checklist below. |
+| 10. Deploy | **Done.** PR #2 merged to `main` (69e8b62); Vercel production deployment reported success. The live site itself was not opened by the agent (network limits): owner smoke test below. |
 
 ### Done in Phase 2 (verified locally: `npm run verify` green, 96 unit, 257 security, 24 E2E)
 - Migrations `0001_schema` (all tables, pence/bp, enums, indexes, counters, settings row), `0002_rls`
@@ -251,10 +251,11 @@ the owner's images (D31). Never import `tests/fixtures/catalogue-sample.csv` int
   paid, completed, and the invoice PDF showing a zero balance.
 - Performance advisor reviewed (D42); the E2E suite passes three times back to back.
 
-### Phase 10: deploy (what is left)
+### Phase 10: deploy (done 4 Oct; owner smoke test outstanding)
 Production is the `main` branch on Vercel (`https://wholesale-b2b-uy4a.vercel.app`). The database is
-already up to date: migrations 0001–0009 are applied and the fingerprint matches. **Merging PR #2
-into `main` publishes Phases 2–9 to production.** The agent will do the merge on the owner's go-ahead.
+already up to date: migrations 0001–0009 are applied and the fingerprint matches. PR #2 was
+merged into `main` on 4 Oct (merge commit 69e8b62) and Vercel reported the production deployment
+complete. Later work starts a fresh branch from `main`.
 
 Environment variables (Vercel → wholesale-b2b → Settings → Environment Variables):
 
@@ -285,8 +286,8 @@ After merging, smoke test (the agent's container cannot reach the live site, so 
 - Site URL: `https://wholesale-b2b-uy4a.vercel.app` (later: the custom domain).
 - Redirect URLs: add `https://wholesale-b2b-uy4a.vercel.app/**` and `https://*-wicket-travel-portal.vercel.app/**`.
 
-**L. Go-ahead to publish**: say "merge" and the agent merges PR #2 into `main` (production). Do A, E and I
-first so the live site works end to end.
+**L. Smoke test the live site** (PR #2 is merged and deployed): follow the five steps under "Phase 10"
+above after doing A, E and I.
 
 **C. Supabase Dashboard → Authentication → Email Templates**: paste the HTML from the repo files
 (subject in brackets): Confirm signup ← `supabase/templates/confirmation.html` ("Confirm your email to finish
