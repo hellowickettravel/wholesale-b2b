@@ -141,3 +141,8 @@
 - E2E global setup keeps restaurants that have orders (orders/invoices are never removed); tests
   must not assume a list's first page holds the seed rows. Three back-to-back runs pass.
 - The a11y spec signs in once per role and scans each screen with axe; it takes ~35 s per width.
+- **`loading.tsx` turns a 404 into a 200** for everything beneath it (D45). Never add one above a route that calls `notFound()` and must return 404; scope it with a `(list)` route group. When you move a page into a group, fix its relative imports and delete `.next/types` and `.next/dev` or typecheck fails on stale generated types.
+- Young Serif has a single weight: never put `font-bold` on `font-display` text (the base layer also sets `font-synthesis-weight: none`).
+- Playwright runs with `reducedMotion: "reduce"` so axe never samples a half-faded element. After `page.goto` on a page whose client form must be hydrated before an action, wait for `networkidle` (the driver proof form does, in `delivery.spec.ts`).
+- `cn()` is clsx only (no tailwind-merge): do not pass conflicting utilities (`aspect-square` + `aspect-[4/3]`) to a component that already sets one.
+- Local DB may contain leftovers from E2E runs (`E2E ...` categories on the home page): `npm run db:reset` before screenshots you want to keep.
