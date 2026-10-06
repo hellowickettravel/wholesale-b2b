@@ -304,6 +304,7 @@ the Resend account and domain exist.
 **E. First admin**: Supabase → Authentication → Users → Add user (the client's email, auto-confirm), then in the
 SQL editor: `select public.promote_to_admin('client@email');` → expect one row "promote_to_admin" with no error.
 Confirm with: `select email, role from public.profiles;`
+**Done 6 Oct 2026 for the owner's admin login:** `admin@groceryb2b.com` was created on hosted (confirmed, email provider, role admin, active, no customer link) with the password the owner chose in chat (not stored anywhere in the repo; the owner should change it after first sign-in, Supabase → Authentication → Users, or the reset-password flow). The same creation method was verified on the local stack (password grant works, a wrong password is refused, the login page lands on `/admin`). The live sign-in itself could not be tested from the sandbox (egress blocked).
 
 **F. Decide**: keep Vercel Authentication on `*.vercel.app` (only Vercel team members can open the site) until
 launch, or switch it off now for client review (Vercel → Settings → Deployment Protection). And whether to move
