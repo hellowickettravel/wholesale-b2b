@@ -21,13 +21,15 @@ export const brand = {
   logo: null as null | { src: string; pdfSrc: string; width: number; height: number; alt: string },
   /** Hex values used where CSS variables cannot reach (PDF invoices, emails). Keep in sync with tokens.css. */
   colors: {
-    primary: "#1D5B45",
-    primaryInk: "#FFFFFF",
-    accent: "#E2A21B",
-    ink: "#18211D",
-    muted: "#5E6863",
-    surface: "#F8F6F1",
-    line: "#E2DDD2",
+    primary: "#2F4A2B",
+    primaryInk: "#FFFBF1",
+    accent: "#E3A413",
+    /** Chilli: the wordmark tail on light paper (turmeric on white fails contrast). */
+    mark: "#A82A1C",
+    ink: "#2A1C14",
+    muted: "#5E4938",
+    surface: "#F6EEDD",
+    line: "#E1D3B5",
   },
   email: {
     fromName: "Order Desk",

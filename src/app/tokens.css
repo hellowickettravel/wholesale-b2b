@@ -1,44 +1,94 @@
 /*
- * Design tokens. Brand-specific values (colours, fonts, radius) live here and only here.
+ * Design tokens: "Enamel & Spice". Brand-specific values (colours, fonts, radius, motion) live here only.
  * Components use semantic Tailwind utilities generated from @theme in globals.css
  * (bg-primary, text-ink-muted, border-line, …). Keep hex in sync with src/config/brand.ts.
+ * Every text/background pair used by a component is listed with its contrast ratio in
+ * the design report (10-direction-spice-market.md, section 2). Do not add a pair without checking it.
  */
 :root {
   /* Brand */
-  --brand-primary: #1d5b45; /* pine: trust, fresh produce */
-  --brand-primary-strong: #154535;
-  --brand-primary-soft: #e4efe9;
-  --brand-primary-ink: #ffffff;
-  --brand-accent: #e2a21b; /* saffron */
-  --brand-accent-soft: #fbf0d6;
-  --brand-accent-ink: #3a2a05;
+  --brand-primary: #2f4a2b; /* cardamom: buttons, links, trust */
+  --brand-primary-strong: #213720;
+  --brand-primary-soft: #dfe8d0;
+  --brand-primary-ink: #fffbf1;
+  --brand-accent: #e3a413; /* turmeric: FILLS only. Never white text on it, never as text on light */
+  --brand-accent-soft: #fae8b5;
+  --brand-accent-ink: #2a1c14;
+  --brand-mark: #a82a1c; /* chilli: wordmark tail, price flash */
 
-  /* Neutrals (warm) */
-  --ink: #18211d;
-  --ink-muted: #5e6863;
-  /* Darkened from #8a928e for WCAG AA (4.5:1 on raised, surface and sunken backgrounds). */
-  --ink-subtle: #646d68;
-  --surface: #f8f6f1;
-  --surface-raised: #ffffff;
-  --surface-sunken: #f0ede5;
-  --line: #e2ddd2;
-  --line-strong: #cbc5b7;
+  /* Surfaces (warm, brown-based; no grey, no pure white) */
+  --surface: #f6eedd; /* flour: page */
+  --surface-raised: #fffbf1; /* enamel: cards, plates, inputs */
+  --surface-sunken: #ebddbe; /* kraft: bands, skeletons, tracks */
+  --surface-paper: #f2e8d0; /* mat behind packshot photos */
+  --surface-dark: #2a1c14; /* clove: footer, admin sidebar, hero base */
+  --hessian: #c9a66b; /* decoration, stitching, borders on dark. Never the only carrier of meaning */
+
+  /* Ink */
+  --ink: #2a1c14; /* clove */
+  --ink-muted: #5e4938; /* cumin */
+  --ink-subtle: #68523f; /* AA on flour, enamel and kraft */
+  --on-dark: #fffbf1;
+  --on-dark-muted: #ebddbe;
+
+  /* Lines */
+  --line: #e1d3b5; /* hairline, decorative */
+  --line-strong: #8a7253; /* control boundaries (inputs, secondary buttons): 3:1+ */
 
   /* Status */
-  --success: #1e7a4c;
-  --success-soft: #e3f3ea;
-  --warning: #9a5b00;
-  --warning-soft: #fdf1dc;
-  --danger: #b42318;
-  --danger-soft: #fdeceb;
-  --info: #1f5fa8;
-  --info-soft: #e6effa;
+  --success: #2b6b33;
+  --success-soft: #ddebd3;
+  --warning: #8a5200;
+  --warning-soft: #fbeac0;
+  --danger: #a82a1c; /* chilli */
+  --danger-soft: #f8ded6;
+  --danger-strong: #8a2015;
+  --info: #2f3e6b; /* indigo */
+  --info-soft: #dfe3f1;
 
-  --focus: #2563eb;
+  --focus: #2b3fa6;
+  --focus-on-dark: #ffd25a;
 
-  /* Shape */
+  /* Shelf colours: one ground per category. Decorative; text never sits directly on them
+     except where an --on-ground value is given (all >= 4.5:1). */
+  --ground-default: #7a5c2e; /* jute */
+  --ground-rice: #e3a413; /* turmeric */
+  --ground-pulses: #b7511a; /* masoor */
+  --ground-whole-spices: #6b4226; /* clove bark */
+  --ground-powders: #b3321f; /* chilli */
+  --ground-flours: #c9a66b; /* hessian */
+  --ground-tea: #2f4a2b; /* cardamom */
+  --ground-sauces: #7a2e3b; /* tamarind */
+  --ground-colours: #9a2a63; /* beet */
+  --ground-groceries: #586c20; /* curry leaf */
+  --ground-drinks: #1f6b70; /* sherbet teal */
+  --ground-packing: #2f3e6b; /* indigo */
+  --on-ground-light: #fffbf1;
+  --on-ground-dark: #2a1c14; /* used on turmeric and hessian only */
+
+  /* Shape. Hierarchy, not one radius: stamps 6, controls 12, cards 14, panels 20, plates 12 */
   --radius-sm: 6px;
-  --radius-md: 10px;
+  --radius-md: 12px;
   --radius-lg: 14px;
   --radius-xl: 20px;
+  --radius-plate: 12px;
+
+  /* Elevation: warm-brown shadows only */
+  --elev-rest: 0 1px 0 rgb(42 28 20 / 0.06);
+  --elev-lift: 0 16px 26px -18px rgb(42 28 20 / 0.55), 0 1px 0 rgb(42 28 20 / 0.08);
+  --elev-plate: 0 1px 0 rgb(42 28 20 / 0.35), 0 14px 24px -14px rgb(42 28 20 / 0.55);
+  --elev-pop: 0 24px 48px -20px rgb(42 28 20 / 0.6), 0 1px 0 rgb(42 28 20 / 0.12);
+  --edge-primary: 0 2px 0 var(--brand-primary-strong); /* the tactile lower edge of a button */
+  --edge-accent: 0 2px 0 #a87a06;
+
+  /* Motion */
+  --dur-instant: 90ms;
+  --dur-fast: 150ms;
+  --dur-base: 220ms;
+  --dur-slow: 360ms;
+  --dur-hero: 700ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in: cubic-bezier(0.55, 0, 1, 0.45);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }

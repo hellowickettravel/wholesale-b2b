@@ -1,9 +1,9 @@
 import Link from "next/link";
+import { cn } from "@/lib/cn";
 import { ProductImage } from "@/components/brand/product-image";
 import { sizeRange } from "@/lib/catalogue/query";
 import { publicImageUrl } from "@/lib/storage";
 import type { PublicProductCard } from "@/server/catalogue";
-import { CategoryArt } from "./category-art";
 import { PriceLock } from "./price-lock";
 
 export function ProductCard({ product, priority }: { product: PublicProductCard; priority?: boolean }) {
@@ -12,24 +12,21 @@ export function ProductCard({ product, priority }: { product: PublicProductCard;
     <li className="min-w-0">
       <Link
         href={`/catalogue/${product.slug}`}
-        className="group flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] border border-line bg-raised transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-[0_10px_30px_-18px_rgba(24,33,29,0.45)]"
+        className="group flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] border border-line bg-raised shadow-rest transition-[box-shadow,transform] duration-[var(--dur-base)] ease-[var(--ease-out)] motion-safe:hover:-translate-y-[3px] hover:shadow-lift"
       >
         <ProductImage
           src={publicImageUrl(product.imagePath)}
           alt={product.name}
           name={product.name}
+          categorySlug={product.category.slug}
+          sizeLabel={product.sizes.length === 1 ? product.sizes[0] : undefined}
           priority={priority}
-          className="border-b border-line"
-          fallback={
-            <div role="img" aria-label={`${product.name} (photo coming soon)`} className="border-b border-line">
-              <CategoryArt slug={product.category.slug} className="aspect-square" iconClassName="size-12 sm:size-14" />
-            </div>
-          }
-          sizes="(min-width: 1280px) 230px, (min-width: 768px) 30vw, 46vw"
+          className="aspect-[4/3]"
+          sizes="(min-width: 1280px) 270px, (min-width: 768px) 30vw, 46vw"
         />
         <div className="flex flex-1 flex-col gap-1 p-3 sm:p-4">
           <span className="truncate text-xs font-medium text-ink-subtle">{product.category.name}</span>
-          <span className="line-clamp-2 text-[15px] font-semibold leading-snug text-ink group-hover:text-primary">{product.name}</span>
+          <span className={cn("line-clamp-2 text-[15px] font-bold leading-snug text-ink", !product.imagePath && "sr-only")}>{product.name}</span>
           <span className="text-sm text-ink-muted">
             {range ? (
               <>

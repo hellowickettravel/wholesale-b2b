@@ -7,21 +7,21 @@ type Variant = "primary" | "secondary" | "ghost" | "danger" | "accent";
 type Size = "sm" | "md" | "lg";
 
 const base =
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold transition-colors " +
+  "inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap font-bold transition-[background-color,box-shadow,transform] duration-[var(--dur-instant)] ease-[var(--ease-out)] active:translate-y-[2px] active:shadow-none " +
   "disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 select-none";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-primary text-primary-ink hover:bg-primary-strong shadow-[0_1px_0_rgba(0,0,0,0.08)]",
-  accent: "bg-accent text-accent-ink hover:brightness-95",
-  secondary: "bg-raised text-ink border border-line-strong hover:bg-sunken",
-  ghost: "text-ink hover:bg-sunken",
-  danger: "bg-danger text-white hover:brightness-95",
+  primary: "bg-primary text-primary-ink hover:bg-primary-strong shadow-[var(--edge-primary)]",
+  accent: "bg-accent text-accent-ink hover:brightness-95 shadow-[var(--edge-accent)]",
+  secondary: "bg-raised text-ink border-[1.5px] border-line-strong hover:bg-sunken active:translate-y-0",
+  ghost: "text-ink hover:bg-sunken active:translate-y-0",
+  danger: "bg-danger text-primary-ink hover:bg-danger-strong shadow-[0_2px_0_var(--danger-strong)]",
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-8 px-3 text-sm rounded-[var(--radius-sm)]",
-  md: "h-10 px-4 text-sm rounded-[var(--radius-md)]",
-  lg: "h-12 px-5 text-base rounded-[var(--radius-md)]",
+  sm: "h-9 px-3 text-sm rounded-[var(--radius-sm)]",
+  md: "h-11 px-4 text-sm rounded-[var(--radius-md)]",
+  lg: "h-12 px-6 text-base rounded-[var(--radius-md)]",
 };
 
 export function buttonClasses(opts: { variant?: Variant; size?: Size; block?: boolean; className?: string } = {}) {
