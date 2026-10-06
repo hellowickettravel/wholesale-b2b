@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, Check, Lock } from "lucide-react";
-import { ProductImage } from "@/components/brand/product-image";
-import { CategoryArt } from "@/components/catalogue/category-art";
+import { Check, Lock } from "lucide-react";
+import { PriceLockStrip } from "@/components/catalogue/price-lock";
+import { ProductPlate } from "@/components/catalogue/product-plate";
 import { ProductCard } from "@/components/catalogue/product-card";
 import { LinkButton } from "@/components/ui/button";
 import { brand } from "@/config/brand";
@@ -44,83 +44,71 @@ export default async function ProductPage({ params }: PageProps<"/catalogue/[slu
   if (!found) notFound();
   const { product, related } = found;
 
+  const sizeLabel = sizeRange(product.variants.map((v) => v.sizeLabel));
+
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
-      <nav aria-label="Breadcrumb" className="flex min-w-0 flex-wrap items-center gap-x-1.5 text-sm text-ink-muted">
-        <Link href="/catalogue" className="hover:text-ink">Catalogue</Link>
+    <div className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
+      <nav aria-label="Breadcrumb" className="flex min-w-0 flex-wrap items-center gap-x-2 text-sm text-ink-muted">
+        <Link href="/catalogue" className="inline-flex min-h-8 items-center underline-offset-4 hover:text-ink hover:underline">Catalogue</Link>
         <span aria-hidden="true">/</span>
-        <Link href={catalogueHref({ category: product.category.slug })} className="hover:text-ink">{product.category.name}</Link>
+        <Link href={catalogueHref({ category: product.category.slug })} className="inline-flex min-h-8 items-center underline-offset-4 hover:text-ink hover:underline">{product.category.name}</Link>
         <span aria-hidden="true">/</span>
         <span className="truncate text-ink">{product.name}</span>
       </nav>
 
-      <div className="mt-5 grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-12">
-        <ProductImage
+      <div className="mt-4 grid gap-8 md:grid-cols-2 md:gap-12">
+        <ProductPlate
           src={publicImageUrl(product.imagePath)}
-          alt={product.name}
           name={product.name}
-          priority
-          sizes="(min-width: 768px) 520px, 100vw"
-          className="rounded-[var(--radius-xl)] border border-line"
-          fallback={
-            <div role="img" aria-label={`${product.name} (photo coming soon)`} className="relative overflow-hidden rounded-[var(--radius-xl)] border border-line">
-              <CategoryArt slug={product.category.slug} className="aspect-square" iconClassName="size-20" />
-              <span className="absolute bottom-3 left-3 rounded-full bg-raised/85 px-3 py-1 text-xs font-medium text-ink-muted backdrop-blur">Photo coming soon</span>
-            </div>
-          }
+          categoryName={product.category.name}
+          categorySlug={product.category.slug}
+          sizeLabel={sizeLabel}
+          className="md:sticky md:top-24 md:self-start"
         />
 
         <div className="min-w-0">
-          <Link href={catalogueHref({ category: product.category.slug })} className="text-sm font-semibold text-primary hover:underline">
-            {product.category.name}
-          </Link>
-          <h1 className="mt-1 text-3xl font-extrabold leading-tight sm:text-4xl">{product.name}</h1>
-          {product.description ? <p className="mt-4 whitespace-pre-line leading-relaxed text-ink-muted">{product.description}</p> : null}
+          <h1 className="text-[clamp(1.875rem,1.4rem+2vw,2.75rem)] leading-[1.1] text-ink">{product.name}</h1>
+          {product.description ? <p className="mt-4 max-w-prose whitespace-pre-line text-base text-ink-muted">{product.description}</p> : null}
 
-          <section aria-labelledby="sizes-heading" className="mt-6">
-            <h2 id="sizes-heading" className="text-sm font-semibold uppercase tracking-[0.08em] text-ink-subtle">
+          <section aria-labelledby="sizes-heading" className="mt-7">
+            <h2 id="sizes-heading" className="text-xl text-ink">
               {product.variants.length === 1 ? "Pack size" : "Pack sizes"}
             </h2>
             {product.variants.length ? (
-              <ul className="mt-2 divide-y divide-line overflow-hidden rounded-[var(--radius-lg)] border border-line bg-raised">
+              <ul className="mt-3 divide-y divide-line overflow-hidden rounded-[var(--radius-lg)] border border-line bg-raised">
                 {product.variants.map((v) => (
-                  <li key={v.id} className="flex items-center justify-between gap-4 px-4 py-3">
-                    <span className="flex items-center gap-2 font-medium text-ink">
-                      <Check className="size-4 text-success" aria-hidden="true" /> {v.sizeLabel}
+                  <li key={v.id} className="flex items-center justify-between gap-4 px-4 py-3.5">
+                    <span className="flex items-center gap-2.5 text-base font-bold text-ink">
+                      <Check className="size-4 shrink-0 text-success" aria-hidden="true" /> {v.sizeLabel}
                     </span>
-                    <span className="inline-flex items-center gap-1 text-sm text-ink-subtle">
+                    <span className="inline-flex items-center gap-1.5 text-sm text-ink-muted">
                       <Lock className="size-3.5" aria-hidden="true" /> Trade price
                     </span>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="mt-2 text-ink-muted">Sizes are being added. Ask us after you register.</p>
+              <p className="mt-2 text-base text-ink-muted">Sizes are being added. Ask us after you register.</p>
             )}
           </section>
 
-          <div className="mt-6 rounded-[var(--radius-lg)] border border-accent/40 bg-accent-soft p-5">
-            <p className="flex items-center gap-2 font-semibold text-accent-ink">
-              <Lock className="size-4" aria-hidden="true" /> Register to see price
-            </p>
-            <p className="mt-1 text-sm text-accent-ink/80">
-              Prices are agreed with each restaurant and shown once your trade account is approved.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <LinkButton href="/register">
-                Open a trade account <ArrowRight className="size-4" aria-hidden="true" />
-              </LinkButton>
+          {/* The price lock, once for the whole page */}
+          <PriceLockStrip className="mt-6 px-5 py-4">
+            <p className="text-base font-bold">Register to see price</p>
+            <p className="mt-1 text-[15px] font-normal">Prices are agreed with each restaurant and shown once your trade account is approved.</p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <LinkButton href="/register">Open a trade account</LinkButton>
               <LinkButton href="/login" variant="secondary">Sign in</LinkButton>
             </div>
-          </div>
+          </PriceLockStrip>
         </div>
       </div>
 
       {related.length ? (
-        <section aria-labelledby="related-heading" className="mt-14">
-          <div className="flex items-end justify-between gap-4">
-            <h2 id="related-heading" className="text-xl font-bold sm:text-2xl">More in {product.category.name}</h2>
-            <Link href={catalogueHref({ category: product.category.slug })} className="shrink-0 text-sm font-semibold text-primary hover:underline">
+        <section aria-labelledby="related-heading" className="mt-14 sm:mt-16">
+          <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
+            <h2 id="related-heading" className="text-[clamp(1.5rem,1.2rem+1.2vw,1.875rem)] leading-[1.15] text-ink">More in {product.category.name}</h2>
+            <Link href={catalogueHref({ category: product.category.slug })} className="inline-flex min-h-11 shrink-0 items-center text-base font-bold text-primary underline-offset-4 hover:underline">
               See all
             </Link>
           </div>

@@ -30,7 +30,7 @@ export default async function UsersPage() {
 
   return (
     <>
-      <PageHeader eyebrow="System" title="Users" description="Everyone who can sign in, and invitations for new restaurants, suppliers and admins." />
+      <PageHeader title="Users" description="Everyone who can sign in, and invitations for new restaurants, suppliers and admins." />
       <div className="space-y-6">
         <Card>
           <CardHeader title="Invite someone" description="They get an email with a link to set their own password." />
@@ -60,7 +60,7 @@ export default async function UsersPage() {
                       <div className="font-medium">{p.full_name || "—"}</div>
                       <div className="break-all text-[13px] text-ink-muted">{p.email}</div>
                       <div className="mt-1 text-[13px] text-ink-muted md:hidden">
-                        {business ?? "No business"} · {seen ? `Last in ${formatTimestamp(seen)}` : "Invited, not signed in yet"}
+                        {business ?? "No business"}, {seen ? `Last in ${formatTimestamp(seen)}` : "Invited, not signed in yet"}
                       </div>
                     </TD>
                     <TD>

@@ -9,6 +9,7 @@
   --color-accent: var(--brand-accent);
   --color-accent-soft: var(--brand-accent-soft);
   --color-accent-ink: var(--brand-accent-ink);
+  --color-mark: var(--brand-mark);
 
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
@@ -16,6 +17,11 @@
   --color-surface: var(--surface);
   --color-raised: var(--surface-raised);
   --color-sunken: var(--surface-sunken);
+  --color-paper: var(--surface-paper);
+  --color-dark: var(--surface-dark);
+  --color-hessian: var(--hessian);
+  --color-on-dark: var(--on-dark);
+  --color-on-dark-muted: var(--on-dark-muted);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
 
@@ -25,18 +31,54 @@
   --color-warning-soft: var(--warning-soft);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
+  --color-danger-strong: var(--danger-strong);
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
   --color-focus: var(--focus);
+  --color-focus-on-dark: var(--focus-on-dark);
 
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);
   --radius-xl: var(--radius-xl);
 
+  --shadow-rest: var(--elev-rest);
+  --shadow-lift: var(--elev-lift);
+  --shadow-plate: var(--elev-plate);
+  --shadow-pop: var(--elev-pop);
+
+  --ease-out-soft: var(--ease-out);
+  --ease-spring: var(--ease-spring);
+
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-display), var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display), Georgia, "Times New Roman", serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --animate-kraft: kraft-pulse 1.6s var(--ease-inout) 300ms infinite;
+  --animate-bump: bump 380ms var(--ease-spring);
+  --animate-hang-in: hang-in var(--dur-hero) var(--ease-spring) both;
+  --animate-stamp: stamp var(--dur-slow) var(--ease-spring) both;
+  --animate-toast-in: toast-in var(--dur-base) var(--ease-out) both;
+}
+
+/* Type scale: nothing under 13px, secondary 15px, body 17px (chefs read on phones in kitchens) */
+@theme {
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.4;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.45;
+  --text-base: 1.0625rem;
+  --text-base--line-height: 1.5;
+  --text-lg: 1.1875rem;
+  --text-lg--line-height: 1.45;
+  --text-xl: 1.375rem;
+  --text-xl--line-height: 1.25;
+  --text-2xl: 1.625rem;
+  --text-2xl--line-height: 1.15;
+  --text-3xl: 2rem;
+  --text-3xl--line-height: 1.1;
+  --text-4xl: 2.5rem;
+  --text-4xl--line-height: 1.06;
 }
 
 @layer base {
@@ -48,28 +90,217 @@
     background: var(--surface);
     color: var(--ink);
     font-family: var(--font-sans);
-    font-feature-settings: "cv11", "ss01";
+    font-size: 1.0625rem;
+    line-height: 1.5;
   }
-  h1, h2, h3 {
+  /* Young Serif ships one weight (400). Never let the browser fake a bold. */
+  h1, h2, h3, .font-display {
     font-family: var(--font-display);
-    letter-spacing: -0.015em;
+    font-weight: 400;
+    font-synthesis-weight: none;
+    letter-spacing: -0.01em;
     text-wrap: balance;
   }
   :focus-visible {
-    outline: 2px solid var(--focus);
+    outline: 3px solid var(--focus);
     outline-offset: 2px;
     border-radius: 4px;
+  }
+  .on-dark :focus-visible, [data-surface="dark"] :focus-visible {
+    outline-color: var(--focus-on-dark);
   }
   ::selection {
     background: var(--brand-accent-soft);
   }
-  /* Tabular figures anywhere money lives */
-  .tabular { font-variant-numeric: tabular-nums; }
+  .tabular { font-variant-numeric: tabular-nums lining-nums; }
 }
 
+@layer components {
+  /* Shelf ground for a category. Set data-ground="<category slug>" on any ancestor. */
+  [data-ground] { --g: var(--ground-default); --on-g: var(--on-ground-light); }
+  [data-ground="rice"] { --g: var(--ground-rice); --on-g: var(--on-ground-dark); }
+  [data-ground="pulses-nuts-and-groceries"] { --g: var(--ground-pulses); }
+  [data-ground="whole-spices"] { --g: var(--ground-whole-spices); }
+  [data-ground="powders-and-ground-masala"] { --g: var(--ground-powders); }
+  [data-ground="flours-atta-and-rava"] { --g: var(--ground-flours); --on-g: var(--on-ground-dark); }
+  [data-ground="tea-powders-and-milk-mix"] { --g: var(--ground-tea); }
+  [data-ground="sauces"] { --g: var(--ground-sauces); }
+  [data-ground="food-colours"] { --g: var(--ground-colours); }
+  [data-ground="restaurant-groceries"] { --g: var(--ground-groceries); }
+  [data-ground="drinks"] { --g: var(--ground-drinks); }
+  [data-ground="restaurant-packing-and-cleaning"] { --g: var(--ground-packing); }
+
+  /* Hessian twill laid over the ground colour */
+  .weave {
+    background-color: var(--g, var(--ground-default));
+    background-image:
+      repeating-linear-gradient(45deg, rgb(255 255 255 / 0.07) 0 2px, transparent 2px 5px),
+      repeating-linear-gradient(-45deg, rgb(42 28 20 / 0.08) 0 2px, transparent 2px 5px);
+  }
+  .weave[data-weave="b"] {
+    background-image:
+      repeating-linear-gradient(-45deg, rgb(255 255 255 / 0.07) 0 2px, transparent 2px 5px),
+      repeating-linear-gradient(45deg, rgb(42 28 20 / 0.08) 0 2px, transparent 2px 5px);
+  }
+
+  /* THE device. A cream enamel sign with an inset coloured rim. Says what/who this is.
+     Never holds a form, a table, or more than two lines of copy. */
+  .plate {
+    position: relative;
+    background: var(--surface-raised);
+    color: var(--ink);
+    border-radius: var(--radius-plate);
+    box-shadow: var(--elev-plate);
+  }
+  .plate::before {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    border: 1.5px solid var(--rim, var(--g, var(--brand-primary)));
+    border-radius: calc(var(--radius-plate) - 4px);
+    pointer-events: none;
+  }
+  .plate-sm::before { inset: 3px; border-width: 1px; border-radius: 6px; }
+  /* size tab hanging off the bottom rim of a tile plate */
+  .plate-tab {
+    position: absolute; left: 50%; bottom: -1px; transform: translateX(-50%);
+    padding: 2px 12px 3px; border-radius: 7px 7px 0 0;
+    background: var(--g, var(--brand-primary)); color: var(--on-g, var(--on-ground-light));
+    font-weight: 700; font-size: 0.8125rem; white-space: nowrap;
+  }
+  /* packshot photo inside a plate: lift, multiply onto paper, feather, crop baked captions */
+  .plate-photo { background: var(--surface-paper); overflow: hidden; }
+  .plate-photo > img {
+    width: 84%; height: 84%; object-fit: contain; margin: auto;
+    mix-blend-mode: multiply; filter: brightness(1.12) contrast(0.96);
+    -webkit-mask-image: radial-gradient(closest-side, #000 72%, transparent 100%);
+            mask-image: radial-gradient(closest-side, #000 72%, transparent 100%);
+    clip-path: inset(0 0 14% 0);
+  }
+
+  .skeleton {
+    background-color: var(--surface-sunken);
+    border-radius: var(--radius-md);
+    animation: var(--animate-kraft);
+  }
+}
+
+@keyframes kraft-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+@keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.3); } 100% { transform: scale(1); } }
+@keyframes hang-in {
+  from { opacity: 0; transform: translateY(14px) rotate(-0.8deg); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes stamp {
+  from { opacity: 0; transform: scale(1.18) rotate(-3deg); }
+  to { opacity: 1; transform: scale(1) rotate(-1deg); }
+}
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* Reduced motion: no transforms, no loops. (The old rule lacked iteration-count and strobed infinite animations.) */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
+  .skeleton { animation: none; }
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * UI primitives: dialog, toast, link pending, spinner, skeleton (additive; owned by the UI kit)
+ * ---------------------------------------------------------------------------------------------- */
+
+@keyframes toast-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(4px); } }
+@keyframes route-progress { from { transform: scaleX(0.04); } to { transform: scaleX(0.92); } }
+@keyframes ui-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ui-spin { to { transform: rotate(360deg); } }
+
+@layer components {
+  /* Toast leaving: 160ms, quicker than it arrived. */
+  .toast-out { animation: toast-out 160ms var(--ease-in) forwards; }
+
+  /* Route bar: a 2px turmeric line at the top of the viewport while a link is navigating.
+     Rendered by <LinkPending> inside the pending link only (see components/ui/route-progress.tsx). */
+  .route-bar {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 70;
+    height: 2px;
+    background: var(--brand-accent);
+    transform-origin: left center;
+    pointer-events: none;
+    animation: route-progress 8s var(--ease-out) forwards;
+  }
+
+  /* A spinner never flashes on a fast action: it fades in after 150ms. */
+  .spinner { animation: ui-fade-in var(--dur-fast) var(--ease-out) 150ms both; }
+  .spinner > svg { animation: ui-spin 0.8s linear infinite; }
+
+  /* Skeleton plate: the empty enamel outline inside a kraft product tile. */
+  .skeleton-plate {
+    background: color-mix(in srgb, var(--surface-raised) 55%, transparent);
+    border-radius: var(--radius-plate);
+  }
+
+  /* Native <dialog>: fade + scale in, quicker out; phones get a bottom sheet that slides up. */
+  .ui-dialog {
+    /* !important: a Dialog placed inside a space-y-* parent must not pick up its sibling margins */
+    margin: auto !important;
+    width: min(92vw, 32.5rem);
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+    transition:
+      opacity var(--dur-fast) var(--ease-in),
+      transform var(--dur-fast) var(--ease-in),
+      overlay var(--dur-fast) allow-discrete,
+      display var(--dur-fast) allow-discrete;
+  }
+  .ui-dialog[open] {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity var(--dur-base) var(--ease-out),
+      transform var(--dur-base) var(--ease-out),
+      overlay var(--dur-base) allow-discrete,
+      display var(--dur-base) allow-discrete;
+  }
+  .ui-dialog::backdrop {
+    background: rgb(42 28 20 / 0);
+    transition:
+      background-color var(--dur-fast) var(--ease-in),
+      overlay var(--dur-fast) allow-discrete,
+      display var(--dur-fast) allow-discrete;
+  }
+  .ui-dialog[open]::backdrop {
+    background: rgb(42 28 20 / 0.5);
+    transition-duration: var(--dur-base);
+  }
+  @starting-style {
+    .ui-dialog[open] { opacity: 0; transform: translateY(8px) scale(0.97); }
+    .ui-dialog[open]::backdrop { background: rgb(42 28 20 / 0); }
+  }
+  @media (max-width: 639px) {
+    .ui-dialog[data-sheet] {
+      inset: auto 0 0 0;
+      margin: 0 !important;
+      width: 100%;
+      max-width: 100%;
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      transform: translateY(100%);
+    }
+    .ui-dialog[data-sheet][open] { transform: none; }
+    @starting-style {
+      .ui-dialog[data-sheet][open] { transform: translateY(100%); opacity: 1; }
+    }
+  }
+}
+
+/* The spinner is functional feedback, not decoration: under reduced motion it keeps turning, slowly. */
+@media (prefers-reduced-motion: reduce) {
+  .spinner > svg { animation: ui-spin 1.8s linear infinite !important; }
 }

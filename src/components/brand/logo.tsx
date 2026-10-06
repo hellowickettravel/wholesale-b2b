@@ -12,15 +12,15 @@ export function Logo({ href = "/", className, inverted }: { href?: string; class
       <span
         aria-hidden="true"
         className={cn(
-          "grid size-8 place-items-center rounded-[9px] font-display text-[15px] font-extrabold",
+          "grid size-8 place-items-center rounded-[9px] font-display text-[17px]",
           inverted ? "bg-accent text-accent-ink" : "bg-primary text-primary-ink",
         )}
       >
         {brand.wordmark.lead.charAt(0)}
       </span>
-      <span className={cn("font-display text-[19px] font-bold tracking-tight", inverted ? "text-white" : "text-ink")}>
+      <span className={cn("font-display text-[21px] leading-none tracking-tight", inverted ? "text-on-dark" : "text-ink")}>
         {brand.wordmark.lead}
-        <span className={inverted ? "text-accent" : "text-primary"}>{brand.wordmark.tail}</span>
+        <span className={inverted ? "text-accent" : "text-mark"}>{brand.wordmark.tail}</span>
       </span>
     </span>
   );

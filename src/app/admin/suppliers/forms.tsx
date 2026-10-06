@@ -91,7 +91,7 @@ export function PayPartsForm({ action, parts, today }: { action: Action; parts: 
               />
               <span className="min-w-0 flex-1">
                 <span className="block font-semibold text-ink">{p.label}</span>
-                <span className="block text-[13px] text-ink-muted">{p.customerName} · {p.delivered ? "delivered" : "not delivered yet"}{p.costMissing ? " · a line has no cost" : ""}</span>
+                <span className="block text-[13px] text-ink-muted">{p.customerName}, {p.delivered ? "delivered" : "not delivered yet"}{p.costMissing ? ", a line has no cost" : ""}</span>
               </span>
               <Money pence={p.leftPence} className="font-semibold" />
             </label>

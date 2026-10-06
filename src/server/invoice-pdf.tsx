@@ -18,7 +18,7 @@ const s = StyleSheet.create({
   row: { flexDirection: "row" },
   between: { flexDirection: "row", justifyContent: "space-between" },
   wordmark: { fontSize: 20, fontFamily: "Helvetica-Bold", color: c.primary },
-  wordmarkTail: { color: c.accent },
+  wordmarkTail: { color: c.mark },
   title: { fontSize: 22, fontFamily: "Helvetica-Bold", textAlign: "right" },
   muted: { color: c.muted },
   bold: { fontFamily: "Helvetica-Bold" },

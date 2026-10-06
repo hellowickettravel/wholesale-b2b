@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MapPin, Phone } from "lucide-react";
+import { ArrowLeft, MapPin, Phone } from "lucide-react";
 import { DriverLinkCard, ProofUpload } from "@/components/delivery/driver-link";
 import { ProofView } from "@/components/delivery/proof-view";
 import { DeliveryStatusBadge } from "@/components/shop/order-status";
@@ -39,11 +39,11 @@ export default async function SupplierOrderPage({ params }: PageProps<"/supplier
 
   return (
     <>
-      <nav aria-label="Breadcrumb" className="text-sm text-ink-muted">
-        <Link href="/supplier" className="hover:text-ink">Orders</Link>
-      </nav>
-      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-2 pb-5">
-        <h1 className="tabular text-2xl font-bold sm:text-[28px]">{orderRef(so.order_number!)}</h1>
+      <Link href="/supplier" className="mb-3 inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink">
+        <ArrowLeft className="size-4" aria-hidden="true" /> Orders
+      </Link>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 pb-5">
+        <h1 className="tabular text-3xl font-bold">{orderRef(so.order_number!)}</h1>
         <DeliveryStatusBadge status={so.status!} />
         <span className="w-full text-sm text-ink-muted sm:w-auto">Received {formatTimestamp(so.created_at!)}</span>
       </div>

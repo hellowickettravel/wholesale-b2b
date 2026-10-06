@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Power } from "lucide-react";
+import { ArrowLeft, Power } from "lucide-react";
 import { InviteLoginForm } from "@/app/admin/customers/[id]/small-forms";
 import { ActionButton } from "@/app/admin/orders/[id]/forms";
 import { SupplierPayBadge } from "@/components/admin/payment-badge";
@@ -46,15 +46,17 @@ export default async function SupplierPage({ params, searchParams }: PageProps<"
 
   return (
     <>
+      <Link href="/admin/suppliers" className="mb-3 inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink">
+        <ArrowLeft className="size-4" aria-hidden="true" /> Suppliers
+      </Link>
       <div className="flex flex-col gap-4 pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <div className="mb-1 text-xs font-semibold uppercase tracking-[0.08em] text-ink-muted"><Link href="/admin/suppliers" className="hover:text-ink">Suppliers</Link></div>
           <h1 className="flex flex-wrap items-center gap-3 text-2xl font-bold text-ink sm:text-[28px]">
             {s.name}
             {s.active ? <Badge tone="success">Active</Badge> : <Badge tone="neutral">Switched off</Badge>}
           </h1>
           <p className="mt-1 text-[15px] text-ink-muted">
-            {sizes ?? 0} product size{sizes === 1 ? "" : "s"} · <Money pence={dueNow} /> owed for delivered orders
+            {sizes ?? 0} product size{sizes === 1 ? "" : "s"}, <Money pence={dueNow} /> owed for delivered orders
           </p>
         </div>
         <ActionButton
@@ -81,7 +83,7 @@ export default async function SupplierPage({ params, searchParams }: PageProps<"
                   parts={unpaid.map((p) => ({
                     id: p.id!,
                     orderId: p.order_id!,
-                    label: `${orderRef(p.order_number!)} · delivery ${formatShortDate(p.delivery_date!, today)}`,
+                    label: `${orderRef(p.order_number!)}, delivery ${formatShortDate(p.delivery_date!, today)}`,
                     customerName: p.customer_name ?? "",
                     delivered: p.status === "delivered",
                     leftPence: p.left,
@@ -111,7 +113,7 @@ export default async function SupplierPage({ params, searchParams }: PageProps<"
                     <TR key={p.id}>
                       <TD>
                         <Link href={`/admin/orders/${p.order_id}`} className="block font-semibold hover:text-primary hover:underline">{orderRef(p.order_number!)}</Link>
-                        <span className="block text-[13px] text-ink-muted">{p.customer_name} · {formatShortDate(p.delivery_date!, today)}</span>
+                        <span className="block text-[13px] text-ink-muted">{p.customer_name}, {formatShortDate(p.delivery_date!, today)}</span>
                       </TD>
                       <TD className="hidden sm:table-cell"><DeliveryStatusBadge status={p.status!} /></TD>
                       <TD className="text-right">{p.owed ? <Money pence={p.owed.grossPence} /> : <span className="text-ink-muted">—</span>}</TD>
@@ -146,7 +148,7 @@ export default async function SupplierPage({ params, searchParams }: PageProps<"
                     <li key={l.id} className="flex flex-wrap items-center justify-between gap-3 px-3 py-2.5 text-sm">
                       <span className="min-w-0">
                         <span className="flex items-center gap-2 font-medium text-ink">{l.full_name || "—"}{l.active ? null : <Badge tone="neutral">Off</Badge>}</span>
-                        <span className="block break-all text-ink-muted">{l.email} · since {formatDate(l.created_at)}</span>
+                        <span className="block break-all text-ink-muted">{l.email}, since {formatDate(l.created_at)}</span>
                       </span>
                       {l.id === viewer.userId ? null : (
                         <ActionButton action={setLoginActive.bind(null, l.id, !l.active)} confirm={l.active ? `Switch off ${l.email}? They will no longer be able to sign in.` : undefined}>

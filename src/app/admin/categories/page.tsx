@@ -29,7 +29,7 @@ export default async function CategoriesPage({ searchParams }: PageProps<"/admin
 
   return (
     <>
-      <PageHeader eyebrow="Catalogue" title="Categories" description="How the catalogue is grouped for restaurants and on the public site." />
+      <PageHeader title="Categories" description="How the catalogue is grouped for restaurants and on the public site." />
       {notice === "deleted" ? <Alert tone="success" className="mb-4">Category deleted.</Alert> : null}
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
         <Card>

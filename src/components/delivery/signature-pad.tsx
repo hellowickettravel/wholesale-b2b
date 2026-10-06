@@ -30,7 +30,7 @@ export function SignaturePad({ ref, label, onChange }: { ref: Ref<SignaturePadHa
       ctx.lineWidth = 2.5;
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
-      ctx.strokeStyle = "#111827";
+      ctx.strokeStyle = "#2a1c14";
       setSigned(false);
       onChange?.(false);
     };
@@ -56,13 +56,13 @@ export function SignaturePad({ ref, label, onChange }: { ref: Ref<SignaturePadHa
     toBlob: () =>
       new Promise((resolve) => {
         if (!signed) return resolve(null);
-        // White background so the PNG reads well anywhere.
+        // Enamel background so the PNG reads well anywhere.
         const c = canvas.current!;
         const out = document.createElement("canvas");
         out.width = c.width;
         out.height = c.height;
         const ctx = out.getContext("2d")!;
-        ctx.fillStyle = "#ffffff";
+        ctx.fillStyle = "#fffbf1";
         ctx.fillRect(0, 0, out.width, out.height);
         ctx.drawImage(c, 0, 0);
         out.toBlob(resolve, "image/png");
@@ -76,7 +76,7 @@ export function SignaturePad({ ref, label, onChange }: { ref: Ref<SignaturePadHa
           ref={canvas}
           role="img"
           aria-label={signed ? `${label}: signed` : `${label}: sign here with a finger`}
-          className="block h-44 w-full touch-none rounded-[var(--radius-md)] border-2 border-dashed border-line-strong bg-white"
+          className="block h-44 w-full touch-none rounded-[var(--radius-md)] border-2 border-hessian bg-paper"
           onPointerDown={(e) => {
             e.currentTarget.setPointerCapture(e.pointerId);
             drawing.current = true;
@@ -105,11 +105,14 @@ export function SignaturePad({ ref, label, onChange }: { ref: Ref<SignaturePadHa
             last.current = null;
           }}
         />
+        {/* The signature line of a paper delivery slip */}
+        <span aria-hidden="true" className="pointer-events-none absolute inset-x-5 bottom-9 border-b-[1.5px] border-line-strong/60" />
+        <span aria-hidden="true" className="pointer-events-none absolute bottom-10 left-5 text-lg font-bold leading-none text-ink-subtle">×</span>
         {!signed ? (
-          <span className="pointer-events-none absolute inset-x-0 bottom-3 text-center text-sm text-ink-subtle">Sign here</span>
+          <span className="pointer-events-none absolute inset-x-0 bottom-2.5 text-center text-sm text-ink-muted">Sign here</span>
         ) : null}
       </div>
-      <button type="button" onClick={clear} className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink">
+      <button type="button" onClick={clear} className="mt-2 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-ink-muted hover:text-ink">
         <Eraser className="size-4" aria-hidden="true" /> Clear signature
       </button>
     </div>

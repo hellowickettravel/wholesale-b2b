@@ -4,12 +4,12 @@ import { ShopShell } from "@/components/shell/shop-shell";
 import { Alert, Button, Input, Money, PageHeader, Select } from "@/components/ui";
 
 const items = [
-  { name: "Basant Basmati Rice", sizes: ["5 kg", "10 kg", "20 kg"], price: 3150, vat: "0% VAT" },
-  { name: "TRS Toor Dal", sizes: ["2 kg", "5 kg"], price: 1290, vat: "0% VAT" },
-  { name: "MDH Garam Masala", sizes: ["100 g", "500 g", "1 kg"], price: 845, vat: "0% VAT" },
-  { name: "Mango Drink", sizes: ["330 ml × 24"], price: 1560, vat: "20% VAT" },
-  { name: "Foil Container No. 6a", sizes: ["Pack of 100"], price: 690, vat: "20% VAT" },
-  { name: "Rooh Afza", sizes: ["800 ml"], price: 420, vat: "20% VAT" },
+  { name: "Basant Basmati Rice", slug: "rice", sizes: ["5 kg", "10 kg", "20 kg"], price: 3150, vat: "0% VAT" },
+  { name: "TRS Toor Dal", slug: "pulses-nuts-and-groceries", sizes: ["2 kg", "5 kg"], price: 1290, vat: "0% VAT" },
+  { name: "MDH Garam Masala", slug: "powders-and-ground-masala", sizes: ["100 g", "500 g", "1 kg"], price: 845, vat: "0% VAT" },
+  { name: "Mango Drink", slug: "drinks", sizes: ["330 ml × 24"], price: 1560, vat: "20% VAT" },
+  { name: "Foil Container No. 6a", slug: "restaurant-packing-and-cleaning", sizes: ["Pack of 100"], price: 690, vat: "20% VAT" },
+  { name: "Rooh Afza", slug: "sauces", sizes: ["800 ml"], price: 420, vat: "20% VAT" },
 ];
 
 export default function ShopPreview() {
@@ -26,7 +26,7 @@ export default function ShopPreview() {
       <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((it) => (
           <li key={it.name} className="flex gap-3 rounded-[var(--radius-lg)] border border-line bg-raised p-3 sm:flex-col sm:p-0">
-            <ProductImage name={it.name} alt={it.name} className="w-24 shrink-0 rounded-[var(--radius-md)] sm:w-full sm:rounded-none sm:rounded-t-[var(--radius-lg)]" />
+            <ProductImage name={it.name} alt={it.name} categorySlug={it.slug} sizeLabel={it.sizes[it.sizes.length - 1]} className="w-24 shrink-0 rounded-[var(--radius-md)] sm:aspect-[4/3] sm:w-full sm:rounded-none sm:rounded-t-[var(--radius-lg)]" />
             <div className="flex min-w-0 flex-1 flex-col gap-2 sm:p-4">
               <div>
                 <p className="font-semibold leading-snug">{it.name}</p>

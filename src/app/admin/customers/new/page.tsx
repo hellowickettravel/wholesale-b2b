@@ -18,9 +18,7 @@ export default async function NewCustomerPage() {
       <Link href="/admin/customers" className="mb-3 inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink">
         <ArrowLeft className="size-4" aria-hidden="true" /> Customers
       </Link>
-      <PageHeader
-        eyebrow="Customers"
-        title="Add a restaurant"
+      <PageHeader title="Add a restaurant"
         description="For restaurants you already trade with. They are approved straight away with every category; adjust their catalogue and prices next."
       />
       <Card className="max-w-2xl">

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import { FilterChips } from "@/components/admin/filter-chips";
 import Link from "next/link";
-import { Wallet } from "lucide-react";
+
 import { PaymentBadge } from "@/components/admin/payment-badge";
 import { DeliveryStatusBadge } from "@/components/shop/order-status";
 import { Card } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
+import { EmptyNote } from "@/components/admin/empty-note";
 import { Money } from "@/components/ui/money";
 import { PageHeader } from "@/components/ui/page-header";
 import { Table, TD, TH, THead, TR } from "@/components/ui/table";
@@ -76,28 +77,13 @@ export default async function PaymentsPage({ searchParams }: PageProps<"/admin/p
 
   return (
     <>
-      <PageHeader eyebrow="Payments" title="Payments & chasing" description="Who owes you, who to chase today, and which suppliers are waiting to be paid. Record payments on each order." />
-      <nav aria-label="Lists" className="-mx-1 mb-4 flex gap-2 overflow-x-auto px-1 pb-1">
-        {(Object.keys(TABS) as Tab[]).map((t) => (
-          <Link
-            key={t}
-            href={`/admin/payments?tab=${t}`}
-            aria-current={tab === t ? "page" : undefined}
-            className={cn(
-              "inline-flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm font-medium",
-              tab === t ? "border-primary bg-primary text-primary-ink" : "border-line-strong bg-raised text-ink hover:bg-sunken",
-            )}
-          >
-            {TABS[t]}
-            <span className={cn("tabular text-xs", tab === t ? "opacity-80" : "text-ink-subtle")}>{counts[t]}</span>
-          </Link>
-        ))}
-      </nav>
+      <PageHeader title="Payments & chasing" description="Who owes you, who to chase today, and which suppliers are waiting to be paid. Record payments on each order." />
+      <FilterChips label="Lists" current={tab} items={(Object.keys(TABS) as Tab[]).map((t) => ({ key: t, href: `/admin/payments?tab=${t}`, label: TABS[t], count: counts[t] }))} />
 
       {tab === "suppliers" ? (
         <Card>
           {supplierRows.length === 0 ? (
-            <EmptyState icon={<Wallet />} title="All suppliers are paid">Supplier parts appear here until you mark them paid.</EmptyState>
+            <EmptyNote title="All suppliers are paid">Supplier parts appear here until you mark them paid.</EmptyNote>
           ) : (
             <Table>
               <THead>
@@ -131,9 +117,9 @@ export default async function PaymentsPage({ searchParams }: PageProps<"/admin/p
       ) : (
         <Card>
           {orderRows.length === 0 ? (
-            <EmptyState icon={<Wallet />} title={tab === "chase" ? "Nobody to chase today" : tab === "overdue" ? "Nothing overdue" : "Nothing is owed to you"}>
+            <EmptyNote title={tab === "chase" ? "Nobody to chase today" : tab === "overdue" ? "Nothing overdue" : "Nothing is owed to you"}>
               {tab === "chase" ? "Set a next chase date on an order and it shows up here on that day." : "Unpaid orders appear here."}
-            </EmptyState>
+            </EmptyNote>
           ) : (
             <Table>
               <THead>

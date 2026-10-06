@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { CheckCircle2 } from "lucide-react";
 import { BankDetails } from "@/components/shop/bank-details";
 import { LinkButton } from "@/components/ui/button";
 import { formatDayDate } from "@/domain/dates";
@@ -11,6 +10,7 @@ import { getBankSettings, getCustomerOrder } from "@/server/customer-orders";
 
 export const metadata: Metadata = { title: "Order placed" };
 
+/** After "Place order": the one reward moment. The plate stamps down, then the receipt rows follow it. */
 export default async function OrderConfirmedPage({ params }: PageProps<"/orders/[id]/confirmed">) {
   await requireRole("customer");
   const { id } = await params;
@@ -18,43 +18,50 @@ export default async function OrderConfirmedPage({ params }: PageProps<"/orders/
   if (!found) notFound();
   const { order, parts } = found;
   const ref = orderRef(order.number!);
+  // Each block fades up after the stamp has landed (motion-safe only; without motion everything is simply there).
+  const after = (n: number) => ({ animationDelay: `${380 + n * 120}ms` });
+  const rise = "motion-safe:animate-toast-in";
 
   return (
     <div className="mx-auto max-w-2xl">
-      <div className="flex flex-col items-center pb-6 pt-2 text-center">
-        <div className="grid size-14 place-items-center rounded-full bg-success-soft text-success">
-          <CheckCircle2 className="size-8" aria-hidden="true" />
+      <div data-ground="rice" data-weave="a" className="weave grid place-items-center rounded-[var(--radius-xl)] px-4 py-12 sm:py-16">
+        <div className="plate w-full max-w-xl px-6 py-8 text-center sm:px-8 sm:py-10 motion-safe:animate-stamp">
+          <svg viewBox="0 0 48 48" className="mx-auto size-12 text-primary" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <circle cx="24" cy="24" r="20" strokeWidth="2.5" />
+            <path d="M15 25l7 7 12-14" />
+          </svg>
+          <h1 className="mt-4 text-[clamp(1.625rem,1.2rem+2.4vw,2.5rem)] leading-[1.1] [text-wrap:wrap]">Order {ref} placed</h1>
         </div>
-        <h1 className="mt-4 text-2xl font-bold sm:text-[28px]">Order {ref} placed</h1>
-        <p className="mt-2 max-w-md text-[15px] text-ink-muted">
-          Thank you. We have passed it to our suppliers for delivery on{" "}
-          <span className="font-semibold text-ink">{formatDayDate(order.delivery_date!)}</span>
-          {parts.length > 1 ? <>. It will arrive in {parts.length} deliveries, one from each supplier.</> : "."}
-        </p>
       </div>
 
-      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-lg)] border border-line bg-line text-sm sm:grid-cols-3">
-        <div className="bg-raised p-4">
+      <p className={`mx-auto mt-6 max-w-prose text-center text-lg text-ink-muted ${rise}`} style={after(0)}>
+        Thank you. We have passed it to our suppliers for delivery on{" "}
+        <span className="font-bold text-ink">{formatDayDate(order.delivery_date!)}</span>
+        {parts.length > 1 ? <>. It will arrive in {parts.length} deliveries, one from each supplier.</> : "."}
+      </p>
+
+      <dl className={`mt-6 divide-y divide-dashed divide-line-strong rounded-[var(--radius-lg)] border border-line bg-raised px-5 py-1 shadow-rest ${rise}`} style={after(1)}>
+        <div className="flex items-baseline justify-between gap-4 py-3.5">
           <dt className="text-ink-muted">Total inc VAT</dt>
-          <dd className="tabular mt-0.5 text-lg font-bold">{formatPence(Number(order.total_pence))}</dd>
+          <dd className="tabular text-2xl font-bold">{formatPence(Number(order.total_pence))}</dd>
         </div>
-        <div className="bg-raised p-4">
+        <div className="flex items-baseline justify-between gap-4 py-3.5">
           <dt className="text-ink-muted">Delivery</dt>
-          <dd className="mt-0.5 font-semibold">{formatDayDate(order.delivery_date!)}</dd>
+          <dd className="text-right font-bold">{formatDayDate(order.delivery_date!)}</dd>
         </div>
-        <div className="col-span-2 bg-raised p-4 sm:col-span-1">
+        <div className="flex items-baseline justify-between gap-4 py-3.5">
           <dt className="text-ink-muted">Payment</dt>
-          <dd className="mt-0.5 font-semibold">{PAYMENT_TERMS_LABEL[order.payment_terms!]}</dd>
+          <dd className="text-right font-bold">{PAYMENT_TERMS_LABEL[order.payment_terms!]}</dd>
         </div>
       </dl>
 
-      <div className="mt-4">
+      <div className={`mt-5 ${rise}`} style={after(2)}>
         <BankDetails bank={bank} reference={ref} amountPence={Number(order.total_pence)} payBy={order.promised_pay_date} />
       </div>
 
-      <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
-        <LinkButton href={`/orders/${order.id}`} variant="secondary">View order</LinkButton>
-        <LinkButton href="/shop">Continue shopping</LinkButton>
+      <div className={`mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center ${rise}`} style={after(3)}>
+        <LinkButton href={`/orders/${order.id}`} variant="secondary" size="lg">View order</LinkButton>
+        <LinkButton href="/shop" size="lg">Continue shopping</LinkButton>
       </div>
     </div>
   );

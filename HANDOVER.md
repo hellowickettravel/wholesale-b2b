@@ -1,6 +1,6 @@
 # HANDOVER: start here
 
-Last updated: **4 Oct 2026**, Phases 1–9 done; Phase 10 (deploy) prepared and waiting for the owner's go-ahead. A fresh session should read, in order: this file, then
+Last updated: **6 Oct 2026**, Phases 1–10 done and live on production; **Phase 11 (design refresh) done on the branch, not yet merged** (PR #2 merged to `main` on the owner's go-ahead, Vercel production deployment completed). Email sending deferred (D40). A fresh session should read, in order: this file, then
 `docs/BRIEF.md` (the owner's full original brief, verbatim), `PLAN.md`, `DECISIONS.md`, `MEMORY.md`
 and `CLAUDE.md`.
 
@@ -32,7 +32,8 @@ and `CLAUDE.md`.
 | 7. Admin orders, payments, chasing, suppliers | **Done** on the same branch and PR. Migration 0009 applied to hosted. |
 | 8. Invoices (PDF) and email (Resend) | **Invoices done** on the same branch and PR. **Email sending deferred by the owner** (D40): messages are queued in `email_log`. |
 | 9. Polish and hardening | **Done** on the same branch and PR. No schema change. |
-| 10. Deploy | **Prepared.** Waiting for the owner's go-ahead to merge PR #2 to `main` (= production); checklist below. |
+| 11. Design refresh (owner request 6 Oct) | **Done on branch `claude/sleepy-cori-mq31fu`, not merged, not pushed** (GitHub write access returned 403 after a worker restart; reconnect GitHub and push, then open a PR). Verified: `npm run verify` (169 unit), 424 security, 57 E2E incl. axe on 33 screens and leak scans; screenshots at 390 and 1280 reviewed; no overflow. See D43–D45. No schema change. |
+| 10. Deploy | **Done.** PR #2 merged to `main` (69e8b62); Vercel production deployment reported success. The live site itself was not opened by the agent (network limits): owner smoke test below. |
 
 ### Done in Phase 2 (verified locally: `npm run verify` green, 96 unit, 257 security, 24 E2E)
 - Migrations `0001_schema` (all tables, pence/bp, enums, indexes, counters, settings row), `0002_rls`
@@ -251,10 +252,11 @@ the owner's images (D31). Never import `tests/fixtures/catalogue-sample.csv` int
   paid, completed, and the invoice PDF showing a zero balance.
 - Performance advisor reviewed (D42); the E2E suite passes three times back to back.
 
-### Phase 10: deploy (what is left)
+### Phase 10: deploy (done 4 Oct; owner smoke test outstanding)
 Production is the `main` branch on Vercel (`https://wholesale-b2b-uy4a.vercel.app`). The database is
-already up to date: migrations 0001–0009 are applied and the fingerprint matches. **Merging PR #2
-into `main` publishes Phases 2–9 to production.** The agent will do the merge on the owner's go-ahead.
+already up to date: migrations 0001–0009 are applied and the fingerprint matches. PR #2 was
+merged into `main` on 4 Oct (merge commit 69e8b62) and Vercel reported the production deployment
+complete. Later work starts a fresh branch from `main`.
 
 Environment variables (Vercel → wholesale-b2b → Settings → Environment Variables):
 
@@ -285,8 +287,8 @@ After merging, smoke test (the agent's container cannot reach the live site, so 
 - Site URL: `https://wholesale-b2b-uy4a.vercel.app` (later: the custom domain).
 - Redirect URLs: add `https://wholesale-b2b-uy4a.vercel.app/**` and `https://*-wicket-travel-portal.vercel.app/**`.
 
-**L. Go-ahead to publish**: say "merge" and the agent merges PR #2 into `main` (production). Do A, E and I
-first so the live site works end to end.
+**L. Smoke test the live site** (PR #2 is merged and deployed): follow the five steps under "Phase 10"
+above after doing A, E and I.
 
 **C. Supabase Dashboard → Authentication → Email Templates**: paste the HTML from the repo files
 (subject in brackets): Confirm signup ← `supabase/templates/confirmation.html` ("Confirm your email to finish
@@ -325,7 +327,7 @@ work on a site drivers can open: production (`NEXT_PUBLIC_SITE_URL`), not a Verc
 **J. Optional clean-up**: the hosted database has the `http` extension (used once to load the catalogue; execute
 revoked from public/anon/authenticated). To remove it, run `drop extension http;` in the SQL editor.
 
-**G. Photos** (owner allowed stock photos, 4 Oct; four photos supplied and used): to let the agent fetch licence-safe stock photos,
+**G. Photos** (owner allowed stock photos, 4 Oct; the owner asked again on 6 Oct for real grocery product photos; see `docs/PHOTOS.md` for the shot list and where files go): to let the agent fetch licence-safe stock photos,
 add `images.unsplash.com`, `unsplash.com`, `images.pexels.com`, `www.pexels.com`, `upload.wikimedia.org`
 to the cloud environment's **Network access → Custom → Allowed domains** (keep the package-manager
 defaults). Or send photo files you own or have licensed. Until then products and categories show

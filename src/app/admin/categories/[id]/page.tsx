@@ -32,9 +32,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps<"
       <Link href="/admin/categories" className="mb-3 inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink">
         <ArrowLeft className="size-4" aria-hidden="true" /> Categories
       </Link>
-      <PageHeader
-        eyebrow="Category"
-        title={c.name}
+      <PageHeader title={c.name}
         description={`${count ?? 0} products`}
         actions={
           c.active ? (

@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Plus, Truck } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { LinkButton } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
+import { EmptyNote } from "@/components/admin/empty-note";
 import { Money } from "@/components/ui/money";
 import { PageHeader } from "@/components/ui/page-header";
 import { Table, TD, TH, THead, TR } from "@/components/ui/table";
@@ -42,17 +42,15 @@ export default async function SuppliersPage() {
 
   return (
     <>
-      <PageHeader
-        eyebrow="Catalogue"
-        title="Suppliers"
+      <PageHeader title="Suppliers"
         description="The wholesalers who deliver your orders, what you owe them, and who can sign in for them."
         actions={<LinkButton href="/admin/suppliers/new" size="sm" icon={<Plus className="size-4" aria-hidden="true" />}>Add supplier</LinkButton>}
       />
       <Card>
         {rows.length === 0 ? (
-          <EmptyState icon={<Truck />} title="No suppliers yet" action={<LinkButton href="/admin/suppliers/new">Add a supplier</LinkButton>}>
+          <EmptyNote title="No suppliers yet" action={<LinkButton href="/admin/suppliers/new">Add a supplier</LinkButton>}>
             Add a supplier, then choose it on each product size.
-          </EmptyState>
+          </EmptyNote>
         ) : (
           <Table>
             <THead>
@@ -75,7 +73,7 @@ export default async function SuppliersPage() {
                           {s.name}
                           {s.active ? null : <Badge tone="neutral">Off</Badge>}
                         </span>
-                        <span className="block break-all text-[13px] text-ink-muted">{[s.email, s.phone].filter(Boolean).join(" · ") || "No contact details"}</span>
+                        <span className="block break-all text-[13px] text-ink-muted">{[s.email, s.phone].filter(Boolean).join(", ") || "No contact details"}</span>
                       </Link>
                     </TD>
                     <TD className="tabular hidden text-right md:table-cell">{st.sizes}</TD>

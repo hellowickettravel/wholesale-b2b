@@ -143,10 +143,10 @@ function ImportReport({ result: r }: { result: NonNullable<ImportState["result"]
         </Alert>
       ) : null}
       {r.noSize.length ? (
-        <Alert tone="warning" title={`${r.noSize.length} without a pack size (added as "Each")`}>{r.noSize.slice(0, 30).join(" · ")}</Alert>
+        <Alert tone="warning" title={`${r.noSize.length} without a pack size (added as "Each")`}>{r.noSize.slice(0, 30).join(", ")}</Alert>
       ) : null}
       {r.duplicates.length ? (
-        <Alert tone="info" title={`${r.duplicates.length} duplicate ${r.duplicates.length === 1 ? "row" : "rows"} ignored`}>{r.duplicates.slice(0, 30).join(" · ")}</Alert>
+        <Alert tone="info" title={`${r.duplicates.length} duplicate ${r.duplicates.length === 1 ? "row" : "rows"} ignored`}>{r.duplicates.slice(0, 30).join(", ")}</Alert>
       ) : null}
 
       {r.preview.length ? (

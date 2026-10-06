@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { Camera, CheckCircle2, FileText, FileUp, PenLine, X } from "lucide-react";
+import { Check, FileText, X } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/field";
@@ -80,10 +80,11 @@ export function ProofForm({
 
   return (
     <div className="space-y-5">
-      <Step n={1} icon={<Camera />} title="Photo of the delivery" hint="Required. Show the goods at the door or in the kitchen." done={Boolean(photo)}>
+      <Step n={1} title="Photo of the delivery" hint="Required. Show the goods at the door or in the kitchen." done={Boolean(photo)}>
         <FilePick
           id="proof-photo"
           label={photo ? "Retake photo" : "Take photo"}
+          primary={!photo}
           accept="image/*"
           capture
           disabled={busy}
@@ -92,7 +93,7 @@ export function ProofForm({
         {photo?.preview ? <Preview src={photo.preview} alt="Delivery photo preview" onRemove={() => setPhoto(null)} /> : null}
       </Step>
 
-      <Step n={2} icon={<FileUp />} title="Signed delivery note" hint="A photo of the signed paper note, or a PDF. Optional if the customer signs below." done={Boolean(doc)}>
+      <Step n={2} title="Signed delivery note" hint="A photo of the signed paper note, or a PDF. Optional if the customer signs below." done={Boolean(doc)}>
         <FilePick id="proof-document" label={doc ? "Replace document" : "Add document"} accept="image/*,application/pdf" disabled={busy} onPick={(f) => pick(f, setDoc, "document")} />
         {doc ? (
           doc.preview ? (
@@ -106,32 +107,36 @@ export function ProofForm({
         ) : null}
       </Step>
 
-      <Step n={3} icon={<PenLine />} title="Customer signature" hint="Ask the person receiving the goods to sign with a finger." done={signed}>
+      <Step n={3} title="Customer signature" hint="Ask the person receiving the goods to sign with a finger." done={signed}>
         <SignaturePad ref={pad} label="Customer signature" onChange={setSigned} />
         <div className="mt-3 space-y-1.5">
-          <label htmlFor="proof-name" className="block text-sm font-medium text-ink">Name of the person signing (optional)</label>
+          <label htmlFor="proof-name" className="block text-sm font-semibold text-ink">Name of the person signing (optional)</label>
           <Input id="proof-name" value={name} maxLength={200} onChange={(e) => setName(e.target.value)} autoComplete="off" />
         </div>
       </Step>
 
       {error ? <Alert tone="danger">{error}</Alert> : null}
-      <Button size="lg" block className="h-14 text-base" loading={busy} onClick={submit}>
+      <Button size="lg" block className="h-14 text-base" variant={photo && (doc || signed) ? "primary" : "secondary"} loading={busy} onClick={submit}>
         {preparing ? "Preparing photo…" : pending ? "Uploading…" : submitLabel}
       </Button>
     </div>
   );
 }
 
-function Step({ n, icon, title, hint, done, children }: { n: number; icon: React.ReactNode; title: string; hint: string; done: boolean; children: React.ReactNode }) {
+function Step({ n, title, hint, done, children }: { n: number; title: string; hint: string; done: boolean; children: React.ReactNode }) {
   return (
-    <section aria-labelledby={`step-${n}`} className={cn("rounded-[var(--radius-lg)] border bg-raised p-4", done ? "border-success/40" : "border-line")}>
+    <section aria-labelledby={`step-${n}`} className={cn("rounded-[var(--radius-lg)] border-[1.5px] bg-raised p-4 transition-colors duration-[var(--dur-base)]", done ? "border-success/50" : "border-line")}>
       <div className="flex items-start gap-3">
-        <span className={cn("grid size-10 shrink-0 place-items-center rounded-full [&>svg]:size-5", done ? "bg-success-soft text-success" : "bg-primary-soft text-primary")} aria-hidden="true">
-          {done ? <CheckCircle2 /> : icon}
+        {/* A real sequence, so numerals earn their place: turmeric tab, a tick once the step is done */}
+        <span
+          className={cn("tabular grid size-9 shrink-0 place-items-center rounded-[10px] text-base font-bold", done ? "bg-success text-primary-ink" : "bg-accent text-accent-ink")}
+          aria-hidden="true"
+        >
+          {done ? <Check className="size-5" strokeWidth={3} /> : n}
         </span>
         <div className="min-w-0">
-          <h2 id={`step-${n}`} className="font-semibold text-ink">{n}. {title}</h2>
-          <p className="text-[13px] text-ink-muted">{hint}</p>
+          <h2 id={`step-${n}`} className="font-bold leading-snug text-ink">{title}</h2>
+          <p className="text-sm text-ink-muted">{hint}</p>
         </div>
       </div>
       <div className="mt-3">{children}</div>
@@ -139,12 +144,15 @@ function Step({ n, icon, title, hint, done, children }: { n: number; icon: React
   );
 }
 
-function FilePick({ id, label, accept, capture, disabled, onPick }: { id: string; label: string; accept: string; capture?: boolean; disabled?: boolean; onPick: (f: File | undefined) => void }) {
+function FilePick({ id, label, accept, capture, disabled, primary, onPick }: { id: string; label: string; accept: string; capture?: boolean; disabled?: boolean; primary?: boolean; onPick: (f: File | undefined) => void }) {
   return (
     <label
       htmlFor={id}
       className={cn(
-        "flex h-12 cursor-pointer items-center justify-center gap-2 rounded-[var(--radius-md)] border border-line-strong bg-surface text-[15px] font-semibold text-ink hover:bg-sunken",
+        "flex cursor-pointer select-none items-center justify-center gap-2 rounded-[var(--radius-md)] font-bold transition-[background-color,box-shadow,transform] duration-[var(--dur-instant)] ease-[var(--ease-out)] focus-within:outline focus-within:outline-[3px] focus-within:outline-offset-2 focus-within:outline-focus",
+        primary
+          ? "h-14 bg-primary text-base text-primary-ink shadow-[var(--edge-primary)] hover:bg-primary-strong active:translate-y-[2px] active:shadow-none"
+          : "h-12 border-[1.5px] border-line-strong bg-raised text-[15px] text-ink hover:bg-sunken",
         disabled && "pointer-events-none opacity-50",
       )}
     >
@@ -170,7 +178,7 @@ function Preview({ src, alt, onRemove }: { src: string; alt: string; onRemove: (
     <div className="relative mt-3">
       {/* eslint-disable-next-line @next/next/no-img-element -- local object URL preview */}
       <img src={src} alt={alt} className="max-h-56 w-full rounded-[var(--radius-md)] border border-line object-contain" />
-      <button type="button" onClick={onRemove} aria-label={`Remove ${alt.toLowerCase()}`} className="absolute right-2 top-2 grid size-8 place-items-center rounded-full bg-ink/70 text-white hover:bg-ink">
+      <button type="button" onClick={onRemove} aria-label={`Remove ${alt.toLowerCase()}`} className="absolute right-2 top-2 grid size-8 place-items-center rounded-full bg-dark/80 text-on-dark hover:bg-dark">
         <X className="size-4" aria-hidden="true" />
       </button>
     </div>

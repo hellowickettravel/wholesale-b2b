@@ -168,6 +168,7 @@ test.describe("delivery", () => {
 
     // A text file named .jpg: the phone cannot shrink it, so it is sent as is and the server refuses it.
     await page.goto(`/d/${second}`);
+    await page.waitForLoadState("networkidle"); // the form must be hydrated before a file is picked
     await page.locator("#proof-photo").setInputFiles("tests/fixtures/not-a-photo.jpg");
     await expect(page.getByRole("img", { name: "Delivery photo preview" })).toBeAttached();
     await sign(page);

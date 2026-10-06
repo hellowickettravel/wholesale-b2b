@@ -8,8 +8,8 @@ import { mkdirSync } from "node:fs";
 import { chromium, type Page } from "@playwright/test";
 import { Client } from "pg";
 
-const BASE = "http://localhost:3000";
-const OUT = "test-results/screens";
+const BASE = process.env.BASE ?? "http://localhost:3000";
+const OUT = process.env.OUT ?? "test-results/screens";
 const filter = process.argv[2];
 
 type Shot = { name: string; path: string; as?: string; before?: (p: Page) => Promise<void> };

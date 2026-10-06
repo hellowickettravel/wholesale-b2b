@@ -1,34 +1,86 @@
 "use client";
 
-import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { CheckCircle2, X, XCircle } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 type ToastItem = { id: number; tone: "success" | "danger"; message: string };
 const Ctx = createContext<(t: Omit<ToastItem, "id">) => void>(() => {});
+
+const SHOW_MS = 4500;
+const MIN_LEFT_MS = 1500; // after a hover or focus, never leave less than this before it goes
+const EXIT_MS = 160;
+
+/** One toast: slides up on arrival, leaves quickly, waits while hovered or focused, can be dismissed. */
+function ToastView({ item, onDone }: { item: ToastItem; onDone: (id: number) => void }) {
+  const [closing, setClosing] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const left = useRef(SHOW_MS);
+
+  useEffect(() => {
+    if (closing || paused) return;
+    const started = Date.now();
+    const t = setTimeout(() => setClosing(true), left.current);
+    return () => {
+      clearTimeout(t);
+      left.current = Math.max(MIN_LEFT_MS, left.current - (Date.now() - started));
+    };
+  }, [closing, paused]);
+
+  useEffect(() => {
+    if (!closing) return;
+    const t = setTimeout(() => onDone(item.id), EXIT_MS);
+    return () => clearTimeout(t);
+  }, [closing, item.id, onDone]);
+
+  const danger = item.tone === "danger";
+  return (
+    <div
+      role={danger ? "alert" : "status"}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={() => setPaused(false)}
+      className={cn(
+        "pointer-events-auto flex min-h-12 max-w-md items-center gap-2.5 rounded-[var(--radius-md)] py-1 pl-4 pr-1 text-sm font-semibold shadow-pop",
+        danger ? "bg-danger text-primary-ink" : "bg-dark text-on-dark",
+        closing ? "toast-out" : "motion-safe:animate-toast-in",
+      )}
+    >
+      {danger ? (
+        <XCircle className="size-5 shrink-0" aria-hidden="true" />
+      ) : (
+        <CheckCircle2 className="size-5 shrink-0 text-accent" aria-hidden="true" />
+      )}
+      <span className="min-w-0 py-2">{item.message}</span>
+      <button
+        type="button"
+        onClick={() => setClosing(true)}
+        aria-label="Dismiss notification"
+        className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-[var(--radius-sm)] opacity-80 transition-[opacity,background-color] duration-[var(--dur-fast)] hover:bg-white/15 hover:opacity-100 focus-visible:outline-focus-on-dark"
+      >
+        <X className="size-4" aria-hidden="true" />
+      </button>
+    </div>
+  );
+}
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<ToastItem[]>([]);
   const push = useCallback((t: Omit<ToastItem, "id">) => {
     const id = Date.now() + Math.random();
     setItems((xs) => [...xs, { ...t, id }]);
-    setTimeout(() => setItems((xs) => xs.filter((x) => x.id !== id)), 4500);
   }, []);
+  const remove = useCallback((id: number) => setItems((xs) => xs.filter((x) => x.id !== id)), []);
   return (
     <Ctx.Provider value={push}>
       {children}
-      <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-20 z-50 flex flex-col items-center gap-2 px-4 sm:bottom-6">
+      <div
+        aria-live="polite"
+        className="pointer-events-none fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-50 flex flex-col items-center gap-2 px-4 sm:bottom-6"
+      >
         {items.map((t) => (
-          <div
-            key={t.id}
-            className={cn(
-              "pointer-events-auto flex max-w-md items-center gap-2 rounded-[var(--radius-md)] px-4 py-3 text-sm font-medium text-white shadow-lg",
-              t.tone === "success" ? "bg-ink" : "bg-danger",
-            )}
-          >
-            {t.tone === "success" ? <CheckCircle2 className="size-4 text-accent" aria-hidden="true" /> : <XCircle className="size-4" aria-hidden="true" />}
-            {t.message}
-          </div>
+          <ToastView key={t.id} item={t} onDone={remove} />
         ))}
       </div>
     </Ctx.Provider>

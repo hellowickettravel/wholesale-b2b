@@ -1,6 +1,6 @@
 "use client";
 import { useActionState } from "react";
-import { MailCheck } from "lucide-react";
+import { PlateMessage } from "@/components/brand/plate-message";
 import { Alert } from "@/components/ui/alert";
 import { Field, Input } from "@/components/ui/field";
 import { SubmitButton } from "@/components/auth/submit-button";
@@ -11,12 +11,12 @@ export function ForgotForm() {
   const [state, action] = useActionState<FormState, FormData>(requestReset, {});
   if (state.notice) {
     return (
-      <div role="status" className="rounded-[var(--radius-lg)] border border-line bg-raised p-5">
-        <MailCheck className="size-6 text-primary" aria-hidden="true" />
-        <p className="mt-3 font-semibold text-ink">Check your email</p>
-        <p className="mt-1 text-[15px] leading-relaxed text-ink-muted">
-          If <strong className="text-ink">{state.notice}</strong> has an account, we have sent it a link to choose a new password. The link expires in one hour.
-        </p>
+      <div role="status">
+        <PlateMessage fit="full" title="Check your email">
+          <p>
+            If <strong className="font-bold text-ink">{state.notice}</strong> has an account, we have sent it a link to choose a new password. The link expires in one hour.
+          </p>
+        </PlateMessage>
       </div>
     );
   }

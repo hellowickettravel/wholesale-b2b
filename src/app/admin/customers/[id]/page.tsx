@@ -41,7 +41,7 @@ export default async function CustomerPage({ params, searchParams }: PageProps<"
       {noticeText ? <Alert tone="success" className="mb-4">{noticeText}</Alert> : null}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
         <Card className="min-w-0 self-start">
-          <CardHeader title="Details" description={`Registered ${formatTimestamp(c.created_at)}${c.approved_at ? ` · approved ${formatTimestamp(c.approved_at)}` : ""}`} />
+          <CardHeader title="Details" description={`Registered ${formatTimestamp(c.created_at)}${c.approved_at ? `, approved ${formatTimestamp(c.approved_at)}` : ""}`} />
           <CardBody>
             <CustomerForm
               action={updateCustomer.bind(null, c.id)}

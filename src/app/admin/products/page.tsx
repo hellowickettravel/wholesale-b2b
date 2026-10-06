@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Download, FileSpreadsheet, PackageOpen, Plus, Search } from "lucide-react";
+import { Download, FileSpreadsheet, Plus, Search } from "lucide-react";
 import { ProductImage } from "@/components/brand/product-image";
+import { FilterChips } from "@/components/admin/filter-chips";
 import { Badge } from "@/components/ui/badge";
-import { LinkButton } from "@/components/ui/button";
+import { buttonClasses, LinkButton } from "@/components/ui/button";
+import { Input, Select } from "@/components/ui/field";
 import { Card } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
+import { EmptyNote } from "@/components/admin/empty-note";
 import { Pagination } from "@/components/ui/pagination";
 import { PageHeader } from "@/components/ui/page-header";
 import { Table, TD, TH, THead, TR } from "@/components/ui/table";
 import { likePattern, searchWords } from "@/lib/catalogue/query";
-import { cn } from "@/lib/cn";
 import { publicImageUrl } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/server/auth";
@@ -64,7 +65,7 @@ export default async function ProductsPage({ searchParams }: PageProps<"/admin/p
   const base = () => supabase.from("admin_product_list").select("id", { count: "exact", head: true });
   const [{ data, count }, { data: categories }, all, needsPrice, noPhoto, hidden] = await Promise.all([
     query,
-    supabase.from("categories").select("id, name").order("sort").order("name"),
+    supabase.from("categories").select("id, name, slug").order("sort").order("name"),
     counted((b) => b),
     counted((b) => b.gt("needs_price_count", 0)),
     counted((b) => b.is("image_path", null)),
@@ -72,13 +73,12 @@ export default async function ProductsPage({ searchParams }: PageProps<"/admin/p
   ]);
   const totals: Record<Status, number> = { "": all, "needs-price": needsPrice, "no-photo": noPhoto, hidden };
   const rows = data ?? [];
+  const slugByName = new Map((categories ?? []).map((c) => [c.name, c.slug]));
   const pageCount = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
 
   return (
     <>
-      <PageHeader
-        eyebrow="Catalogue"
-        title="Products"
+      <PageHeader title="Products"
         description="Everything restaurants can order. Sizes without a cost cannot be ordered until you add one."
         actions={
           <>
@@ -101,22 +101,7 @@ export default async function ProductsPage({ searchParams }: PageProps<"/admin/p
         }
       />
 
-      <nav aria-label="Filter by status" className="-mx-1 mb-4 flex gap-2 overflow-x-auto px-1 pb-1">
-        {STATUSES.map((s) => (
-          <Link
-            key={s.value}
-            href={href({ status: s.value, page: 1 })}
-            aria-current={status === s.value ? "page" : undefined}
-            className={cn(
-              "inline-flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm font-medium",
-              status === s.value ? "border-primary bg-primary text-primary-ink" : "border-line-strong bg-raised text-ink hover:bg-sunken",
-            )}
-          >
-            {s.label}
-            <span className={cn("tabular text-xs", status === s.value ? "opacity-80" : "text-ink-subtle")}>{totals[s.value]}</span>
-          </Link>
-        ))}
-      </nav>
+      <FilterChips label="Filter by status" current={status} items={STATUSES.map((s) => ({ key: s.value, href: href({ status: s.value, page: 1 }), label: s.label, count: totals[s.value] }))} />
 
       <form action="/admin/products" className="mb-4 flex flex-col gap-2 sm:flex-row">
         {status ? <input type="hidden" name="status" value={status} /> : null}
@@ -125,40 +110,25 @@ export default async function ProductsPage({ searchParams }: PageProps<"/admin/p
         </label>
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-subtle" aria-hidden="true" />
-          <input
-            id="products-q"
-            name="q"
-            type="search"
-            defaultValue={q}
-            placeholder="Search by name"
-            className="block h-10 w-full rounded-[var(--radius-md)] border border-line-strong bg-raised pl-9 pr-3 text-[15px] focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-          />
+          <Input id="products-q" name="q" type="search" defaultValue={q} placeholder="Search by name" className="pl-9" />
         </div>
         <label htmlFor="products-category" className="sr-only">
           Category
         </label>
-        <select
-          id="products-category"
-          name="category"
-          defaultValue={category}
-          className="h-10 rounded-[var(--radius-md)] border border-line-strong bg-raised px-3 text-[15px] sm:w-56"
-        >
+        <Select id="products-category" name="category" defaultValue={category} className="sm:w-56">
           <option value="">All categories</option>
           {(categories ?? []).map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
             </option>
           ))}
-        </select>
-        <button type="submit" className="h-10 rounded-[var(--radius-md)] bg-primary px-4 text-sm font-semibold text-primary-ink hover:bg-primary-strong">
-          Filter
-        </button>
+        </Select>
+        <button type="submit" className={buttonClasses({ className: "sm:h-10" })}>Filter</button>
       </form>
 
       <Card>
         {rows.length === 0 ? (
-          <EmptyState
-            icon={<PackageOpen />}
+          <EmptyNote
             title={q || category || status ? "No products match" : "No products yet"}
             action={
               q || category || status ? (
@@ -171,7 +141,7 @@ export default async function ProductsPage({ searchParams }: PageProps<"/admin/p
             }
           >
             {q || category || status ? "Try another search or filter." : "Import the supplier lists, or add products one by one."}
-          </EmptyState>
+          </EmptyNote>
         ) : (
           <Table>
             <THead>
@@ -192,7 +162,9 @@ export default async function ProductsPage({ searchParams }: PageProps<"/admin/p
                         src={publicImageUrl(p.image_path)}
                         alt=""
                         name={p.name ?? ""}
-                        className="size-11 shrink-0 rounded-[var(--radius-sm)] border border-line [&_span]:text-sm"
+                        variant="thumb"
+                        categorySlug={slugByName.get(p.category_name ?? "")}
+                        className="size-11 rounded-[var(--radius-sm)]"
                         sizes="44px"
                       />
                       <span className="min-w-0">

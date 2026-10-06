@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import { FilterChips } from "@/components/admin/filter-chips";
 import Link from "next/link";
-import { ClipboardList } from "lucide-react";
+
 import { PaymentBadge } from "@/components/admin/payment-badge";
 import { OrderStatusBadge } from "@/components/shop/order-status";
 import { buttonClasses } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
+import { EmptyNote } from "@/components/admin/empty-note";
 import { Input, Select } from "@/components/ui/field";
 import { Money } from "@/components/ui/money";
 import { PageHeader } from "@/components/ui/page-header";
@@ -15,7 +17,6 @@ import { formatDate, formatShortDate, todayInLondon } from "@/domain/dates";
 import { orderProfit } from "@/domain/ledger";
 import { orderRef } from "@/domain/status";
 import { likePattern } from "@/lib/catalogue/query";
-import { cn } from "@/lib/cn";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/server/auth";
 
@@ -83,25 +84,10 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/ord
 
   return (
     <>
-      <PageHeader eyebrow="Orders" title="All orders" description="Every order, its payment and its profit. Open one to change it, record payments or see the proof of delivery." />
-      <nav aria-label="Filter by status" className="-mx-1 mb-4 flex gap-2 overflow-x-auto px-1 pb-1">
-        {(Object.keys(TABS) as Tab[]).map((t, i) => (
-          <Link
-            key={t || "all"}
-            href={href({ status: t, page: 1 })}
-            aria-current={tab === t ? "page" : undefined}
-            className={cn(
-              "inline-flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm font-medium",
-              tab === t ? "border-primary bg-primary text-primary-ink" : "border-line-strong bg-raised text-ink hover:bg-sunken",
-            )}
-          >
-            {TABS[t].label}
-            <span className={cn("tabular text-xs", tab === t ? "opacity-80" : "text-ink-subtle")}>{counts[i]}</span>
-          </Link>
-        ))}
-      </nav>
+      <PageHeader title="All orders" description="Every order, its payment and its profit. Open one to change it, record payments or see the proof of delivery." />
+      <FilterChips label="Filter by status" current={tab} items={(Object.keys(TABS) as Tab[]).map((t, i) => ({ key: t, href: href({ status: t, page: 1 }), label: TABS[t].label, count: counts[i] }))} />
 
-      <form action="/admin/orders" className="mb-4 grid grid-cols-2 gap-2 lg:grid-cols-[minmax(0,1.4fr)_repeat(4,minmax(0,1fr))_auto]">
+      <form action="/admin/orders" className="mb-4 grid grid-cols-2 items-end gap-x-2 gap-y-3 lg:grid-cols-[minmax(0,1.4fr)_repeat(4,minmax(0,1fr))_auto]">
         {tab ? <input type="hidden" name="status" value={tab} /> : null}
         <div className="col-span-2 lg:col-span-1">
           <label htmlFor="orders-q" className="sr-only">Order number or restaurant</label>
@@ -121,25 +107,25 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/ord
           </Select>
         </div>
         <div>
-          <label htmlFor="orders-from" className="sr-only">Placed from</label>
+          <label htmlFor="orders-from" className="mb-1 block text-sm font-semibold text-ink">Placed from</label>
           <Input id="orders-from" name="from" type="date" defaultValue={from} aria-describedby="orders-dates" />
         </div>
         <div>
-          <label htmlFor="orders-to" className="sr-only">Placed to</label>
+          <label htmlFor="orders-to" className="mb-1 block text-sm font-semibold text-ink">Placed to</label>
           <Input id="orders-to" name="to" type="date" defaultValue={to} aria-describedby="orders-dates" />
         </div>
         <div className="col-span-2 flex gap-2 lg:col-span-1">
-          <button type="submit" className={buttonClasses({ className: "flex-1 lg:flex-none" })}>Filter</button>
-          {filtered ? <Link href={href({ payment: "", supplier: "", from: "", to: "", q: "", page: 1 })} className={buttonClasses({ variant: "ghost" })}>Clear</Link> : null}
+          <button type="submit" className={buttonClasses({ className: "flex-1 sm:h-10 lg:flex-none" })}>Filter</button>
+          {filtered ? <Link href={href({ payment: "", supplier: "", from: "", to: "", q: "", page: 1 })} className={buttonClasses({ variant: "ghost", className: "sm:h-10" })}>Clear</Link> : null}
         </div>
         <p id="orders-dates" className="sr-only">Dates filter by the day the order was placed.</p>
       </form>
 
       <Card>
         {rows.length === 0 ? (
-          <EmptyState icon={<ClipboardList />} title={filtered || tab ? "No orders match" : "No orders yet"}>
+          <EmptyNote title={filtered || tab ? "No orders match" : "No orders yet"}>
             {filtered || tab ? "Try another filter." : "Orders appear here as soon as a restaurant places one."}
-          </EmptyState>
+          </EmptyNote>
         ) : (
           <Table>
             <THead>
@@ -161,7 +147,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/ord
                     <TD>
                       <Link href={`/admin/orders/${o.id}`} className="group block">
                         <span className="block font-semibold group-hover:text-primary group-hover:underline">{orderRef(o.number!)}</span>
-                        <span className="block text-[13px] text-ink-muted">{o.customer_name} · {formatDate(o.created_at!)}</span>
+                        <span className="block text-[13px] text-ink-muted">{o.customer_name}, {formatDate(o.created_at!)}</span>
                         <span className="mt-1 flex flex-wrap gap-1 md:hidden"><OrderStatusBadge status={o.status!} /></span>
                       </Link>
                     </TD>
@@ -176,7 +162,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/ord
                     <TD className="hidden sm:table-cell">
                       <span className="flex flex-wrap items-center gap-1">
                         <PaymentBadge state={o.payment_state} />
-                        {overdue ? <span className="text-xs font-semibold text-danger">Overdue</span> : null}
+                        {overdue ? <Badge tone="danger">Overdue</Badge> : null}
                       </span>
                     </TD>
                     <TD className="hidden text-right xl:table-cell">{profit === null ? <span className="text-ink-muted">—</span> : <Money pence={profit} className={profit < 0 ? "text-danger" : undefined} />}</TD>

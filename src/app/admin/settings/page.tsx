@@ -16,7 +16,7 @@ export default async function SettingsPage() {
   const placeholders = [s.business_legal_name, s.business_address, s.vat_number, s.bank_name, s.bank_account_name, s.bank_sort_code, s.bank_account_number, s.invoice_footer].filter((x) => /^\[.*\]$/.test(x.trim())).length;
   return (
     <>
-      <PageHeader eyebrow="System" title="Settings" description="Prices, delivery rules and the details printed on invoices." />
+      <PageHeader title="Settings" description="Prices, delivery rules and the details printed on invoices." />
       {placeholders ? <Alert tone="warning" className="mb-6">{placeholders} business or bank details are still placeholders. Fill them in before the first order.</Alert> : null}
       <div className="max-w-4xl">
         <SettingsForm

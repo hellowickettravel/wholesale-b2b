@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ScrollText } from "lucide-react";
+
 import { buttonClasses } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
+import { EmptyNote } from "@/components/admin/empty-note";
 import { Input, Select } from "@/components/ui/field";
 import { PageHeader } from "@/components/ui/page-header";
 import { Pagination } from "@/components/ui/pagination";
@@ -87,8 +87,8 @@ export default async function AuditPage({ searchParams }: PageProps<"/admin/audi
 
   return (
     <>
-      <PageHeader eyebrow="System" title="Audit log" description="Who changed what, and when: prices, costs, payments, orders, accounts and settings. Read-only." />
-      <form action="/admin/audit" className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.5fr)_repeat(2,minmax(0,1fr))_auto]">
+      <PageHeader title="Audit log" description="Who changed what, and when: prices, costs, payments, orders, accounts and settings. Read-only." />
+      <form action="/admin/audit" className="mb-4 grid items-end gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.5fr)_repeat(2,minmax(0,1fr))_auto]">
         {record ? <input type="hidden" name="id" value={record} /> : null}
         <div>
           <label htmlFor="audit-entity" className="sr-only">What changed</label>
@@ -98,22 +98,22 @@ export default async function AuditPage({ searchParams }: PageProps<"/admin/audi
           </Select>
         </div>
         <div>
-          <label htmlFor="audit-from" className="sr-only">From</label>
+          <label htmlFor="audit-from" className="mb-1 block text-sm font-semibold text-ink">From</label>
           <Input id="audit-from" name="from" type="date" defaultValue={from} />
         </div>
         <div>
-          <label htmlFor="audit-to" className="sr-only">To</label>
+          <label htmlFor="audit-to" className="mb-1 block text-sm font-semibold text-ink">To</label>
           <Input id="audit-to" name="to" type="date" defaultValue={to} />
         </div>
         <div className="flex gap-2">
-          <button type="submit" className={buttonClasses({ className: "flex-1 sm:flex-none" })}>Filter</button>
-          {entity || from || to || record ? <Link href="/admin/audit" className={buttonClasses({ variant: "ghost" })}>Clear</Link> : null}
+          <button type="submit" className={buttonClasses({ className: "flex-1 sm:h-10 sm:flex-none" })}>Filter</button>
+          {entity || from || to || record ? <Link href="/admin/audit" className={buttonClasses({ variant: "ghost", className: "sm:h-10" })}>Clear</Link> : null}
         </div>
       </form>
 
       <Card>
         {rows.length === 0 ? (
-          <EmptyState icon={<ScrollText />} title="Nothing logged here">Changes appear here as they happen.</EmptyState>
+          <EmptyNote title="Nothing logged here">Changes appear here as they happen.</EmptyNote>
         ) : (
           <ul className="divide-y divide-line">
             {rows.map((r) => {
@@ -126,9 +126,9 @@ export default async function AuditPage({ searchParams }: PageProps<"/admin/audi
                   <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                     <p className="text-sm font-medium text-ink">
                       {describeAuditRow(r, ENTITIES[r.entity])}
-                      {link ? <> · <Link href={link} className="text-primary underline underline-offset-2">open</Link></> : null}
+                      {link ? <>, <Link href={link} className="text-primary underline underline-offset-2">open</Link></> : null}
                     </p>
-                    <p className="text-xs text-ink-muted">{formatTimestamp(r.at)} · {who(r.actor_id, r.entity)}</p>
+                    <p className="text-xs text-ink-muted">{formatTimestamp(r.at)}, {who(r.actor_id, r.entity)}</p>
                   </div>
                   {keys.length || r.action !== "update" ? (
                     <details className="mt-1">

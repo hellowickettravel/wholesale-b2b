@@ -90,44 +90,62 @@ export function OrderEditor({
       <input type="hidden" name="expected_updated_at" value={expectedUpdatedAt} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.notice ? <Alert tone="success">{state.notice}</Alert> : null}
-      <div className="rounded-[var(--radius-md)] border border-line">
-        <div aria-hidden="true" className="hidden grid-cols-[minmax(0,1fr)_11rem_5.5rem_6.5rem_5rem] gap-3 border-b border-line bg-sunken px-3 py-2 text-xs font-semibold uppercase tracking-wide text-ink-muted lg:grid">
-          <span>Item</span><span>Supplier</span><span>Qty</span><span>Unit cost £</span><span className="text-right">Sell</span>
+      {/* Container queries: the editor sits in a column of very different widths (full page on a phone,
+          about 520px beside the side panel at 1280, wider on big screens), so the layout follows the
+          editor's own width, never the viewport. Fixed column widths keep the item column readable. */}
+      <div className="@container overflow-hidden rounded-[var(--radius-md)] border border-line bg-raised">
+        <div
+          aria-hidden="true"
+          className="hidden grid-cols-[minmax(0,1fr)_12rem_5rem_6.5rem_4.5rem] gap-3 border-b border-line bg-sunken px-4 py-2.5 text-sm font-bold text-ink @2xl:grid"
+        >
+          <span>Item</span>
+          <span>Supplier</span>
+          <span>Qty</span>
+          <span>Unit cost £</span>
+          <span className="text-right">Sell</span>
         </div>
         <ul className="divide-y divide-line">
           {lines.map((l) => {
             const r = rows[l.id];
             const off = r.qty.trim() === "0";
             const moved = r.supplierId !== l.supplierId;
-            const small = "mb-1 block text-xs font-medium text-ink-muted lg:sr-only";
+            const small = "mb-1 block text-xs font-semibold text-ink-muted @2xl:sr-only";
             return (
-              <li key={l.id} className={cn("relative grid grid-cols-2 gap-3 px-3 py-3 sm:grid-cols-[minmax(0,1fr)_5.5rem_6.5rem] lg:grid-cols-[minmax(0,1fr)_11rem_5.5rem_6.5rem_5rem] lg:items-center", off && "bg-danger-soft/40")}>
-                <div className="col-span-2 sm:col-span-3 lg:col-span-1">
-                  <span className={cn("font-medium text-ink", off && "line-through")}>{l.productName}</span>
-                  <span className="block text-xs text-ink-muted">
-                    {l.sizeLabel} · VAT {formatBp(l.vatRateBp)}
-                    <span className="lg:hidden"> · sells at <Money pence={l.unitPricePence} /></span>
-                    {off ? " · will be taken off" : ""}
+              <li
+                key={l.id}
+                className={cn(
+                  "grid grid-cols-[5rem_minmax(0,1fr)] gap-x-3 gap-y-3 px-4 py-3.5",
+                  "@md:grid-cols-[minmax(0,1fr)_5rem_6.5rem]",
+                  "@2xl:grid-cols-[minmax(0,1fr)_12rem_5rem_6.5rem_4.5rem] @2xl:items-center",
+                  off && "bg-danger-soft/50",
+                )}
+              >
+                <div className="col-span-2 min-w-0 @md:col-span-3 @2xl:col-span-1">
+                  <span className={cn("block font-semibold leading-snug text-ink", off && "line-through")}>{l.productName}</span>
+                  <span className="mt-0.5 block text-xs text-ink-muted">
+                    {l.sizeLabel}, VAT {formatBp(l.vatRateBp)}
+                    <span className="@2xl:hidden">, sells at <Money pence={l.unitPricePence} /></span>
+                    {off ? ", will be taken off" : ""}
                   </span>
                 </div>
-                <div className="col-span-2 sm:col-span-1">
+                <div className="order-3 col-span-2 min-w-0 @md:order-none @md:col-span-1">
                   <label className={small} htmlFor={`supplier.${l.id}`}>Supplier<span className="sr-only"> for {l.productName} {l.sizeLabel}</span></label>
-                  <Select id={`supplier.${l.id}`} name={`supplier.${l.id}`} value={r.supplierId} onChange={(e) => set(l.id, { supplierId: e.target.value })} className="h-9 sm:h-9">
+                  <Select id={`supplier.${l.id}`} name={`supplier.${l.id}`} value={r.supplierId} onChange={(e) => set(l.id, { supplierId: e.target.value })} className="h-10 sm:h-10">
                     {suppliers.filter((s) => s.active || s.id === l.supplierId).map((s) => (
                       <option key={s.id} value={s.id}>{s.name}{s.active ? "" : " (off)"}</option>
                     ))}
                   </Select>
-                  {moved ? <span className="mt-1 block text-xs text-warning">Moving: enter this supplier&apos;s cost</span> : null}
+                  {moved ? <span className="mt-1 block text-xs font-semibold text-warning">Moving: enter this supplier&apos;s cost</span> : null}
                 </div>
                 <div>
                   <label className={small} htmlFor={`qty.${l.id}`}>Quantity<span className="sr-only"> of {l.productName} {l.sizeLabel}</span></label>
-                  <Input id={`qty.${l.id}`} name={`qty.${l.id}`} inputMode="numeric" value={r.qty} onChange={(e) => set(l.id, { qty: e.target.value })} aria-invalid={fe[`qty.${l.id}`] ? true : undefined} className="h-9 sm:h-9" />
+                  <Input id={`qty.${l.id}`} name={`qty.${l.id}`} inputMode="numeric" value={r.qty} onChange={(e) => set(l.id, { qty: e.target.value })} aria-invalid={fe[`qty.${l.id}`] ? true : undefined} className="tabular h-10 sm:h-10" />
                 </div>
                 <div>
                   <label className={small} htmlFor={`cost.${l.id}`}>Unit cost £<span className="sr-only"> of {l.productName} {l.sizeLabel}</span></label>
-                  <Input id={`cost.${l.id}`} name={`cost.${l.id}`} inputMode="decimal" value={r.cost} placeholder="none" onChange={(e) => set(l.id, { cost: e.target.value })} aria-invalid={fe[`cost.${l.id}`] ? true : undefined} className="h-9 sm:h-9" />
+                  <Input id={`cost.${l.id}`} name={`cost.${l.id}`} inputMode="decimal" value={r.cost} placeholder="none" onChange={(e) => set(l.id, { cost: e.target.value })} aria-invalid={fe[`cost.${l.id}`] ? true : undefined} className="tabular h-10 sm:h-10" />
                 </div>
-                <div className="hidden text-right lg:block"><Money pence={l.unitPricePence} /></div>
+                <div className="hidden text-right font-bold @2xl:block"><Money pence={l.unitPricePence} /></div>
               </li>
             );
           })}
@@ -142,7 +160,7 @@ export function OrderEditor({
             Kept as ordered unless you change it. For goods of this size the usual charge is <Money pence={usual} />.
           </p>
         </div>
-        <div className="rounded-[var(--radius-md)] bg-sunken p-3 text-sm" aria-live="polite">
+        <div className="rounded-[var(--radius-md)] bg-sunken p-4 text-sm" aria-live="polite">
           {"error" in preview && preview.error ? (
             <p className="text-danger">{preview.error}</p>
           ) : "totals" in preview && preview.totals ? (
