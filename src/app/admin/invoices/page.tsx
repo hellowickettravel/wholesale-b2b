@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Download, FileText } from "lucide-react";
+import { Download } from "lucide-react";
 import { PaymentBadge } from "@/components/admin/payment-badge";
 import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
+import { EmptyNote } from "@/components/admin/empty-note";
 import { Input } from "@/components/ui/field";
 import { Money } from "@/components/ui/money";
 import { PageHeader } from "@/components/ui/page-header";
@@ -61,17 +61,17 @@ export default async function AdminInvoicesPage({ searchParams }: PageProps<"/ad
 
   return (
     <>
-      <PageHeader eyebrow="Customers" title="Invoices" description="Every invoice, numbered without gaps. An invoice follows its order until the first delivery; a cancelled order's invoice is void." />
+      <PageHeader title="Invoices" description="Every invoice, numbered without gaps. An invoice follows its order until the first delivery; a cancelled order's invoice is void." />
       <form action="/admin/invoices" className="mb-4 flex gap-2">
         <label htmlFor="invoices-q" className="sr-only">Invoice number or restaurant</label>
         <Input id="invoices-q" name="q" type="search" defaultValue={q} placeholder="Invoice number or restaurant" className="flex-1" />
-        <button type="submit" className={buttonClasses()}>Search</button>
+        <button type="submit" className={buttonClasses({ className: "sm:h-10" })}>Search</button>
       </form>
       <Card>
         {rows.length === 0 ? (
-          <EmptyState icon={<FileText />} title={q ? "No invoices match" : "No invoices yet"}>
+          <EmptyNote title={q ? "No invoices match" : "No invoices yet"}>
             {q ? "Try another number or name." : "An invoice is made for every order."}
-          </EmptyState>
+          </EmptyNote>
         ) : (
           <Table>
             <THead>
@@ -90,7 +90,7 @@ export default async function AdminInvoicesPage({ searchParams }: PageProps<"/ad
                   <TR key={r.id}>
                     <TD>
                       <span className="flex flex-wrap items-center gap-2 font-semibold">{invoiceRef(r.number)}{r.voided_at ? <Badge tone="neutral">Void</Badge> : null}</span>
-                      <span className="block text-[13px] text-ink-muted">{r.customers?.business_name} · {formatDate(r.issued_at)}</span>
+                      <span className="block text-[13px] text-ink-muted">{r.customers?.business_name}, {formatDate(r.issued_at)}</span>
                     </TD>
                     <TD className="hidden sm:table-cell">{o ? <Link href={`/admin/orders/${r.order_id}`} className="font-medium text-primary hover:underline">{orderRef(o.number!)}</Link> : "—"}</TD>
                     <TD className="text-right"><Money pence={r.total_pence} /></TD>

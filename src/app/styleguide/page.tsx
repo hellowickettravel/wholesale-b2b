@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Inbox, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { ProductImage } from "@/components/brand/product-image";
+import { PlateMessage } from "@/components/brand/plate-message";
 import {
   Alert,
   Badge,
@@ -11,7 +12,6 @@ import {
   CardBody,
   CardHeader,
   Checkbox,
-  EmptyState,
   Field,
   Input,
   LinkButton,
@@ -33,27 +33,44 @@ import { DemoInteractive } from "./demo-interactive";
 export const metadata: Metadata = { title: "Design system", robots: { index: false } };
 
 const swatches = [
-  ["primary", "bg-primary"],
-  ["primary-strong", "bg-primary-strong"],
-  ["primary-soft", "bg-primary-soft"],
-  ["accent", "bg-accent"],
-  ["accent-soft", "bg-accent-soft"],
-  ["ink", "bg-ink"],
-  ["ink-muted", "bg-ink-muted"],
-  ["surface", "bg-surface"],
-  ["raised", "bg-raised"],
-  ["sunken", "bg-sunken"],
-  ["line", "bg-line"],
-  ["success", "bg-success"],
-  ["warning", "bg-warning"],
-  ["danger", "bg-danger"],
-  ["info", "bg-info"],
+  ["Cardamom (primary)", "bg-primary"],
+  ["Cardamom deep", "bg-primary-strong"],
+  ["Cardamom mist", "bg-primary-soft"],
+  ["Turmeric (fill only)", "bg-accent"],
+  ["Turmeric mist", "bg-accent-soft"],
+  ["Chilli (mark, danger)", "bg-mark"],
+  ["Clove (ink, dark)", "bg-ink"],
+  ["Cumin (muted ink)", "bg-ink-muted"],
+  ["Flour (page)", "bg-surface"],
+  ["Enamel (raised)", "bg-raised"],
+  ["Kraft (sunken)", "bg-sunken"],
+  ["Paper (photo mat)", "bg-paper"],
+  ["Hessian (decoration)", "bg-hessian"],
+  ["Parchment (line)", "bg-line"],
+  ["Leaf (success)", "bg-success"],
+  ["Cumin gold (warning)", "bg-warning"],
+  ["Indigo (info)", "bg-info"],
+];
+
+/** Shelf grounds: one per category, they only ever sit behind a plate. */
+const shelves = [
+  ["rice", "Rice"],
+  ["pulses-nuts-and-groceries", "Pulses, nuts and groceries"],
+  ["whole-spices", "Whole spices"],
+  ["powders-and-ground-masala", "Powders and masala"],
+  ["flours-atta-and-rava", "Flours, atta and rava"],
+  ["tea-powders-and-milk-mix", "Tea and milk mix"],
+  ["sauces", "Sauces"],
+  ["food-colours", "Food colours"],
+  ["restaurant-groceries", "Restaurant groceries"],
+  ["drinks", "Drinks"],
+  ["restaurant-packing-and-cleaning", "Packing and cleaning"],
 ];
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-4">
-      <h2 className="border-b border-line pb-2 text-lg font-bold">{title}</h2>
+      <h2 className="border-b border-line pb-2 text-xl">{title}</h2>
       {children}
     </section>
   );
@@ -63,9 +80,8 @@ export default function StyleguidePage() {
   return (
     <main id="main" className="mx-auto w-full min-w-0 max-w-5xl space-y-12 px-4 py-10 sm:px-6">
       <PageHeader
-        eyebrow="Internal"
         title="Design system"
-        description="Tokens and components. Brand values come from src/config/brand.ts and src/app/tokens.css."
+        description="Enamel and Spice: colours, type and components. Brand values come from src/config/brand.ts and src/app/tokens.css."
         actions={
           <>
             <LinkButton href="/styleguide/shop" variant="secondary" size="sm">Shop shell</LinkButton>
@@ -79,26 +95,36 @@ export default function StyleguidePage() {
       <Section title="Brand">
         <div className="flex flex-wrap items-center gap-6">
           <Logo />
-          <div className="rounded-[var(--radius-md)] bg-ink p-3"><Logo inverted /></div>
+          <div className="rounded-[var(--radius-md)] bg-dark p-3"><Logo inverted /></div>
         </div>
         <ul className="grid grid-cols-3 gap-3 sm:grid-cols-5">
           {swatches.map(([name, cls]) => (
             <li key={name} className="overflow-hidden rounded-[var(--radius-md)] border border-line bg-raised text-xs">
               <div className={`h-12 ${cls}`} />
-              <div className="px-2 py-1.5 font-mono text-ink-muted">{name}</div>
+              <div className="px-2 py-1.5 text-ink-muted">{name}</div>
+            </li>
+          ))}
+        </ul>
+        <h3 className="pt-2 text-lg">Shelf grounds</h3>
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {shelves.map(([slug, name]) => (
+            <li key={slug} data-ground={slug} className="weave grid h-24 place-items-center rounded-[var(--radius-md)] p-3">
+              <span className="plate grid size-full place-items-center px-2 text-center font-display text-sm leading-tight">{name}</span>
             </li>
           ))}
         </ul>
       </Section>
 
       <Section title="Type">
-        <div className="space-y-2">
-          <p className="font-display text-[44px] font-extrabold leading-tight">Display 44 extrabold</p>
-          <h1 className="text-[28px] font-bold">Heading 1 · 28 bold</h1>
-          <h2 className="text-xl font-semibold">Heading 2 · 20 semibold</h2>
-          <p className="text-[15px]">Body 15. Basmati rice, toor dal, garam masala and 330 ml × 24 cans.</p>
-          <p className="text-sm text-ink-muted">Muted 14 for secondary information.</p>
-          <p className="tabular text-sm">Tabular figures: £1,234.56 · £98.70 · £12.00</p>
+        <div className="space-y-3">
+          <p className="font-display text-[clamp(2.125rem,1.4rem+3.6vw,3.75rem)] leading-[1.05]">Young Serif, one weight</p>
+          <h1 className="text-[clamp(1.875rem,1.4rem+2vw,2.75rem)] leading-[1.1]">Heading 1 for the page</h1>
+          <h2 className="text-2xl">Heading 2 for a section</h2>
+          <h3 className="text-xl">Heading 3 for a card</h3>
+          <p className="text-base">Body 17 in Mukta. Basmati rice, toor dal, garam masala and 330 ml × 24 cans.</p>
+          <p className="text-sm text-ink-muted">Secondary 15 for meta and helper text.</p>
+          <p className="text-xs text-ink-muted">Small 13 is the floor.</p>
+          <p className="tabular text-base font-bold">Prices in Mukta 700, tabular: £1,234.56 £98.70 £12.00</p>
         </div>
       </Section>
 
@@ -143,13 +169,13 @@ export default function StyleguidePage() {
 
       <Section title="Badges and alerts">
         <div className="flex flex-wrap gap-2">
-          <Badge>Placed</Badge>
-          <Badge tone="info" dot>Sent to supplier</Badge>
+          <Badge tone="accent" dot>Placed</Badge>
+          <Badge tone="info" dot>Confirmed</Badge>
           <Badge tone="primary" dot>Out for delivery</Badge>
           <Badge tone="success" dot>Delivered</Badge>
-          <Badge tone="warning">Part paid</Badge>
+          <Badge tone="warning">Needs price</Badge>
           <Badge tone="danger">Overdue</Badge>
-          <Badge tone="accent">Needs price</Badge>
+          <Badge>Waiting</Badge>
         </div>
         <div className="grid gap-3">
           <Alert tone="info" title="Add £38.00 more for free delivery">Orders under £150.00 have a £12.00 delivery charge.</Alert>
@@ -185,7 +211,7 @@ export default function StyleguidePage() {
                   <TD className="font-semibold">{o}</TD>
                   <TD>{c}</TD>
                   <TD className="text-ink-muted">{d}</TD>
-                  <TD><Badge tone={s === "Delivered" ? "success" : s === "Placed" ? "neutral" : "info"} dot>{s}</Badge></TD>
+                  <TD><Badge tone={s === "Delivered" ? "success" : s === "Placed" ? "accent" : "info"} dot>{s}</Badge></TD>
                   <TD className="text-right"><Money pence={t as number} /></TD>
                 </TR>
               ))}
@@ -194,11 +220,19 @@ export default function StyleguidePage() {
         </Card>
       </Section>
 
-      <Section title="Product tiles (placeholder photos)">
+      <Section title="Product tiles">
+        <p className="max-w-prose text-sm text-ink-muted">
+          Without a photo, a product is an enamel plate on its shelf colour, with the pack size on the lower rim. Rows and baskets use the small plate.
+        </p>
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {["Basant Basmati Rice", "Toor Dal", "MDH Garam Masala", "Foil Container 9x9"].map((n) => (
+          {[
+            ["Basant Basmati Rice", "rice", "20 kg"],
+            ["Toor Dal", "pulses-nuts-and-groceries", "5 kg"],
+            ["MDH Garam Masala", "powders-and-ground-masala", "100 g"],
+            ["Foil Container 9x9", "restaurant-packing-and-cleaning", "100 pcs"],
+          ].map(([n, slug, size]) => (
             <li key={n} className="overflow-hidden rounded-[var(--radius-lg)] border border-line bg-raised">
-              <ProductImage name={n} alt={n} />
+              <ProductImage name={n} alt={n} categorySlug={slug} sizeLabel={size} className="aspect-[4/3]" />
               <div className="p-3">
                 <p className="text-sm font-semibold">{n}</p>
                 <p className="text-xs text-ink-muted">3 sizes</p>
@@ -206,6 +240,11 @@ export default function StyleguidePage() {
             </li>
           ))}
         </ul>
+        <div className="flex gap-3">
+          {[["rice", "20 kg"], ["whole-spices", "1 kg"], ["drinks", "24 x 330 ml"], ["sauces", "700 g"]].map(([slug, size]) => (
+            <ProductImage key={slug} variant="thumb" name={size} alt="" categorySlug={slug} sizeLabel={size} className="size-16 rounded-[var(--radius-md)]" />
+          ))}
+        </div>
       </Section>
 
       <Section title="Loading and empty states">
@@ -216,11 +255,9 @@ export default function StyleguidePage() {
             <Skeleton className="h-4 w-1/2" />
           </CardBody>
         </Card>
-        <Card>
-          <EmptyState icon={<Inbox />} title="No orders yet" action={<LinkButton href="#">Start shopping</LinkButton>}>
-            When you place an order it will appear here with its delivery status and invoice.
-          </EmptyState>
-        </Card>
+        <PlateMessage title="No orders yet" fit="full" ground="default" className="rounded-[var(--radius-xl)]" actions={<LinkButton href="#">Start shopping</LinkButton>}>
+          <p>When you place an order it will appear here with its delivery status and invoice.</p>
+        </PlateMessage>
       </Section>
     </main>
   );

@@ -10,6 +10,7 @@ export default function ErrorPage({ error, retry }: { error: Error & { digest?: 
   }, [error]);
   return (
     <StatusPage
+      ground="powders-and-ground-masala"
       title="Something went wrong"
       actions={
         <>
@@ -19,7 +20,7 @@ export default function ErrorPage({ error, retry }: { error: Error & { digest?: 
       }
     >
       Nothing you did caused this. Please try again in a moment.
-      {error.digest ? <span className="mt-2 block font-mono text-xs text-ink-subtle">Reference: {error.digest}</span> : null}
+      {error.digest ? <span className="tabular mt-3 block text-sm text-ink-muted">Reference: {error.digest}</span> : null}
     </StatusPage>
   );
 }

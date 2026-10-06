@@ -20,9 +20,7 @@ export default async function ImportPage() {
       <Link href="/admin/products" className="mb-3 inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink">
         <ArrowLeft className="size-4" aria-hidden="true" /> Products
       </Link>
-      <PageHeader
-        eyebrow="Catalogue"
-        title="Import products"
+      <PageHeader title="Import products"
         description="Load a supplier's list. Pack sizes are read from the item names and grouped into one product per item. Costs are never imported."
       />
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">

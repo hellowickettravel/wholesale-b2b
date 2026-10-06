@@ -7,12 +7,15 @@ import { SubmitButton } from "@/components/auth/submit-button";
 import type { FormState } from "@/lib/validation/auth";
 import { register } from "./actions";
 
+/** A titled group of fields: a sentence-case serif heading, a kraft rule between groups. */
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <fieldset>
-      <legend className="mb-3 text-xs font-bold uppercase tracking-[0.12em] text-ink-subtle">{title}</legend>
-      <div className="space-y-4">{children}</div>
-    </fieldset>
+    <div className="border-t-2 border-sunken pt-7 first:border-t-0 first:pt-0">
+      <fieldset className="min-w-0">
+        <legend className="mb-4 p-0 font-display text-[1.375rem] leading-tight text-ink">{title}</legend>
+        <div className="space-y-4">{children}</div>
+      </fieldset>
+    </div>
   );
 }
 
@@ -21,7 +24,7 @@ export function RegisterForm() {
   const fe = state.fieldErrors ?? {};
   const v = state.values ?? {};
   return (
-    <form action={action} className="space-y-8" noValidate>
+    <form action={action} className="space-y-7" noValidate>
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
       {/* Honeypot for bots: hidden from people and assistive tech. */}
@@ -80,7 +83,7 @@ export function RegisterForm() {
 
       <div className="space-y-3">
         <SubmitButton pendingText="Creating your account…">Create trade account</SubmitButton>
-        <p className="text-center text-[13px] text-ink-muted">
+        <p className="text-center text-sm text-ink-muted">
           We review every account before prices are shown, usually the same working day.
         </p>
       </div>

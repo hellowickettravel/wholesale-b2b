@@ -21,7 +21,7 @@ export function SettingsForm({ initial }: { initial: SettingsValues }) {
   const fe = state.fieldErrors ?? {};
   const v = (k: Exclude<keyof SettingsValues, "delivery_days" | "show_prices_inc_vat">) => state.values?.[k] ?? initial[k];
   const hint = (k: Exclude<keyof SettingsValues, "delivery_days" | "show_prices_inc_vat">, text?: string) =>
-    isPlaceholder(initial[k]) ? "Placeholder: fill in before the first invoice goes out." : text;
+    isPlaceholder(initial[k]) ? "Replace this before the first invoice goes out." : text;
 
   return (
     <form action={action} className="space-y-6" noValidate>
@@ -50,7 +50,7 @@ export function SettingsForm({ initial }: { initial: SettingsValues }) {
             <Field label="Delivery charge below the minimum (£)" required error={fe.delivery_charge}>
               {(p) => <Input {...p} name="delivery_charge" inputMode="decimal" defaultValue={v("delivery_charge")} className="max-w-40" />}
             </Field>
-            <Field label="VAT on the delivery charge" error={fe.delivery_vat_mode} hint="Ask the accountant (DECISIONS D5).">
+            <Field label="VAT on the delivery charge" error={fe.delivery_vat_mode} hint="Your accountant can tell you which option applies to you.">
               {(p) => (
                 <Select {...p} name="delivery_vat_mode" defaultValue={v("delivery_vat_mode")}>
                   <option value="apportioned">Split across the basket&rsquo;s VAT rates</option>
@@ -63,10 +63,10 @@ export function SettingsForm({ initial }: { initial: SettingsValues }) {
             </Field>
           </div>
           <fieldset>
-            <legend className="mb-2 text-sm font-medium text-ink">Delivery days</legend>
+            <legend className="mb-2 text-sm font-semibold text-ink">Delivery days</legend>
             <div className="flex flex-wrap gap-2">
               {DAYS.map((d, i) => (
-                <label key={d} className="inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-line-strong bg-raised px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary-soft">
+                <label key={d} className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-[var(--radius-md)] border-[1.5px] border-line-strong bg-raised px-3.5 text-sm font-semibold transition-colors duration-[var(--dur-fast)] hover:bg-sunken has-[:checked]:border-primary has-[:checked]:bg-primary-soft has-[:checked]:text-primary-strong">
                   <input type="checkbox" name="delivery_days" value={i + 1} defaultChecked={initial.delivery_days.includes(i + 1)} className="size-4 accent-[var(--brand-primary)]" />
                   {d}
                 </label>

@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Download, FileText } from "lucide-react";
+import { Download } from "lucide-react";
+import { ShopTitle } from "@/components/shop/page-title";
+import { PlateMessage } from "@/components/shop/plate-message";
 import { Badge } from "@/components/ui/badge";
-import { LinkButton } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
-import { PageHeader } from "@/components/ui/page-header";
+import { buttonClasses, LinkButton } from "@/components/ui/button";
 import { Pagination } from "@/components/ui/pagination";
 import { formatDate } from "@/domain/dates";
 import { formatPence } from "@/domain/money";
@@ -14,11 +14,11 @@ import { requireRole } from "@/server/auth";
 
 export const metadata: Metadata = { title: "Invoices" };
 const PAGE_SIZE = 20;
-const PAID = { unpaid: { label: "Not paid", tone: "warning" }, part_paid: { label: "Part paid", tone: "info" }, paid: { label: "Paid", tone: "success" }, overpaid: { label: "Paid", tone: "success" } } as const;
+const PAID = { unpaid: { label: "Not paid", tone: "neutral" }, part_paid: { label: "Part paid", tone: "warning" }, paid: { label: "Paid", tone: "success" }, overpaid: { label: "Paid", tone: "success" } } as const;
 
 /** The restaurant's invoices (RLS: its own only), newest first, each with its PDF. */
 export default async function InvoicesPage({ searchParams }: PageProps<"/invoices">) {
-  const viewer = await requireRole("customer");
+  await requireRole("customer");
   const sp = await searchParams;
   const n = Number.parseInt(String(sp.page ?? "1"), 10);
   const page = Number.isFinite(n) && n >= 1 && n <= 1000 ? n : 1;
@@ -43,36 +43,34 @@ export default async function InvoicesPage({ searchParams }: PageProps<"/invoice
 
   return (
     <>
-      <PageHeader eyebrow={viewer.customer!.businessName} title="Invoices" description="One invoice per order. Pay by bank transfer using the order reference." />
+      <ShopTitle description="One invoice per order. Pay by bank transfer using the order reference.">Invoices</ShopTitle>
       {invoices.length === 0 ? (
-        <div className="rounded-[var(--radius-lg)] border border-dashed border-line-strong bg-raised">
-          <EmptyState icon={<FileText />} title={page > 1 ? "No more invoices" : "No invoices yet"} action={<LinkButton href="/shop">Browse your catalogue</LinkButton>}>
-            An invoice is made for every order you place.
-          </EmptyState>
-        </div>
+        <PlateMessage title={page > 1 ? "No more invoices" : "No invoices yet"} action={<LinkButton href="/shop">Browse your catalogue</LinkButton>}>
+          An invoice is made for every order you place.
+        </PlateMessage>
       ) : (
-        <ul className="divide-y divide-line overflow-hidden rounded-[var(--radius-lg)] border border-line bg-raised">
+        <ul className="space-y-3">
           {invoices.map((inv) => {
             const state = PAID[paymentStatus(inv.total_pence, paid(inv.order_id))];
             const ref = orderNo.has(inv.order_id) ? orderRef(orderNo.get(inv.order_id)!) : null;
             return (
-              <li key={inv.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3.5">
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <span className="tabular font-semibold text-ink">{invoiceRef(inv.number)}</span>
+              <li key={inv.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-3 rounded-[var(--radius-lg)] border border-line bg-raised px-4 py-4 shadow-rest sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:gap-x-6 sm:px-5">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                    <span className="tabular text-lg font-bold text-ink">{invoiceRef(inv.number)}</span>
                     {inv.voided_at ? <Badge tone="neutral">Void</Badge> : <Badge tone={state.tone}>{state.label}</Badge>}
                   </div>
-                  <p className="mt-1 text-[13px] text-ink-muted">
-                    {formatDate(inv.issued_at)}
-                    {ref ? <> · <Link href={`/orders/${inv.order_id}`} className="font-medium text-primary hover:underline">{ref}</Link></> : null}
+                  <p className="mt-1 text-sm text-ink-muted">
+                    Issued {formatDate(inv.issued_at)}
+                    {ref ? <span className="ml-3">For <Link href={`/orders/${inv.order_id}`} className="inline-flex min-h-8 items-center font-bold text-primary hover:underline">{ref}</Link></span> : null}
                   </p>
                 </div>
-                <span className="tabular font-semibold text-ink">{formatPence(inv.total_pence)}</span>
+                <span className={`tabular text-xl font-bold text-ink${inv.voided_at ? " line-through decoration-2" : ""}`}>{formatPence(inv.total_pence)}</span>
                 <a
                   href={`/api/invoices/${inv.id}/pdf`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex h-9 items-center gap-1.5 rounded-[var(--radius-md)] border border-line-strong bg-raised px-3 text-sm font-semibold text-ink hover:bg-sunken"
+                  className={buttonClasses({ variant: "secondary", className: "col-span-2 sm:col-span-1" })}
                 >
                   <Download className="size-4" aria-hidden="true" />
                   PDF<span className="sr-only"> of {invoiceRef(inv.number)}</span>

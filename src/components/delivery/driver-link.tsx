@@ -27,17 +27,17 @@ export function DriverLinkCard({ makeLink, customerName, active }: { makeLink: (
         Send your driver a link. On their phone they take a photo, add the signed note or the customer&apos;s signature, and submit. No login needed; the link works once and expires after 72 hours.
       </p>
       {link?.url ? (
-        <div className="space-y-2 rounded-[var(--radius-md)] border border-primary/30 bg-primary-soft/40 p-3">
+        <div className="space-y-2 rounded-[var(--radius-md)] border border-primary/25 bg-primary-soft p-3.5">
           <p className="text-sm font-semibold text-ink">New driver link (shown once: send it now)</p>
           <div className="flex items-center gap-1 rounded-[var(--radius-sm)] border border-line bg-raised pl-3">
             <code className="min-w-0 flex-1 truncate text-[13px]" data-testid="driver-link">{link.url}</code>
             <CopyButton value={link.url} label="driver link" />
           </div>
           <div className="flex flex-wrap gap-2">
-            <a className="inline-flex h-9 items-center gap-2 rounded-[var(--radius-md)] bg-[#25D366] px-3 text-sm font-semibold text-white hover:brightness-95" href={`https://wa.me/?text=${encodeURIComponent(message)}`} target="_blank" rel="noreferrer">
+            <a className="inline-flex h-10 items-center gap-2 rounded-[var(--radius-md)] border-[1.5px] border-line-strong bg-raised px-3 text-sm font-bold text-ink hover:bg-sunken" href={`https://wa.me/?text=${encodeURIComponent(message)}`} target="_blank" rel="noreferrer">
               <MessageCircle className="size-4" aria-hidden="true" /> WhatsApp
             </a>
-            <a className="inline-flex h-9 items-center gap-2 rounded-[var(--radius-md)] border border-line-strong bg-raised px-3 text-sm font-semibold text-ink hover:bg-sunken" href={`sms:?&body=${encodeURIComponent(message)}`}>
+            <a className="inline-flex h-10 items-center gap-2 rounded-[var(--radius-md)] border-[1.5px] border-line-strong bg-raised px-3 text-sm font-bold text-ink hover:bg-sunken" href={`sms:?&body=${encodeURIComponent(message)}`}>
               Text message
             </a>
           </div>
@@ -61,7 +61,7 @@ export function ProofUpload({ upload, title = "Upload the proof yourself", submi
   const router = useRouter();
   return (
     <details className="group rounded-[var(--radius-lg)] border border-line bg-raised">
-      <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-ink">{title}</summary>
+      <summary className="cursor-pointer rounded-[var(--radius-lg)] px-4 py-3 text-sm font-bold text-primary transition-colors hover:bg-sunken">{title}</summary>
       <div className="border-t border-line p-4">
         <ProofForm action={upload} submitLabel={submitLabel} onDone={() => router.refresh()} />
       </div>

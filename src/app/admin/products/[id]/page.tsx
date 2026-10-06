@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { PhotoForm } from "@/components/admin/photo-form";
-import { CategoryArt } from "@/components/catalogue/category-art";
+import { ProductImage } from "@/components/brand/product-image";
 import { Alert } from "@/components/ui/alert";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
@@ -44,7 +44,6 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
         <ArrowLeft className="size-4" aria-hidden="true" /> Products
       </Link>
       <PageHeader
-        eyebrow={p.categories?.name ?? "Product"}
         title={p.name}
         actions={
           live ? (
@@ -105,7 +104,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
                   imageUrl={publicImageUrl(p.image_path)}
                   upload={setProductImage.bind(null, p.id)}
                   remove={clearProductImage.bind(null, p.id)}
-                  placeholder={<CategoryArt slug={p.categories?.slug ?? ""} className="size-full" />}
+                  placeholder={<ProductImage alt="" name={p.name} categorySlug={p.categories?.slug} className="size-full" />}
                 />
               </CardBody>
             </Card>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { FileText, Lock, Phone } from "lucide-react";
+import { ArrowLeft, FileText, Lock, Phone } from "lucide-react";
 import { PaymentBadge, SupplierPayBadge } from "@/components/admin/payment-badge";
 import { DriverLinkCard, ProofUpload } from "@/components/delivery/driver-link";
 import { ProofView } from "@/components/delivery/proof-view";
@@ -56,19 +56,19 @@ export default async function AdminOrderPage({ params }: PageProps<"/admin/order
 
   return (
     <>
+      <Link href="/admin/orders" className="mb-3 inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink">
+        <ArrowLeft className="size-4" aria-hidden="true" /> Orders
+      </Link>
       <div className="flex flex-col gap-4 pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <div className="mb-1 text-xs font-semibold uppercase tracking-[0.08em] text-ink-muted">
-            <Link href="/admin/orders" className="hover:text-ink">Orders</Link>
-          </div>
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-bold text-ink sm:text-[28px]">{ref}</h1>
+            <h1 className="text-3xl font-bold text-ink">{ref}</h1>
             <OrderStatusBadge status={order.status} />
             <PaymentBadge state={d.paymentState} />
           </div>
           <p className="mt-1 text-[15px] text-ink-muted">
             <Link href={`/admin/customers/${customer.id}`} className="font-semibold text-ink hover:underline">{customer.business_name}</Link>
-            {" · placed "}{formatTimestamp(order.created_at)}{" · delivery "}{formatDayDate(order.delivery_date)}
+            {", placed "}{formatTimestamp(order.created_at)}{", delivery "}{formatDayDate(order.delivery_date)}
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap items-start gap-2">
@@ -89,7 +89,7 @@ export default async function AdminOrderPage({ params }: PageProps<"/admin/order
         </Alert>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <Stat label="Order total (inc VAT)" value={<Money pence={order.total_pence} />} hint={d.invoice ? `${invoiceRef(d.invoice.number)}${d.invoice.voided_at ? " (voided)" : ""}` : undefined} />
         <Stat label="Paid by the restaurant" value={<Money pence={d.paidPence} />} tone={d.paymentState === "paid" ? "success" : "neutral"} />
         <Stat
@@ -160,7 +160,7 @@ export default async function AdminOrderPage({ params }: PageProps<"/admin/order
                     {p.payments.length ? (
                       <ul className="space-y-1 text-[13px] text-ink-muted">
                         {p.payments.map((sp) => (
-                          <li key={sp.id}><Money pence={sp.amount_pence} /> on {formatDate(sp.paid_on)} · {PAYMENT_METHOD_LABEL[sp.method]}{sp.reference ? ` · ${sp.reference}` : ""}</li>
+                          <li key={sp.id}><Money pence={sp.amount_pence} /> on {formatDate(sp.paid_on)}, {PAYMENT_METHOD_LABEL[sp.method]}{sp.reference ? `, ${sp.reference}` : ""}</li>
                         ))}
                       </ul>
                     ) : null}
@@ -204,7 +204,7 @@ export default async function AdminOrderPage({ params }: PageProps<"/admin/order
               <CardBody>
                 <ul className="space-y-1 text-sm text-ink-muted">
                   {d.removed.map((l) => (
-                    <li key={l.id}><span className="line-through">{l.product_name} {l.size_label} × {l.qty}</span> · {formatTimestamp(l.removed_at!)}</li>
+                    <li key={l.id}><span className="line-through">{l.product_name} {l.size_label} × {l.qty}</span>, {formatTimestamp(l.removed_at!)}</li>
                   ))}
                 </ul>
               </CardBody>
@@ -261,7 +261,7 @@ export default async function AdminOrderPage({ params }: PageProps<"/admin/order
                     <li key={t.id} className="relative">
                       <span aria-hidden="true" className="absolute -left-[25px] top-1.5 size-2.5 rounded-full border-2 border-raised bg-primary" />
                       <p className="text-sm text-ink">{t.text}</p>
-                      <p className="text-xs text-ink-muted">{formatTimestamp(t.at)} · {t.who}</p>
+                      <p className="text-xs text-ink-muted">{formatTimestamp(t.at)}, {t.who}</p>
                     </li>
                   ))}
                 </ol>
@@ -313,7 +313,7 @@ export default async function AdminOrderPage({ params }: PageProps<"/admin/order
                   {d.payments.map((pm) => (
                     <li key={pm.id} className="flex items-start justify-between gap-3 px-3 py-2">
                       <span className="min-w-0">
-                        <span className="block text-ink">{formatDate(pm.paid_on)} · {PAYMENT_METHOD_LABEL[pm.method]}</span>
+                        <span className="block text-ink">{formatDate(pm.paid_on)}, {PAYMENT_METHOD_LABEL[pm.method]}</span>
                         {pm.reference ? <span className="block break-all text-xs text-ink-muted">Ref {pm.reference}</span> : null}
                       </span>
                       <Money pence={pm.amount_pence} className={pm.amount_pence < 0 ? "text-danger" : "font-semibold"} />

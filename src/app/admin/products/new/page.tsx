@@ -20,7 +20,7 @@ export default async function NewProductPage({ searchParams }: PageProps<"/admin
       <Link href="/admin/products" className="mb-3 inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink">
         <ArrowLeft className="size-4" aria-hidden="true" /> Products
       </Link>
-      <PageHeader eyebrow="Catalogue" title="New product" description="Add the product first; pack sizes, costs and a photo come next." />
+      <PageHeader title="New product" description="Add the product first; pack sizes, costs and a photo come next." />
       <Card className="max-w-2xl">
         <CardBody className="py-5">
           <ProductForm

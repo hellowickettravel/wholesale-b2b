@@ -16,13 +16,13 @@ export default function SupplierPreview() {
       <ul className="mt-4 divide-y divide-line overflow-hidden rounded-[var(--radius-lg)] border border-line bg-raised">
         {rows.map((r) => (
           <li key={r.id}>
-            <a href="#" className="flex items-center gap-4 px-4 py-4 hover:bg-surface">
+            <a href="#" className="flex items-center gap-4 px-4 py-4 hover:bg-sunken/60">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-semibold">#{r.id}</span>
                   <Badge tone={r.status === "Delivered" ? "success" : r.status === "New" ? "accent" : "primary"} dot>{r.status}</Badge>
                 </div>
-                <p className="mt-0.5 truncate text-sm text-ink-muted">{r.customer} · {r.postcode} · {r.items} lines</p>
+                <p className="mt-0.5 truncate text-sm text-ink-muted">{r.customer}, {r.postcode}, {r.items} lines</p>
               </div>
               <div className="text-right text-sm font-semibold">{r.date}</div>
               <ChevronRight className="size-4 text-ink-subtle" aria-hidden="true" />

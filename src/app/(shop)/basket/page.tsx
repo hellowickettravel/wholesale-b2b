@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { ShoppingBasket } from "lucide-react";
+import { ShopTitle } from "@/components/shop/page-title";
+import { PlateMessage } from "@/components/shop/plate-message";
 import { LinkButton } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
-import { PageHeader } from "@/components/ui/page-header";
 import { deliveryDateOptions, todayInLondon } from "@/domain/dates";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/server/auth";
@@ -26,13 +25,11 @@ export default async function BasketPage() {
 
   return (
     <>
-      <PageHeader eyebrow={viewer.customer!.businessName} title="Basket" />
+      <ShopTitle>Basket</ShopTitle>
       {lines.length === 0 ? (
-        <div className="rounded-[var(--radius-lg)] border border-dashed border-line-strong bg-raised">
-          <EmptyState icon={<ShoppingBasket />} title="Your basket is empty" action={<LinkButton href="/shop">Browse your catalogue</LinkButton>}>
-            Add items from your catalogue. Your basket is kept for your whole team, on any device.
-          </EmptyState>
-        </div>
+        <PlateMessage title="Your basket is empty" action={<LinkButton href="/shop">Browse your catalogue</LinkButton>}>
+          Add items from your catalogue. Your basket is kept for your whole team, on any device.
+        </PlateMessage>
       ) : (
         <BasketCheckout
           lines={lines}

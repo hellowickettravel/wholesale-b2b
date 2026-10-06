@@ -156,7 +156,7 @@ export function PricingWorkbench({ data }: { data: WorkbenchData }) {
 
   const sourceLabel = (r: ResolvedPrice, categoryId: string) => {
     if (!r.priced) return "No cost yet";
-    if (r.source === "override") return `Fixed price${r.marginBp !== null ? ` · ${formatBp(r.marginBp)} margin` : ""}`;
+    if (r.source === "override") return `Fixed price${r.marginBp !== null ? `, ${formatBp(r.marginBp)} margin` : ""}`;
     if (r.source === "category") return `${catName.get(categoryId)} margin ${formatBp(r.marginBp!)}`;
     if (r.source === "customer") return `Their default ${formatBp(r.marginBp!)}`;
     return `Global margin ${formatBp(r.marginBp!)}`;
@@ -330,7 +330,7 @@ export function PricingWorkbench({ data }: { data: WorkbenchData }) {
                       </p>
                       <p className="text-[13px] text-ink-muted">
                         {catName.get(p.categoryId)}
-                        {p.active ? null : " · not on sale"}
+                        {p.active ? null : ", not on sale"}
                       </p>
                     </div>
                     <label className="shrink-0">

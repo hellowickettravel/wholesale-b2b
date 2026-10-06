@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Account disabled" };
 
 export default function AccountDisabledPage() {
   return (
-    <StatusPage title="This account is not active" actions={<SignOutButton className="h-10 rounded-[var(--radius-md)] border border-line-strong bg-raised px-4 text-ink hover:bg-sunken" />}>
+    <StatusPage title="This account is not active" actions={<SignOutButton className="h-11 cursor-pointer rounded-[var(--radius-md)] border-[1.5px] border-line-strong bg-raised px-4 text-base font-bold text-ink transition-colors hover:bg-sunken" />}>
       Your sign-in works, but the account has been switched off or is not linked to a business yet. Please contact us to have it reactivated.
     </StatusPage>
   );

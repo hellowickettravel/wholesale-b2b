@@ -20,6 +20,8 @@ export default defineConfig({
   use: {
     baseURL: "http://localhost:3000",
     trace: "retain-on-failure",
+    // Collapse all motion so axe and the assertions never sample a screen mid-animation.
+    reducedMotion: "reduce",
     launchOptions: { executablePath },
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"], launchOptions: { executablePath } } }],

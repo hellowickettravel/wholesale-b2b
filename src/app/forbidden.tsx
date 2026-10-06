@@ -9,11 +9,12 @@ export default function Forbidden() {
   return (
     <StatusPage
       code="403"
+      ground="restaurant-packing-and-cleaning"
       title="You don't have access to this page"
       actions={
         <>
           <LinkButton href="/">Go to home</LinkButton>
-          <SignOutButton label="Sign in as someone else" className="h-10 rounded-[var(--radius-md)] border border-line-strong bg-raised px-4 font-semibold text-ink hover:bg-sunken" />
+          <SignOutButton label="Sign in as someone else" className="h-11 cursor-pointer rounded-[var(--radius-md)] border-[1.5px] border-line-strong bg-raised px-4 text-base font-bold text-ink transition-colors hover:bg-sunken" />
         </>
       }
     >

@@ -5,7 +5,7 @@ import { PaymentBadge } from "@/components/admin/payment-badge";
 import { OrderStatusBadge } from "@/components/shop/order-status";
 import { LinkButton } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
+import { EmptyNote } from "@/components/admin/empty-note";
 import { Money } from "@/components/ui/money";
 import { PageHeader } from "@/components/ui/page-header";
 import { Stat } from "@/components/ui/stat";
@@ -24,8 +24,8 @@ export default async function AdminDashboard() {
 
   return (
     <>
-      <PageHeader eyebrow="Dashboard" title={firstName ? `Hello, ${firstName}` : "Dashboard"} description="Money in, money out, and what needs you today." />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <PageHeader title={firstName ? `Hello, ${firstName}` : "Dashboard"} description="Money in, money out, and what needs you today." />
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <Stat
           label="Owed to you"
           value={<Money pence={d.owedToYou} />}
@@ -51,15 +51,15 @@ export default async function AdminDashboard() {
         <Card className="self-start">
           <CardHeader title="Latest orders" action={<LinkButton href="/admin/orders" size="sm" variant="ghost" icon={<ArrowRight className="size-4" aria-hidden="true" />}>All orders</LinkButton>} />
           {d.latest.length === 0 ? (
-            <EmptyState title="No orders yet">Orders appear here as soon as a restaurant places one.</EmptyState>
+            <EmptyNote title="No orders yet">Orders appear here as soon as a restaurant places one.</EmptyNote>
           ) : (
             <ul className="divide-y divide-line">
               {d.latest.map((o) => (
                 <li key={o.id}>
                   <Link href={`/admin/orders/${o.id}`} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-5 py-3 hover:bg-sunken">
                     <span className="min-w-0">
-                      <span className="block font-semibold text-ink">{orderRef(o.number!)} · {o.customer_name}</span>
-                      <span className="block text-[13px] text-ink-muted">{formatTimestamp(o.created_at!)} · delivery {formatShortDate(o.delivery_date!, d.today)}</span>
+                      <span className="block font-semibold text-ink">{orderRef(o.number!)}, {o.customer_name}</span>
+                      <span className="block text-[13px] text-ink-muted">{formatTimestamp(o.created_at!)}, delivery {formatShortDate(o.delivery_date!, d.today)}</span>
                     </span>
                     <span className="flex flex-wrap items-center gap-2">
                       <OrderStatusBadge status={o.status!} />

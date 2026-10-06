@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Inbox, Mail, MapPin, Phone } from "lucide-react";
+import { ArrowRight, Mail, MapPin, Phone } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
+import { EmptyNote } from "@/components/admin/empty-note";
 import { PageHeader } from "@/components/ui/page-header";
 import { formatTimestamp } from "@/domain/dates";
 import { createClient } from "@/lib/supabase/server";
@@ -23,10 +23,10 @@ export default async function ApprovalsPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Daily" title="Registration approvals" description="Restaurants that registered and are waiting for you. Oldest first." />
+      <PageHeader title="Registration approvals" description="Restaurants that registered and are waiting for you. Oldest first." />
       {pending.length === 0 ? (
         <Card>
-          <EmptyState icon={<Inbox />} title="Nobody is waiting">New registrations appear here and in the sidebar badge.</EmptyState>
+          <EmptyNote title="Nobody is waiting">New registrations appear here and in the sidebar badge.</EmptyNote>
         </Card>
       ) : (
         <ul className="grid gap-3 lg:grid-cols-2">
@@ -36,7 +36,7 @@ export default async function ApprovalsPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h2 className="text-lg font-semibold text-ink group-hover:text-primary">{c.business_name}</h2>
-                    <p className="text-sm text-ink-muted">{c.contact_name ?? "No contact name"} · registered {formatTimestamp(c.created_at)}</p>
+                    <p className="text-sm text-ink-muted">{c.contact_name ?? "No contact name"}, registered {formatTimestamp(c.created_at)}</p>
                   </div>
                   <span className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-primary">
                     Review <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />

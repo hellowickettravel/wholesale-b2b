@@ -1,15 +1,21 @@
-import { AlertTriangle, CheckCircle2, Clock } from "lucide-react";
+import type { ReactNode } from "react";
+import { PlateMessage } from "@/components/brand/plate-message";
 
-/** Full-card state for the driver pages (done, expired, not valid). */
-export function Message({ tone, title, children }: { tone: "success" | "warning"; title: string; children: React.ReactNode }) {
-  const Icon = tone === "success" ? CheckCircle2 : title.includes("expired") ? Clock : AlertTriangle;
+/**
+ * Full-screen state for the driver pages (recorded, expired, not valid): one enamel plate on a shelf
+ * ground. Green ground (cardamom) for done, jute for anything that needs the driver to do something.
+ */
+export function Message({ tone, title, children }: { tone: "success" | "warning"; title: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col items-center rounded-[var(--radius-lg)] border border-line bg-raised px-6 py-10 text-center">
-      <span className={`grid size-14 place-items-center rounded-full ${tone === "success" ? "bg-success-soft text-success" : "bg-warning-soft text-warning"}`}>
-        <Icon className="size-7" aria-hidden="true" />
-      </span>
-      <h1 className="mt-4 text-xl font-bold">{title}</h1>
-      <p className="mt-2 text-[15px] text-ink-muted">{children}</p>
-    </div>
+    <PlateMessage
+      headingLevel={1}
+      ground={tone === "success" ? "tea-powders-and-milk-mix" : "default"}
+      tab={tone === "success" ? "Done" : undefined}
+      title={title}
+      fit="full"
+      className="rounded-[var(--radius-xl)]"
+    >
+      <p>{children}</p>
+    </PlateMessage>
   );
 }

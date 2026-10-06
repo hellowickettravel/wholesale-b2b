@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
+import { FilterChips } from "@/components/admin/filter-chips";
 import Link from "next/link";
-import { Bell, ChevronRight, PackageOpen } from "lucide-react";
+import { Bell, ChevronRight } from "lucide-react";
 import { DeliveryStatusBadge } from "@/components/shop/order-status";
 import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
+import { EmptyNote } from "@/components/admin/empty-note";
 import { PageHeader } from "@/components/ui/page-header";
 import { formatDayDate, formatTimestamp } from "@/domain/dates";
 import { orderRef } from "@/domain/status";
-import { cn } from "@/lib/cn";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/server/auth";
-import { markAllRead } from "./orders/[id]/actions";
+import { markAllRead } from "../orders/[id]/actions";
 
 export const metadata: Metadata = { title: "Orders" };
 
@@ -40,7 +40,7 @@ export default async function SupplierOrders({ searchParams }: PageProps<"/suppl
 
   return (
     <>
-      <PageHeader eyebrow={viewer.supplier!.name} title="Your orders" description="Deliveries assigned to you. Open one to see the items, accept it and send your driver a link." />
+      <PageHeader title="Your orders" description="Deliveries assigned to you. Open one to see the items, accept it and send your driver a link." />
 
       {notes && notes.length ? (
         <section aria-labelledby="notes-heading" className="mb-5 rounded-[var(--radius-lg)] border border-accent/40 bg-accent-soft p-4">
@@ -55,9 +55,9 @@ export default async function SupplierOrders({ searchParams }: PageProps<"/suppl
           <ul className="mt-2 space-y-1">
             {notes.map((n) => (
               <li key={n.id}>
-                <Link href={n.link ?? "/supplier"} className="block rounded-[var(--radius-md)] px-2 py-1.5 text-sm hover:bg-white/50">
+                <Link href={n.link ?? "/supplier"} className="block rounded-[var(--radius-md)] px-2 py-1.5 text-sm hover:bg-raised/70">
                   <span className="font-semibold text-ink">{n.title}</span>
-                  {n.body ? <span className="text-ink-muted"> · {n.body}</span> : null}
+                  {n.body ? <span className="text-ink-muted">: {n.body}</span> : null}
                   <span className="block text-xs text-ink-subtle">{formatTimestamp(n.created_at)}</span>
                 </Link>
               </li>
@@ -66,21 +66,7 @@ export default async function SupplierOrders({ searchParams }: PageProps<"/suppl
         </section>
       ) : null}
 
-      <nav aria-label="Filter orders" className="mb-3 flex gap-2">
-        {TABS.map((t) => (
-          <Link
-            key={t.key}
-            href={t.key === "open" ? "/supplier" : `/supplier?show=${t.key}`}
-            aria-current={t.key === tab.key ? "page" : undefined}
-            className={cn(
-              "rounded-full border px-3.5 py-1.5 text-sm font-medium",
-              t.key === tab.key ? "border-primary bg-primary text-primary-ink" : "border-line-strong bg-raised text-ink hover:bg-sunken",
-            )}
-          >
-            {t.label}
-          </Link>
-        ))}
-      </nav>
+      <FilterChips label="Filter orders" current={tab.key} items={TABS.map((t) => ({ key: t.key, href: t.key === "open" ? "/supplier" : `/supplier?show=${t.key}`, label: t.label }))} />
 
       {orders && orders.length > 0 ? (
         <ul className="divide-y divide-line overflow-hidden rounded-[var(--radius-lg)] border border-line bg-raised">
@@ -93,7 +79,7 @@ export default async function SupplierOrders({ searchParams }: PageProps<"/suppl
                     <DeliveryStatusBadge status={o.status!} />
                   </div>
                   <p className="mt-1 truncate text-sm text-ink">
-                    <span className="font-medium">{formatDayDate(o.delivery_date!)}</span> · {o.customer_name}
+                    <span className="font-medium">{formatDayDate(o.delivery_date!)}</span>, {o.customer_name}
                   </p>
                   <p className="truncate text-[13px] text-ink-muted">{o.delivery_address}</p>
                 </div>
@@ -104,9 +90,9 @@ export default async function SupplierOrders({ searchParams }: PageProps<"/suppl
         </ul>
       ) : (
         <div className="rounded-[var(--radius-lg)] border border-dashed border-line-strong bg-raised">
-          <EmptyState icon={<PackageOpen />} title={tab.key === "open" ? "Nothing to deliver" : "No orders here yet"}>
+          <EmptyNote title={tab.key === "open" ? "Nothing to deliver" : "No orders here yet"}>
             When a restaurant orders something you supply, it appears here and we let you know.
-          </EmptyState>
+          </EmptyNote>
         </div>
       )}
     </>

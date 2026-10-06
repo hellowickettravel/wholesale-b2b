@@ -1,6 +1,6 @@
-import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/cn";
+import { AppLink } from "./route-progress";
 import { Spinner } from "./spinner";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger" | "accent";
@@ -52,13 +52,13 @@ export function Button({ variant, size, block, loading, icon, className, childre
   );
 }
 
-type LinkButtonProps = ComponentProps<typeof Link> & { variant?: Variant; size?: Size; block?: boolean; icon?: ReactNode };
+type LinkButtonProps = ComponentProps<typeof AppLink> & { variant?: Variant; size?: Size; block?: boolean; icon?: ReactNode };
 
 export function LinkButton({ variant, size, block, icon, className, children, ...rest }: LinkButtonProps) {
   return (
-    <Link className={buttonClasses({ variant, size, block, className })} {...rest}>
+    <AppLink className={buttonClasses({ variant, size, block, className })} {...rest}>
       {icon}
       {children}
-    </Link>
+    </AppLink>
   );
 }

@@ -8,6 +8,7 @@ export default function NotFound() {
   return (
     <StatusPage
       code="404"
+      ground="rice"
       title="We can't find that page"
       actions={
         <>

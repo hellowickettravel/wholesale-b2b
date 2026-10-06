@@ -1,10 +1,11 @@
 import { Badge, type Tone } from "@/components/ui/badge";
 import { STATUS_LABEL, SUPPLIER_STATUS_LABEL, type OrderStatus, type SupplierOrderStatus } from "@/domain/status";
 
+/** placed: turmeric mist, with the supplier: indigo, on the road: cardamom, delivered: leaf, finished: kraft, cancelled: chilli. */
 const ORDER_TONE: Record<OrderStatus, Tone> = {
-  placed: "info",
-  sent: "primary",
-  out_for_delivery: "accent",
+  placed: "accent",
+  sent: "info",
+  out_for_delivery: "primary",
   partially_delivered: "warning",
   delivered: "success",
   completed: "neutral",
@@ -12,9 +13,9 @@ const ORDER_TONE: Record<OrderStatus, Tone> = {
 };
 
 const SUPPLIER_TONE: Record<SupplierOrderStatus, Tone> = {
-  placed: "info",
-  sent: "primary",
-  out_for_delivery: "accent",
+  placed: "accent",
+  sent: "info",
+  out_for_delivery: "primary",
   delivered: "success",
   cancelled: "danger",
 };
