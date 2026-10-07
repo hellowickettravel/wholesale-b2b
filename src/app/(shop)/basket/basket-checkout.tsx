@@ -73,6 +73,8 @@ function BasketCheckoutForm({
   const [deliveryDate, setDeliveryDate] = useState(deliveryDates[0] ?? "");
   const [terms, setTerms] = useState<PaymentTerms>("on_delivery");
   const continueRef = useRef<HTMLAnchorElement>(null);
+  const collapse = useCollapseTransition();
+  const instant = useInstant();
 
   const orderable = lines.filter((l) => l.problem === null && l.pricePence !== null);
   const blocked = lines.some((l) => l.problem !== null);
@@ -271,11 +273,24 @@ function BasketCheckoutForm({
             {fe.payment_terms ? <p className="mt-1.5 text-sm font-semibold text-danger">{fe.payment_terms}</p> : null}
           </fieldset>
 
-          {terms === "on_date" ? (
-            <Field label="Pay by" error={fe.pay_date}>
-              {(p) => <Input {...p} type="date" name="pay_date" min={today} max={deliveryDate ? addDays(deliveryDate, 60) : undefined} defaultValue={deliveryDate} />}
-            </Field>
-          ) : null}
+          {/* The field reveals (height + opacity) instead of shoving the note and the button down. The wrapper
+              carries the 1rem that space-y-4 would give it, animated with it, so nothing jumps at the end.
+              Overflow is clipped only while it moves, so the input's focus ring is never cut off. */}
+          <AnimatePresence initial={false}>
+            {terms === "on_date" ? (
+              <m.div
+                key="pay-by"
+                initial={instant ? false : { height: 0, opacity: 0, marginBottom: 0, overflow: "hidden" }}
+                animate={{ height: "auto", opacity: 1, marginBottom: "1rem", transitionEnd: { overflow: "visible" } }}
+                exit={instant ? undefined : { height: 0, opacity: 0, marginBottom: 0, overflow: "hidden" }}
+                transition={collapse}
+              >
+                <Field label="Pay by" error={fe.pay_date}>
+                  {(p) => <Input {...p} type="date" name="pay_date" min={today} max={deliveryDate ? addDays(deliveryDate, 60) : undefined} defaultValue={deliveryDate} />}
+                </Field>
+              </m.div>
+            ) : null}
+          </AnimatePresence>
 
           <Field label="Note for this order (optional)" error={fe.note} hint="Delivery instructions, or anything else we should know.">
             {(p) => <Textarea {...p} name="note" maxLength={2000} rows={3} />}

@@ -146,3 +146,13 @@
 - Playwright runs with `reducedMotion: "reduce"` so axe never samples a half-faded element. After `page.goto` on a page whose client form must be hydrated before an action, wait for `networkidle` (the driver proof form does, in `delivery.spec.ts`).
 - `cn()` is clsx only (no tailwind-merge): do not pass conflicting utilities (`aspect-square` + `aspect-[4/3]`) to a component that already sets one.
 - Local DB may contain leftovers from E2E runs (`E2E ...` categories on the home page): `npm run db:reset` before screenshots you want to keep.
+
+## Motion (7 Oct, D46)
+- **`motion` lives only in `src/components/motion/*` and the basket route**, imported from `framer-motion` (see D46 for why), and only via `MotionRoot`: `m.*` never `motion.*`.
+- **Never give server-rendered, above-the-fold content a hidden `initial`.** It ships hidden in the HTML and animates only after hydration (LCP, axe). The hero and the confirmed page stay CSS for that reason.
+- **No `transition-*` class on an element motion animates.** Put the divider on the inner element, not a border on an animating row (a 1px border snaps away at the end of a height collapse).
+- **`inert` on an exiting row**, and move focus before removing the focused button.
+- **Reduced motion must be instant**, not just transform-free: `MotionConfig reducedMotion="user"` still animates height and opacity. Use `useCollapseTransition`/`useInstant`. The global reduced-motion rule in globals.css stays as it is (E2E and axe depend on it).
+- **Tokens:** `--ease-in` and `--ease-spring` are gone on purpose; `--ease-drawer` is new. `--ease-out` is mirrored in `components/motion/presets.ts`.
+- **Toasts are one slot**: a new toast supersedes the previous one (it plays its 140 ms exit under the new one). `EXIT_MS` in toast.tsx must equal `.toast-out` in globals.css.
+- The Add button is as wide as "Added" at all times (both labels share a grid cell). Do not make the label swap change the width.
