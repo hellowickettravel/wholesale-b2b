@@ -33,6 +33,7 @@ and `CLAUDE.md`.
 | 8. Invoices (PDF) and email (Resend) | **Invoices done** on the same branch and PR. **Email sending deferred by the owner** (D40): messages are queued in `email_log`. |
 | 9. Polish and hardening | **Done** on the same branch and PR. No schema change. |
 | 11. Design refresh (owner request 6 Oct) | **Done on branch `claude/sleepy-cori-mq31fu`, not merged, not pushed** (GitHub write access returned 403 after a worker restart; reconnect GitHub and push, then open a PR). Verified: `npm run verify` (169 unit), 424 security, 57 E2E incl. axe on 33 screens and leak scans; screenshots at 390 and 1280 reviewed; no overflow. See D43–D45. No schema change. |
+| 11b. Motion pass (7 Oct) | **Done in the working tree, uncommitted.** `motion` 14.0.0 on the basket route only (D46); other motion is CSS. Verified by frame captures and `npm run verify`; the E2E suite and axe with motion on were **not** run by the agent: run `npm run test:e2e` first. See D46 and MEMORY.md "Motion". |
 | 10. Deploy | **Done.** PR #2 merged to `main` (69e8b62); Vercel production deployment reported success. The live site itself was not opened by the agent (network limits): owner smoke test below. |
 
 ### Done in Phase 2 (verified locally: `npm run verify` green, 96 unit, 257 security, 24 E2E)
@@ -304,6 +305,7 @@ the Resend account and domain exist.
 **E. First admin**: Supabase → Authentication → Users → Add user (the client's email, auto-confirm), then in the
 SQL editor: `select public.promote_to_admin('client@email');` → expect one row "promote_to_admin" with no error.
 Confirm with: `select email, role from public.profiles;`
+**Done 6 Oct 2026 for the owner's admin login:** `admin@groceryb2b.com` was created on hosted (confirmed, email provider, role admin, active, no customer link) with the password the owner chose in chat (not stored anywhere in the repo; the owner should change it after first sign-in, Supabase → Authentication → Users, or the reset-password flow). The same creation method was verified on the local stack (password grant works, a wrong password is refused, the login page lands on `/admin`). The live sign-in itself could not be tested from the sandbox (egress blocked).
 
 **F. Decide**: keep Vercel Authentication on `*.vercel.app` (only Vercel team members can open the site) until
 launch, or switch it off now for client review (Vercel → Settings → Deployment Protection). And whether to move

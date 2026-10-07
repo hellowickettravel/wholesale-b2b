@@ -1,6 +1,7 @@
 /*
  * The one landing sequence on the site (home hero, plays once): the photograph settles and the plate
- * follows. Transform only: nothing starts at opacity 0, so the photograph is the LCP element from the
+ * follows almost at once (60ms), no overshoot and no rotation, so the text is on whole pixels as soon as
+ * it stops. Transform only: nothing starts at opacity 0, so the photograph is the LCP element from the
  * first frame and the plate text is readable throughout. Reduced motion gets the finished page.
  */
 @keyframes hero-settle {
@@ -8,10 +9,10 @@
   to { transform: none; }
 }
 @keyframes plate-drop {
-  from { transform: translateY(14px) rotate(-0.8deg); }
+  from { transform: translateY(14px); }
   to { transform: none; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .hero-photo { animation: hero-settle 900ms var(--ease-out) both; }
-  .hero-plate { animation: plate-drop var(--dur-hero) var(--ease-spring) 200ms both; }
+  .hero-photo { animation: hero-settle 700ms var(--ease-out) both; }
+  .hero-plate { animation: plate-drop var(--dur-hero) var(--ease-out) 60ms both; }
 }

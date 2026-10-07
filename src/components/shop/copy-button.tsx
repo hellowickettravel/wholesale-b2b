@@ -20,7 +20,7 @@ export function CopyButton({ value, label }: { value: string; label: string }) {
       }}
       className="grid size-11 shrink-0 place-items-center rounded-[var(--radius-md)] text-ink-muted transition-colors duration-[var(--dur-instant)] hover:bg-sunken hover:text-ink active:bg-primary-soft"
     >
-      {copied ? <Check className="size-[18px] text-success motion-safe:animate-bump" strokeWidth={3} aria-hidden="true" /> : <Copy className="size-[18px]" aria-hidden="true" />}
+      {copied ? <Check className="size-[18px] text-success motion-safe:animate-[ui-fade-in_var(--dur-fast)_var(--ease-out)_both]" strokeWidth={3} aria-hidden="true" /> : <Copy className="size-[18px]" aria-hidden="true" />}
     </button>
   );
 }

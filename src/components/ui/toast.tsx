@@ -9,29 +9,34 @@ const Ctx = createContext<(t: Omit<ToastItem, "id">) => void>(() => {});
 
 const SHOW_MS = 4500;
 const MIN_LEFT_MS = 1500; // after a hover or focus, never leave less than this before it goes
-const EXIT_MS = 160;
+const EXIT_MS = 140; // must equal .toast-out in globals.css
 
-/** One toast: slides up on arrival, leaves quickly, waits while hovered or focused, can be dismissed. */
-function ToastView({ item, onDone }: { item: ToastItem; onDone: (id: number) => void }) {
+/**
+ * One toast: slides up on arrival, leaves quickly, waits while hovered or focused, can be dismissed.
+ * `superseded` means a newer toast has arrived: this one plays its exit under it and is removed, so only one
+ * toast is ever on screen and a second add never shoves the first one up.
+ */
+function ToastView({ item, superseded, onDone }: { item: ToastItem; superseded: boolean; onDone: (id: number) => void }) {
   const [closing, setClosing] = useState(false);
   const [paused, setPaused] = useState(false);
   const left = useRef(SHOW_MS);
+  const isClosing = closing || superseded;
 
   useEffect(() => {
-    if (closing || paused) return;
+    if (isClosing || paused) return;
     const started = Date.now();
     const t = setTimeout(() => setClosing(true), left.current);
     return () => {
       clearTimeout(t);
       left.current = Math.max(MIN_LEFT_MS, left.current - (Date.now() - started));
     };
-  }, [closing, paused]);
+  }, [isClosing, paused]);
 
   useEffect(() => {
-    if (!closing) return;
+    if (!isClosing) return;
     const t = setTimeout(() => onDone(item.id), EXIT_MS);
     return () => clearTimeout(t);
-  }, [closing, item.id, onDone]);
+  }, [isClosing, item.id, onDone]);
 
   const danger = item.tone === "danger";
   return (
@@ -42,9 +47,9 @@ function ToastView({ item, onDone }: { item: ToastItem; onDone: (id: number) => 
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
       className={cn(
-        "pointer-events-auto flex min-h-12 max-w-md items-center gap-2.5 rounded-[var(--radius-md)] py-1 pl-4 pr-1 text-sm font-semibold shadow-pop",
+        "col-start-1 row-start-1 flex min-h-12 max-w-md items-center gap-2.5 rounded-[var(--radius-md)] py-1 pl-4 pr-1 text-sm font-semibold shadow-pop",
         danger ? "bg-danger text-primary-ink" : "bg-dark text-on-dark",
-        closing ? "toast-out" : "motion-safe:animate-toast-in",
+        isClosing ? "toast-out pointer-events-none" : "pointer-events-auto motion-safe:animate-toast-in",
       )}
     >
       {danger ? (
@@ -77,10 +82,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div
         aria-live="polite"
-        className="pointer-events-none fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-50 flex flex-col items-center gap-2 px-4 sm:bottom-6"
+        className="pointer-events-none fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-50 grid items-end justify-items-center px-4 sm:bottom-6"
       >
-        {items.map((t) => (
-          <ToastView key={t.id} item={t} onDone={remove} />
+        {/* One cell: toasts stack on top of each other, so nothing is pushed around when a new one arrives. */}
+        {items.map((t, i) => (
+          <ToastView key={t.id} item={t} superseded={i < items.length - 1} onDone={remove} />
         ))}
       </div>
     </Ctx.Provider>

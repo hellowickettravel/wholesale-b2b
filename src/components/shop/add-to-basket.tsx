@@ -50,6 +50,7 @@ export function AddToBasket({
   const toast = useToast();
   const size = sizes.find((s) => s.id === sizeId) ?? firstOrderable;
   const page = layout === "page";
+  const idle = page ? "Add to basket" : "Add";
 
   // Product page, phones: dock the buy bar above the tab bar while its inline slot is out of view.
   const slot = useRef<HTMLDivElement>(null);
@@ -116,10 +117,15 @@ export function AddToBasket({
       loading={pending}
       size={page ? "lg" : "md"}
       className={cn(page ? "flex-1 md:flex-none md:px-8" : "px-5")}
-      icon={added ? <Check className="size-4 motion-safe:animate-bump" strokeWidth={3} aria-hidden="true" /> : <ShoppingBasket className="size-4" aria-hidden="true" />}
+      icon={added ? <Check className="size-4 motion-safe:animate-[ui-fade-in_var(--dur-fast)_var(--ease-out)_both]" strokeWidth={3} aria-hidden="true" /> : <ShoppingBasket className="size-4" aria-hidden="true" />}
       aria-label={`Add ${productName} ${size.sizeLabel} to basket`}
     >
-      {added ? "Added" : page ? "Add to basket" : "Add"}
+      {/* Both labels share one grid cell and the idle one stays invisible, so "Add" and "Added" never change the
+          button's width (the stepper beside it does not shift). The accessible name is the aria-label above. */}
+      <span className="inline-grid">
+        <span className={cn("col-start-1 row-start-1", added && "invisible")}>{idle}</span>
+        <span aria-hidden="true" className={cn("col-start-1 row-start-1", !added && "invisible")}>Added</span>
+      </span>
     </Button>
   );
   const stepper = <QtyStepper value={qty} onChange={setQty} label={`Quantity of ${productName} ${size.sizeLabel}`} disabled={pending} className={page ? "h-12" : undefined} />;

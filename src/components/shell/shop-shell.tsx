@@ -6,6 +6,7 @@ import { SignOutButton } from "@/components/auth/sign-out-button";
 import { BasketBadge } from "@/components/shop/basket-badge";
 import { ToastProvider } from "@/components/ui/toast";
 import { NavLink } from "./nav-link";
+import { TabIndicator } from "./tab-indicator";
 
 const items = [
   { href: "/shop", label: "Shop", icon: Store, exact: false },
@@ -77,16 +78,17 @@ export function ShopShell({ children, businessName, basketCount = 0, homeHref = 
           aria-label="Account"
           className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-raised pb-[env(safe-area-inset-bottom)] md:hidden"
         >
-          <ul className="grid grid-cols-5">
+          <ul className="relative grid grid-cols-5">
+            <TabIndicator items={items.map(({ href, exact }) => ({ href, exact }))} />
             {items.map(({ href, label, icon: Icon, exact }) => (
               <li key={href}>
                 <NavLink
                   href={href}
                   exact={exact}
-                  className="group flex min-h-16 flex-col items-center justify-center gap-0.5 pt-1 text-xs font-semibold text-ink-muted transition-colors active:bg-sunken"
+                  className="flex min-h-16 flex-col items-center justify-start gap-0.5 pt-2 text-xs font-semibold text-ink-muted transition-colors active:bg-sunken"
                   activeClassName="!text-ink font-bold"
                 >
-                  <span className="relative grid h-8 w-14 place-items-center rounded-full transition-colors duration-[var(--dur-fast)] group-aria-[current=page]:bg-accent">
+                  <span className="relative grid h-8 w-14 place-items-center rounded-full">
                     <Icon className="size-[22px]" aria-hidden="true" />
                     {href === "/basket" ? <BasketBadge count={basketCount} className="absolute -right-0.5 -top-1 ring-2 ring-[var(--surface-raised)]" /> : null}
                   </span>

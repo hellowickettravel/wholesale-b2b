@@ -362,7 +362,7 @@ The owner asked for a warm wholesale-grocery look, not fintech, with real motion
 - **Type:** Young Serif (one weight, 400, headings and signs) + Mukta (body, UI, prices; tabular figures). Body 17px, secondary 15px, nothing under 13px. No all-caps labels, no tracked eyebrows.
 - **The one bold device: the enamel plate**, a cream sign with a thin coloured rim. It names things (hero statement, every product tile, every shelf, status moments) and never holds a form or table. Restraint rules are in the direction notes and the CSS comments.
 - **No-photo products** (about 400 of 837, plus 327 grey packaging cut-outs): a shelf-colour tile with the product name on a plate and the pack size on its lower rim; real packshots sit on a paper mat inside the plate. Replaces the old gradient + line-icon art. When real food photos arrive they replace the plate contents; the frame stays.
-- **Skipped on purpose:** per-unit price line (needs a tested domain helper), size chips (the native select is kept for E2E and accessibility), a motion library (CSS only), view transitions.
+- **Skipped on purpose:** per-unit price line (needs a tested domain helper), size chips (the native select is kept for E2E and accessibility), a motion library (superseded by D46: `motion` on the basket route only), view transitions.
 - **Admin, supplier and driver screens** get a lighter reskin (clove sidebar, Mukta headings, same badges); the admin order-lines editor, which overlapped at 1280, was rebuilt on fixed columns.
 
 ## D44. Photography (Phase 11)
@@ -370,3 +370,11 @@ Stock-photo hosts are blocked in the cloud sandbox, so no stock photo was fetche
 
 ## D45. Loading screens vs 404 status (Phase 11)
 A `loading.tsx` wraps every page below it in Suspense, and once the shell has streamed a page can no longer change its HTTP status: `notFound()` then returns **200** with the not-found screen. Public catalogue pages and the restaurant product page must return real 404s (tests and SEO), so skeletons exist for: list pages (shop and orders lists via a `(list)` route group, supplier list likewise, the public catalogue has none), leaf pages (basket, invoices, account), and admin (any admin page; a bad admin id shows the not-found screen with status 200, accepted for a staff-only area). Detail routes (`catalogue/[slug]`, `shop/p/[slug]`, `orders/[id]`, `supplier/orders/[id]`, `d/[token]`) deliberately have no `loading.tsx`; the top route bar (`useLinkStatus`) gives the feedback instead.
+
+## D46. Motion pass: correct, not more (7 Oct, owner request)
+Amends D43 ("CSS only"). The owner asked for `motion` where it earns its place. It does in exactly one place: the basket route, for removing a line (an exit after unmount of a `height:auto` row) and, optionally, the "Pay by" reveal. Everything else stays CSS.
+- **Loading:** `MotionRoot` (`LazyMotion` + `m` + `domAnimation`, `strict`, `MotionConfig reducedMotion="user"`) wraps `BasketCheckout` only. The features are a dynamic import, so they never block hydration; other routes load 0 bytes of it. `domMax` is not needed (no layout, layoutId, drag).
+- **Import from `framer-motion`, not `motion/react`.** Same API, same pinned 14.0.0 (a dependency of `motion`), but Turbopack did not tree-shake the `motion/react` barrel: +45 kB gz on /basket against +20 kB. Switch back if that improves.
+- **Reduced motion means instant:** `MotionConfig` alone still animates height and opacity, so transitions come from `presets.ts` (`duration: 0`) and the exit is omitted entirely.
+- **CSS items:** add feedback (button width locked, no check bump, badge pulse 1.18 over 280 ms, no undershoot), one-slot toast (140 ms ease-out exit), phone tab pill as a CSS transform (not `layoutId`: it must keep moving while React renders the next page, and `layoutId` needs `domMax`), free-delivery bar on `transform`, `ease-in` and `--ease-spring` removed, route bar delayed 120 ms, hero 520 ms/60 ms delay without rotation, confirmed stamp lands flat and the tick draws itself.
+- **Rejected:** page transitions, list staggers, number tweening, fly-to-basket, desktop nav pill, swipe-to-dismiss. Reasons: frequency, function, or LCP/axe risk.

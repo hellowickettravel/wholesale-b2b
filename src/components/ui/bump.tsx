@@ -4,8 +4,8 @@ import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 /**
- * Replays the `bump` keyframe (1 to 1.3 to 1 on the spring curve, 380ms) each time `value` changes after the
- * first render. A plain page load stays still. Reduced motion is handled by the global rule.
+ * Replays the `bump` keyframe (one pulse, 1 to 1.18 to 1, 280ms, no overshoot) each time `value` changes after
+ * the first render. A plain page load stays still. Reduced motion is handled by the global rule.
  *
  *   <BumpOnChange value={count}><span className="badge">{count}</span></BumpOnChange>
  *
