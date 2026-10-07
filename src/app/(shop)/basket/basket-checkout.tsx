@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { startTransition, useActionState, useState, useTransition } from "react";
+import { startTransition, useActionState, useRef, useState, useTransition, type ReactNode } from "react";
+import { AnimatePresence, m, useIsPresent } from "framer-motion";
 import { AlertTriangle, Trash2, Truck } from "lucide-react";
 import { ProductImage } from "@/components/brand/product-image";
+import { MotionRoot } from "@/components/motion/motion-root";
+import { useCollapseTransition, useInstant } from "@/components/motion/presets";
 import { QtyStepper } from "@/components/shop/qty-stepper";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -32,17 +35,27 @@ const TERMS: { value: PaymentTerms; label: string; hint: (delivery: string | nul
  * Basket + checkout. Totals are previewed here with the same domain code the server uses;
  * the server recomputes everything when the order is placed and refuses it if the total moved.
  */
-export function BasketCheckout({
-  lines: initial,
-  delivery,
-  deliveryDates,
-  today,
-}: {
+export function BasketCheckout(props: BasketCheckoutProps) {
+  return (
+    <MotionRoot>
+      <BasketCheckoutForm {...props} />
+    </MotionRoot>
+  );
+}
+
+type BasketCheckoutProps = {
   lines: BasketLine[];
   delivery: DeliveryRules;
   deliveryDates: string[];
   today: string;
-}) {
+};
+
+function BasketCheckoutForm({
+  lines: initial,
+  delivery,
+  deliveryDates,
+  today,
+}: BasketCheckoutProps) {
   // Local quantities are the source of truth while editing; a new server list (an item
   // removed, or prices refreshed after a failed checkout) replaces them.
   const sig = JSON.stringify(initial);
@@ -59,6 +72,7 @@ export function BasketCheckout({
   const [state, formAction, placing] = useActionState<CheckoutState, FormData>(placeOrder, {});
   const [deliveryDate, setDeliveryDate] = useState(deliveryDates[0] ?? "");
   const [terms, setTerms] = useState<PaymentTerms>("on_delivery");
+  const continueRef = useRef<HTMLAnchorElement>(null);
 
   const orderable = lines.filter((l) => l.problem === null && l.pricePence !== null);
   const blocked = lines.some((l) => l.problem !== null);
@@ -77,6 +91,20 @@ export function BasketCheckout({
   const progress = delivery.minOrderPence > 0 ? Math.min(100, Math.round((totals.goodsNetPence / delivery.minOrderPence) * 100)) : 100;
   const card = "rounded-[var(--radius-lg)] border border-line bg-raised shadow-rest";
 
+  // Pressing Remove unmounts the focused button. Hand focus to the next row's Remove (else the previous
+  // row's, else "Continue shopping") first, so a keyboard user is never dropped onto <body>.
+  function moveFocusFrom(button: HTMLElement) {
+    const row = button.closest("li");
+    const target = (start: Element | null | undefined, step: "nextElementSibling" | "previousElementSibling") => {
+      for (let el = start; el; el = el[step]) {
+        const b = el.hasAttribute("inert") ? null : el.querySelector<HTMLElement>("[data-remove-line]");
+        if (b) return b;
+      }
+      return null;
+    };
+    (target(row?.nextElementSibling, "nextElementSibling") ?? target(row?.previousElementSibling, "previousElementSibling") ?? continueRef.current)?.focus();
+  }
+
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start lg:gap-8">
       <section aria-labelledby="lines-heading" className="min-w-0">
@@ -93,9 +121,10 @@ export function BasketCheckout({
                 : "Free delivery"}
           </p>
           <div className="mt-2.5 h-2.5 overflow-hidden rounded-full bg-sunken" aria-hidden="true">
+            {/* A full-width fill slid left by the shortfall (transform only; the track clips its left end). */}
             <div
-              className="h-full rounded-full bg-accent transition-[width] duration-[var(--dur-slow)] ease-[var(--ease-out)]"
-              style={{ width: `${progress}%` }}
+              className="h-full w-full rounded-full bg-accent transition-transform duration-[var(--dur-base)] ease-[var(--ease-out)]"
+              style={{ transform: `translateX(${progress - 100}%)` }}
             />
           </div>
           <p className="mt-2 text-sm text-ink-muted">
@@ -104,69 +133,69 @@ export function BasketCheckout({
         </div>
 
         {lineError ? <Alert tone="danger" className="mb-3">{lineError}</Alert> : null}
-        <ul className={cn(card, "divide-y divide-line overflow-hidden")}>
-          {lines.map((l) => {
-            const label = `${l.productName} ${l.sizeLabel}`;
-            return (
-              <li
-                key={l.variantId}
-                className={cn(
-                  "grid grid-cols-[3.5rem_minmax(0,1fr)] gap-x-3 gap-y-3 px-3 py-3.5 sm:grid-cols-[4rem_minmax(0,1fr)_auto] sm:items-center sm:gap-x-4 sm:px-4",
-                  l.problem && "border-l-4 border-l-warning bg-warning-soft",
-                )}
-              >
-                <ProductImage
-                  variant="thumb"
-                  src={publicImageUrl(l.imagePath)}
-                  alt=""
-                  name={l.productName}
-                  categorySlug={l.categorySlug}
-                  sizeLabel={l.sizeLabel}
-                  sizes="64px"
-                  className={cn("size-14 rounded-[var(--radius-md)] sm:size-16", l.problem && "opacity-60 saturate-50")}
-                />
-                <div className="min-w-0 self-center">
-                  {l.productSlug ? (
-                    <Link href={`/shop/p/${l.productSlug}`} className="line-clamp-2 text-[1.0625rem] font-bold leading-snug text-ink hover:text-primary hover:underline hover:underline-offset-2">{l.productName}</Link>
-                  ) : (
-                    <span className="line-clamp-2 text-[1.0625rem] font-bold leading-snug text-ink">{l.productName}</span>
-                  )}
-                  <p className="mt-0.5 text-sm font-semibold text-ink-muted">{l.sizeLabel}</p>
-                  {l.pricePence !== null && !l.problem ? (
-                    <p className="text-[0.8125rem] text-ink-muted">
-                      <span className="tabular">{formatPence(l.pricePence)}</span> each{l.vatRateBp ? `, plus ${formatBp(l.vatRateBp)} VAT` : ", no VAT"}
-                    </p>
-                  ) : null}
-                  {l.problem ? (
-                    <p className="mt-1 inline-flex items-center gap-1.5 text-sm font-bold text-warning">
-                      <AlertTriangle className="size-4 shrink-0" aria-hidden="true" /> {PROBLEM[l.problem]}
-                    </p>
-                  ) : null}
-                </div>
-                <div className="col-span-2 flex items-center gap-2 sm:col-span-1 sm:gap-3">
-                  {l.problem ? null : <QtyStepper value={l.qty} onChange={(q) => changeQty(l.variantId, q)} label={`Quantity of ${label}`} />}
-                  <span className="tabular ml-auto min-w-[4.5rem] text-right text-lg font-bold text-ink">
-                    {l.problem || l.pricePence === null ? "" : formatPence(l.pricePence * l.qty)}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => changeQty(l.variantId, 0)}
-                    aria-label={`Remove ${label}`}
-                    className={cn(
-                      "inline-flex h-11 items-center justify-center gap-1.5 rounded-[var(--radius-md)] font-bold transition-colors hover:bg-danger-soft hover:text-danger",
-                      l.problem ? "border-[1.5px] border-warning bg-raised px-4 text-warning" : "w-11 text-ink-muted",
-                    )}
-                  >
-                    <Trash2 className="size-[18px]" aria-hidden="true" />
-                    {l.problem ? <span className="text-sm">Remove</span> : null}
-                  </button>
-                </div>
-              </li>
-            );
-          })}
+        <ul className={cn(card, "overflow-hidden")}>
+          <AnimatePresence initial={false}>
+            {lines.map((l) => {
+              const label = `${l.productName} ${l.sizeLabel}`;
+              return (
+                <BasketRow key={l.variantId} problem={!!l.problem}>
+                    <ProductImage
+                      variant="thumb"
+                      src={publicImageUrl(l.imagePath)}
+                      alt=""
+                      name={l.productName}
+                      categorySlug={l.categorySlug}
+                      sizeLabel={l.sizeLabel}
+                      sizes="64px"
+                      className={cn("size-14 rounded-[var(--radius-md)] sm:size-16", l.problem && "opacity-60 saturate-50")}
+                    />
+                    <div className="min-w-0 self-center">
+                      {l.productSlug ? (
+                        <Link href={`/shop/p/${l.productSlug}`} className="line-clamp-2 text-[1.0625rem] font-bold leading-snug text-ink hover:text-primary hover:underline hover:underline-offset-2">{l.productName}</Link>
+                      ) : (
+                        <span className="line-clamp-2 text-[1.0625rem] font-bold leading-snug text-ink">{l.productName}</span>
+                      )}
+                      <p className="mt-0.5 text-sm font-semibold text-ink-muted">{l.sizeLabel}</p>
+                      {l.pricePence !== null && !l.problem ? (
+                        <p className="text-[0.8125rem] text-ink-muted">
+                          <span className="tabular">{formatPence(l.pricePence)}</span> each{l.vatRateBp ? `, plus ${formatBp(l.vatRateBp)} VAT` : ", no VAT"}
+                        </p>
+                      ) : null}
+                      {l.problem ? (
+                        <p className="mt-1 inline-flex items-center gap-1.5 text-sm font-bold text-warning">
+                          <AlertTriangle className="size-4 shrink-0" aria-hidden="true" /> {PROBLEM[l.problem]}
+                        </p>
+                      ) : null}
+                    </div>
+                    <div className="col-span-2 flex items-center gap-2 sm:col-span-1 sm:gap-3">
+                      {l.problem ? null : <QtyStepper value={l.qty} onChange={(q) => changeQty(l.variantId, q)} label={`Quantity of ${label}`} />}
+                      <span className="tabular ml-auto min-w-[4.5rem] text-right text-lg font-bold text-ink">
+                        {l.problem || l.pricePence === null ? "" : formatPence(l.pricePence * l.qty)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          moveFocusFrom(e.currentTarget);
+                          changeQty(l.variantId, 0);
+                        }}
+                        data-remove-line=""
+                        aria-label={`Remove ${label}`}
+                        className={cn(
+                          "inline-flex h-11 items-center justify-center gap-1.5 rounded-[var(--radius-md)] font-bold transition-colors hover:bg-danger-soft hover:text-danger",
+                          l.problem ? "border-[1.5px] border-warning bg-raised px-4 text-warning" : "w-11 text-ink-muted",
+                        )}
+                      >
+                        <Trash2 className="size-[18px]" aria-hidden="true" />
+                        {l.problem ? <span className="text-sm">Remove</span> : null}
+                      </button>
+                    </div>
+                </BasketRow>
+              );
+            })}
+          </AnimatePresence>
         </ul>
         <p className="mt-4 text-sm text-ink-muted">
-          <Link href="/shop" className="inline-flex min-h-11 items-center font-bold text-primary hover:underline">Continue shopping</Link>
+          <Link ref={continueRef} href="/shop" className="inline-flex min-h-11 items-center font-bold text-primary hover:underline">Continue shopping</Link>
           <span className="ml-3">Prices are per unit, ex VAT.</span>
         </p>
       </section>
@@ -269,6 +298,41 @@ export function BasketCheckout({
         </section>
       </form>
     </div>
+  );
+}
+
+/**
+ * A basket row. The <li> is the animated shell (no padding, so only height has to animate); the row's look
+ * lives on the inner div. Removing a line collapses it (height 200ms, opacity 120ms) instead of letting the
+ * rows below jump. Only removal animates: quantity edits are tens of taps and stay instant. `initial={false}`:
+ * the first render and server HTML are never hidden or mid-animation. The exiting row is `inert`, so it can
+ * be neither focused nor clicked while it leaves. Under reduced motion there is no exit at all.
+ */
+function BasketRow({ problem, children }: { problem: boolean; children: ReactNode }) {
+  const present = useIsPresent(); // valid here: BasketRow is a direct child of AnimatePresence
+  const transition = useCollapseTransition();
+  const instant = useInstant();
+  return (
+    <m.li
+      inert={!present}
+      initial={false}
+      animate={{ height: "auto", opacity: 1 }}
+      exit={instant ? undefined : { height: 0, opacity: 0 }}
+      transition={transition}
+      style={{ overflow: "hidden" }}
+      // The divider is an inset hairline on the row (not a border on the <li>), so a row that is collapsing to
+      // height 0 leaves no 1px border behind to snap away at the end.
+      className="[&:not(:last-child)>div]:shadow-[inset_0_-1px_0_var(--line)]"
+    >
+      <div
+        className={cn(
+          "grid grid-cols-[3.5rem_minmax(0,1fr)] gap-x-3 gap-y-3 px-3 py-3.5 sm:grid-cols-[4rem_minmax(0,1fr)_auto] sm:items-center sm:gap-x-4 sm:px-4",
+          problem && "border-l-4 border-l-warning bg-warning-soft",
+        )}
+      >
+        {children}
+      </div>
+    </m.li>
   );
 }
 

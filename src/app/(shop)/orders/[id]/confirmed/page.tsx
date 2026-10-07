@@ -10,7 +10,11 @@ import { getBankSettings, getCustomerOrder } from "@/server/customer-orders";
 
 export const metadata: Metadata = { title: "Order placed" };
 
-/** After "Place order": the one reward moment. The plate stamps down, then the receipt rows follow it. */
+/**
+ * After "Place order": the one reward moment. The plate stamps down (320ms) while the tick draws itself, then
+ * the blocks rise one after another (70ms apart, so the bank details are not last to arrive). All CSS: the
+ * page is server-rendered and holds the payment details, so it must not wait for hydration to be visible.
+ */
 export default async function OrderConfirmedPage({ params }: PageProps<"/orders/[id]/confirmed">) {
   await requireRole("customer");
   const { id } = await params;
@@ -18,8 +22,8 @@ export default async function OrderConfirmedPage({ params }: PageProps<"/orders/
   if (!found) notFound();
   const { order, parts } = found;
   const ref = orderRef(order.number!);
-  // Each block fades up after the stamp has landed (motion-safe only; without motion everything is simply there).
-  const after = (n: number) => ({ animationDelay: `${380 + n * 120}ms` });
+  // Each block fades up just behind the stamp (motion-safe only; without motion everything is simply there).
+  const after = (n: number) => ({ animationDelay: `${240 + n * 70}ms` });
   const rise = "motion-safe:animate-toast-in";
 
   return (
@@ -27,8 +31,8 @@ export default async function OrderConfirmedPage({ params }: PageProps<"/orders/
       <div data-ground="rice" data-weave="a" className="weave grid place-items-center rounded-[var(--radius-xl)] px-4 py-12 sm:py-16">
         <div className="plate w-full max-w-xl px-6 py-8 text-center sm:px-8 sm:py-10 motion-safe:animate-stamp">
           <svg viewBox="0 0 48 48" className="mx-auto size-12 text-primary" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <circle cx="24" cy="24" r="20" strokeWidth="2.5" />
-            <path d="M15 25l7 7 12-14" />
+            <circle cx="24" cy="24" r="20" strokeWidth="2.5" pathLength="1" className="motion-safe:[stroke-dasharray:1] motion-safe:[stroke-dashoffset:1] motion-safe:animate-[draw_300ms_var(--ease-out)_80ms_both]" />
+            <path d="M15 25l7 7 12-14" pathLength="1" className="motion-safe:[stroke-dasharray:1] motion-safe:[stroke-dashoffset:1] motion-safe:animate-[draw_220ms_var(--ease-out)_300ms_both]" />
           </svg>
           <h1 className="mt-4 text-[clamp(1.625rem,1.2rem+2.4vw,2.5rem)] leading-[1.1] [text-wrap:wrap]">Order {ref} placed</h1>
         </div>

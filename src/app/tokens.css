@@ -85,10 +85,11 @@
   --dur-instant: 90ms;
   --dur-fast: 150ms;
   --dur-base: 220ms;
-  --dur-slow: 360ms;
-  --dur-hero: 700ms;
+  --dur-slow: 320ms; /* the order-confirmed stamp only */
+  --dur-hero: 520ms;
+  /* No ease-in and no spring on purpose: nothing here starts slow or bounces. The JS mirror of
+     --ease-out is src/components/motion/presets.ts; keep the two in sync. */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-in: cubic-bezier(0.55, 0, 1, 0.45);
-  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1); /* skeleton pulse and the badge bump */
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1); /* moving indicators and sheets */
 }

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { cn } from "@/lib/cn";
 
 /**
- * Basket count in a chilli badge, at least 20px. It bumps (once, on the spring curve) whenever the
+ * Basket count in a chilli badge, at least 20px. It bumps (one 280ms pulse to 1.18, no overshoot) whenever the
  * count changes after the first render, so adding an item is felt in the nav; a plain page load is still.
  */
 export function BasketBadge({ count, className }: { count: number; className?: string }) {
