@@ -3,6 +3,7 @@ import { useActionState } from "react";
 import { SubmitButton } from "@/components/auth/submit-button";
 import { Alert } from "@/components/ui/alert";
 import { Field, Input, Textarea } from "@/components/ui/field";
+import { LoginChoice } from "@/components/admin/login-choice";
 import type { FormState } from "@/lib/validation/auth";
 
 type Action = (prev: FormState, fd: FormData) => Promise<FormState>;
@@ -34,7 +35,8 @@ export function InviteLoginForm({ action, email, name }: { action: Action; email
       <Field label="Email" error={fe.email}>
         {(p) => <Input {...p} name="email" type="email" autoComplete="off" defaultValue={state.values?.email ?? email} />}
       </Field>
-      <SubmitButton block={false} pendingText="Sending…">Send login invitation</SubmitButton>
+      <LoginChoice passwordError={fe.password} />
+      <SubmitButton block={false} pendingText="Saving…">Create login</SubmitButton>
     </form>
   );
 }

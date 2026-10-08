@@ -9,6 +9,10 @@
 --   restaurant.b@example.com  customer  -> Dev Restaurant B (approved)
 --   pending@example.com       customer  -> Dev Pending Kitchen (pending approval)
 
+-- Trading rules: the tests exercise the minimum order, delivery charge and delivery days, so the dev
+-- stack keeps the original example values (migration 0010 turns them off on the live project).
+update public.settings set min_order_pence = 15000, delivery_charge_pence = 1200, delivery_days = '{1,2,3,4,5,6}';
+
 -- Suppliers --------------------------------------------------------------------------------------
 insert into public.suppliers (id, name, email, phone, address, notes) values
   ('00000000-0000-4000-a000-000000000001', 'Dev Supplier A', 'supplier.a@example.com', '020 0000 0001',

@@ -18,6 +18,7 @@ export const metadata: Metadata = { title: "Customer" };
 const NOTICES: Record<string, string> = {
   created: "Restaurant added and approved with every category. Set their prices on the Catalogue & prices tab.",
   invited: "Restaurant added and an invitation sent. Set their prices on the Catalogue & prices tab.",
+  "login-created": "Restaurant added with a login. Send them the email and password you chose (for example on WhatsApp); they can change the password from their account page.",
 };
 
 export default async function CustomerPage({ params, searchParams }: PageProps<"/admin/customers/[id]">) {

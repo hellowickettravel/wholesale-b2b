@@ -4,9 +4,9 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { customerDetailsSchema, newCustomerSchema, statusChangeSchema } from "@/lib/validation/customer";
-import { echo, fieldErrorsOf, type FormState } from "@/lib/validation/auth";
+import { echo, fieldErrorsOf, passwordSchema, type FormState } from "@/lib/validation/auth";
 import { requireRole } from "@/server/auth";
-import { inviteLogin } from "@/server/invite";
+import { confirmCustomerLogins, createLoginWithPassword, inviteLogin } from "@/server/invite";
 import { hit } from "@/server/rate-limit";
 
 const DETAIL_FIELDS = ["business_name", "contact_name", "email", "phone", "address_line1", "address_line2", "city", "postcode", "delivery_notes"];
@@ -33,13 +33,14 @@ function refreshCustomer(id: string) {
 /** Admin creates a restaurant directly: approved at once, every active category granted. */
 export async function createCustomer(_prev: FormState, formData: FormData): Promise<FormState> {
   const viewer = await requireRole("admin");
-  const values = echo(formData, [...DETAIL_FIELDS, "invite"]);
+  const values = echo(formData, [...DETAIL_FIELDS, "login"]);
   const parsed = newCustomerSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error), values };
   const v = parsed.data;
   const supabase = await createClient();
 
-  if (v.invite) {
+  const withLogin = v.login !== "none";
+  if (withLogin) {
     if (!(await hit("invitePerAdmin", viewer.userId))) return { error: "Too many invites in the last hour.", values };
     const { data: existing } = await supabase.from("profiles").select("id").eq("email", v.email).maybeSingle();
     if (existing) return { fieldErrors: { email: ["Someone already has an account with this email."] }, values };
@@ -70,8 +71,9 @@ export async function createCustomer(_prev: FormState, formData: FormData): Prom
     await supabase.from("customer_category_access").insert(categories.map((c) => ({ customer_id: customer.id, category_id: c.id })));
   }
 
-  if (v.invite) {
-    const invited = await inviteLogin(supabase, { email: v.email, fullName: v.contact_name, role: "customer", customerId: customer.id });
+  if (withLogin) {
+    const login = { email: v.email, fullName: v.contact_name, role: "customer" as const, customerId: customer.id };
+    const invited = v.login === "password" ? await createLoginWithPassword(supabase, { ...login, password: v.password }) : await inviteLogin(supabase, login);
     if (invited.error) {
       await supabase.from("customers").delete().eq("id", customer.id);
       return { error: invited.error, values };
@@ -79,7 +81,7 @@ export async function createCustomer(_prev: FormState, formData: FormData): Prom
   }
 
   revalidatePath("/admin/customers");
-  redirect(`/admin/customers/${customer.id}?notice=${v.invite ? "invited" : "created"}`);
+  redirect(`/admin/customers/${customer.id}?notice=${v.login === "invite" ? "invited" : v.login === "password" ? "login-created" : "created"}`);
 }
 
 export async function updateCustomer(customerId: string, _prev: FormState, formData: FormData): Promise<FormState> {
@@ -146,6 +148,8 @@ export async function changeStatus(customerId: string, _prev: FormState, formDat
   if (error) return { error: "The status could not be changed." };
   if (!changed?.length) return { error: "Someone else changed this account a moment ago. Reload the page." };
 
+  if (move.to === "approved") await confirmCustomerLogins(supabase, customerId);
+
   if (action === "approve") {
     if (categories.length) {
       const { error: accessError } = await supabase
@@ -192,16 +196,32 @@ export async function inviteCustomerLogin(customerId: string, _prev: FormState, 
   const viewer = await requireRole("admin");
   if (!uuid.safeParse(customerId).success) return { error: "Not found." };
   const parsed = z
-    .object({ email: z.string().trim().toLowerCase().pipe(z.email("Enter a valid email address")), full_name: z.string().trim().min(1, "Enter their name").max(200) })
+    .object({
+      email: z.string().trim().toLowerCase().pipe(z.email("Enter a valid email address")),
+      full_name: z.string().trim().min(1, "Enter their name").max(200),
+      login: z.enum(["invite", "password"]).optional().default("invite"),
+      password: z.string().max(200).optional().default(""),
+    })
+    .superRefine((v, ctx) => {
+      if (v.login !== "password") return;
+      const pw = passwordSchema.safeParse(v.password);
+      if (!pw.success) ctx.addIssue({ code: "custom", path: ["password"], message: pw.error.issues[0]?.message ?? "Choose a stronger password" });
+    })
     .safeParse(Object.fromEntries(formData));
-  const values = echo(formData, ["email", "full_name"]);
+  const values = echo(formData, ["email", "full_name", "login"]);
   if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error), values };
   if (!(await hit("invitePerAdmin", viewer.userId))) return { error: "Too many invites in the last hour.", values };
   const supabase = await createClient();
   const { data: existing } = await supabase.from("profiles").select("id").eq("email", parsed.data.email).maybeSingle();
   if (existing) return { fieldErrors: { email: ["Someone already has an account with this email."] }, values };
-  const invited = await inviteLogin(supabase, { email: parsed.data.email, fullName: parsed.data.full_name, role: "customer", customerId });
-  if (invited.error) return { error: invited.error, values };
+  const login = { email: parsed.data.email, fullName: parsed.data.full_name, role: "customer" as const, customerId };
+  const made = parsed.data.login === "password" ? await createLoginWithPassword(supabase, { ...login, password: parsed.data.password }) : await inviteLogin(supabase, login);
+  if (made.error) return { error: made.error, values };
   refreshCustomer(customerId);
-  return { notice: `Invitation sent to ${parsed.data.email}.` };
+  return {
+    notice:
+      parsed.data.login === "password"
+        ? `Login created for ${parsed.data.email}. Send them the password you chose; they can sign in now.`
+        : `Invitation sent to ${parsed.data.email}.`,
+  };
 }

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { parsePercent, parsePounds } from "@/domain/money";
+import { passwordSchema } from "./auth";
 
 const UK_POSTCODE = /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i;
 const optional = (max: number, label: string) => z.string().trim().max(max, `${label} is too long`).optional().default("");
@@ -35,11 +36,24 @@ export const customerDetailsSchema = z.object({
   delivery_notes: optional(1000, "Delivery notes"),
 });
 
+/**
+ * A restaurant the admin adds. `login` says how its owner gets in: an email invitation, a password the admin
+ * sets now and passes on (works without email), or no login yet.
+ */
 export const newCustomerSchema = customerDetailsSchema
-  .extend({ invite: z.preprocess((v) => v === "on" || v === "true", z.boolean()) })
+  .extend({
+    login: z.enum(["invite", "password", "none"]).optional().default("invite"),
+    password: z.string().max(200).optional().default(""),
+  })
   .superRefine((v, ctx) => {
-    if (v.invite && !v.email) ctx.addIssue({ code: "custom", path: ["email"], message: "Enter an email to send the login invitation to" });
-    if (v.invite && !v.contact_name) ctx.addIssue({ code: "custom", path: ["contact_name"], message: "Enter the contact's name for the invitation" });
+    if (v.login === "none") return;
+    const what = v.login === "invite" ? "send the login invitation to" : "sign in with";
+    if (!v.email) ctx.addIssue({ code: "custom", path: ["email"], message: `Enter an email to ${what}` });
+    if (!v.contact_name) ctx.addIssue({ code: "custom", path: ["contact_name"], message: "Enter the contact's name for the login" });
+    if (v.login === "password") {
+      const pw = passwordSchema.safeParse(v.password);
+      if (!pw.success) ctx.addIssue({ code: "custom", path: ["password"], message: pw.error.issues[0]?.message ?? "Choose a stronger password" });
+    }
   });
 
 /** "" -> null (use the next rule down), "12.5" -> 1250 bp. Range -100% … +1000%. */
