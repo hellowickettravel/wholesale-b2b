@@ -1,95 +1,99 @@
 /*
- * Design tokens: "Enamel & Spice". Brand-specific values (colours, fonts, radius, motion) live here only.
- * Components use semantic Tailwind utilities generated from @theme in globals.css
+ * Design tokens: "Street" (Wholesale Street, Oct 2026). Brand-specific values (colours, fonts, radius,
+ * motion) live here only. Components use semantic Tailwind utilities generated from @theme in globals.css
  * (bg-primary, text-ink-muted, border-line, …). Keep hex in sync with src/config/brand.ts.
- * Every text/background pair used by a component is listed with its contrast ratio in
- * the design report (10-direction-spice-market.md, section 2). Do not add a pair without checking it.
+ *
+ * Direction: a UK cash-and-carry that feels modern. Deep navy for trust and structure, a confident
+ * red for the one thing to do (add, order, open an account), white cards on a cool light-grey page.
+ * Contrast (WCAG 2.2): every text/background pair below is AA (4.5:1) or better; control borders 3:1+.
  */
 :root {
   /* Brand */
-  --brand-primary: #2f4a2b; /* cardamom: buttons, links, trust */
-  --brand-primary-strong: #213720;
-  --brand-primary-soft: #dfe8d0;
-  --brand-primary-ink: #fffbf1;
-  --brand-accent: #e3a413; /* turmeric: FILLS only. Never white text on it, never as text on light */
-  --brand-accent-soft: #fae8b5;
-  --brand-accent-ink: #2a1c14;
-  --brand-mark: #a82a1c; /* chilli: wordmark tail, price flash */
+  --brand-primary: #0b2a5b; /* navy: header, primary buttons, links (11.9:1 on white) */
+  --brand-primary-strong: #071d42;
+  --brand-primary-soft: #e7eef9;
+  --brand-primary-ink: #ffffff;
+  --brand-accent: #d81f26; /* street red: add to basket, the main call to action (5.1:1 with white) */
+  --brand-accent-strong: #b3161c;
+  --brand-accent-soft: #fdecec;
+  --brand-accent-ink: #ffffff;
+  --brand-mark: #d81f26; /* wordmark tail */
+  --brand-sun: #ffc532; /* small highlights only (badges on navy). Never text on white. */
 
-  /* Surfaces (warm, brown-based; no grey, no pure white) */
-  --surface: #f6eedd; /* flour: page */
-  --surface-raised: #fffbf1; /* enamel: cards, plates, inputs */
-  --surface-sunken: #ebddbe; /* kraft: bands, skeletons, tracks */
-  --surface-paper: #f2e8d0; /* mat behind packshot photos */
-  --surface-dark: #2a1c14; /* clove: footer, admin sidebar, hero base */
-  --hessian: #c9a66b; /* decoration, stitching, borders on dark. Never the only carrier of meaning */
+  /* Surfaces: cool and clean */
+  --surface: #f4f6fa; /* page */
+  --surface-raised: #ffffff; /* cards, inputs */
+  --surface-sunken: #eaeef4; /* bands, tracks, skeletons */
+  --surface-paper: #ffffff; /* behind packshots */
+  --surface-dark: #0b2a5b; /* footer, admin sidebar */
+  --hessian: #c7d2e3; /* decorative hairlines on dark */
 
   /* Ink */
-  --ink: #2a1c14; /* clove */
-  --ink-muted: #5e4938; /* cumin */
-  --ink-subtle: #68523f; /* AA on flour, enamel and kraft */
-  --on-dark: #fffbf1;
-  --on-dark-muted: #ebddbe;
+  --ink: #0f1b2d;
+  --ink-muted: #46546a;
+  --ink-subtle: #5a6779; /* 5.3:1 on #f4f6fa */
+  --on-dark: #ffffff;
+  --on-dark-muted: #c9d5ea;
 
   /* Lines */
-  --line: #e1d3b5; /* hairline, decorative */
-  --line-strong: #8a7253; /* control boundaries (inputs, secondary buttons): 3:1+ */
+  --line: #e1e6ee;
+  --line-strong: #7c889b; /* control boundaries: 3.5:1 on white */
 
   /* Status */
-  --success: #2b6b33;
-  --success-soft: #ddebd3;
-  --warning: #8a5200;
-  --warning-soft: #fbeac0;
-  --danger: #a82a1c; /* chilli */
-  --danger-soft: #f8ded6;
-  --danger-strong: #8a2015;
-  --info: #2f3e6b; /* indigo */
-  --info-soft: #dfe3f1;
+  --success: #13703a;
+  --success-soft: #e3f4ea;
+  --warning: #8a4b00;
+  --warning-soft: #fff1d6;
+  --danger: #c0181f;
+  --danger-soft: #fdecec;
+  --danger-strong: #9a1218;
+  --info: #1d4ed8;
+  --info-soft: #e6eeff;
 
-  --focus: #2b3fa6;
-  --focus-on-dark: #ffd25a;
+  --focus: #2563eb;
+  --focus-on-dark: #ffc532;
 
-  /* Shelf colours: one ground per category. Decorative; text never sits directly on them
-     except where an --on-ground value is given (all >= 4.5:1). */
-  --ground-default: #7a5c2e; /* jute */
-  --ground-rice: #e3a413; /* turmeric */
-  --ground-pulses: #b7511a; /* masoor */
-  --ground-whole-spices: #6b4226; /* clove bark */
-  --ground-powders: #b3321f; /* chilli */
-  --ground-flours: #c9a66b; /* hessian */
-  --ground-tea: #2f4a2b; /* cardamom */
-  --ground-sauces: #7a2e3b; /* tamarind */
-  --ground-colours: #9a2a63; /* beet */
-  --ground-groceries: #586c20; /* curry leaf */
-  --ground-drinks: #1f6b70; /* sherbet teal */
-  --ground-packing: #2f3e6b; /* indigo */
-  --on-ground-light: #fffbf1;
-  --on-ground-dark: #2a1c14; /* used on turmeric and hessian only */
+  /* Category tints: a light wash behind products without a photo, and the dot beside a category name.
+     Text never sits on --g except --on-g (all >= 4.5:1). */
+  --ground-default: #46546a;
+  --ground-rice: #b7791f;
+  --ground-pulses: #c2410c;
+  --ground-whole-spices: #7c2d12;
+  --ground-powders: #c0181f;
+  --ground-flours: #a16207;
+  --ground-tea: #166534;
+  --ground-sauces: #9f1239;
+  --ground-colours: #a21caf;
+  --ground-groceries: #4d7c0f;
+  --ground-drinks: #0e7490;
+  --ground-packing: #0b2a5b;
+  --on-ground-light: #ffffff;
+  --on-ground-dark: #ffffff;
 
-  /* Shape. Hierarchy, not one radius: stamps 6, controls 12, cards 14, panels 20, plates 12 */
+  /* Shape */
   --radius-sm: 6px;
-  --radius-md: 12px;
+  --radius-md: 10px;
   --radius-lg: 14px;
   --radius-xl: 20px;
-  --radius-plate: 12px;
+  --radius-plate: 14px;
 
-  /* Elevation: warm-brown shadows only */
-  --elev-rest: 0 1px 0 rgb(42 28 20 / 0.06);
-  --elev-lift: 0 16px 26px -18px rgb(42 28 20 / 0.55), 0 1px 0 rgb(42 28 20 / 0.08);
-  --elev-plate: 0 1px 0 rgb(42 28 20 / 0.35), 0 14px 24px -14px rgb(42 28 20 / 0.55);
-  --elev-pop: 0 24px 48px -20px rgb(42 28 20 / 0.6), 0 1px 0 rgb(42 28 20 / 0.12);
-  --edge-primary: 0 2px 0 var(--brand-primary-strong); /* the tactile lower edge of a button */
-  --edge-accent: 0 2px 0 #a87a06;
+  /* Elevation: cool, soft, layered */
+  --elev-rest: 0 1px 2px rgb(15 27 45 / 0.05);
+  --elev-lift: 0 12px 28px -12px rgb(15 27 45 / 0.22), 0 2px 6px rgb(15 27 45 / 0.06);
+  --elev-plate: 0 1px 2px rgb(15 27 45 / 0.05), 0 0 0 1px rgb(15 27 45 / 0.04);
+  --elev-pop: 0 24px 56px -16px rgb(15 27 45 / 0.35), 0 2px 8px rgb(15 27 45 / 0.08);
+  --edge-primary: 0 0 0 0 transparent;
+  --edge-accent: 0 0 0 0 transparent;
 
   /* Motion */
   --dur-instant: 90ms;
   --dur-fast: 150ms;
   --dur-base: 220ms;
-  --dur-slow: 320ms; /* the order-confirmed stamp only */
-  --dur-hero: 520ms;
+  --dur-slow: 320ms;
+  --dur-hero: 600ms;
   /* No ease-in and no spring on purpose: nothing here starts slow or bounces. The JS mirror of
      --ease-out is src/components/motion/presets.ts; keep the two in sync. */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1); /* skeleton pulse and the badge bump */
-  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1); /* moving indicators and sheets */
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }

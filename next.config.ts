@@ -28,16 +28,20 @@ const nextConfig: NextConfig = {
   images: {
     // The local Supabase stack serves images from 127.0.0.1; hosted Supabase is a public host.
     dangerouslyAllowLocalIP: supabaseHost ? ["127.0.0.1", "localhost"].includes(supabaseHost.hostname) : false,
-    remotePatterns: supabaseHost
-      ? [
-          {
-            protocol: supabaseHost.protocol.replace(":", "") as "http" | "https",
-            hostname: supabaseHost.hostname,
-            port: supabaseHost.port,
-            pathname: "/storage/v1/object/public/**",
-          },
-        ]
-      : [],
+    remotePatterns: [
+      // Stock photos are normally rendered unoptimized (Unsplash resizes them); allowed here for any optimised use.
+      { protocol: "https", hostname: "images.unsplash.com" },
+      ...(supabaseHost
+        ? [
+            {
+              protocol: supabaseHost.protocol.replace(":", "") as "http" | "https",
+              hostname: supabaseHost.hostname,
+              port: supabaseHost.port,
+              pathname: "/storage/v1/object/public/**",
+            },
+          ]
+        : []),
+    ],
   },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

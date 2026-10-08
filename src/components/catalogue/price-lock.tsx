@@ -15,7 +15,7 @@ export function PriceLock({ className }: { className?: string }) {
 /** The one place a page explains prices: a turmeric-mist strip, shown once per page, not per card. */
 export function PriceLockStrip({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("flex items-start gap-3 rounded-[var(--radius-md)] bg-accent-soft px-4 py-3 text-accent-ink", className)}>
+    <div className={cn("flex items-start gap-3 rounded-[var(--radius-md)] bg-accent-soft px-4 py-3 text-ink", className)}>
       <Lock className="mt-1 size-4 shrink-0" aria-hidden="true" />
       <div className="min-w-0 text-[15px] leading-snug">{children}</div>
     </div>

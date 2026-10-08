@@ -5,14 +5,14 @@ import { cn } from "@/lib/cn";
 // 1.5px line-strong border (3:1+ on enamel), 12px radius, enamel fill. Focus: the global 3px ring plus a primary border.
 // Errors are never colour alone: chilli border and tint here, an icon and text under the field (see Field).
 const control =
-  "block w-full rounded-[var(--radius-md)] border-[1.5px] border-line-strong bg-raised px-3.5 text-base text-ink " +
-  "placeholder:text-ink-subtle transition-[border-color,background-color] duration-[var(--dur-fast)] hover:border-ink-muted " +
-  "focus:border-primary " +
+  "block w-full rounded-[var(--radius-md)] border border-line-strong/80 bg-raised px-3.5 text-base text-ink " +
+  "placeholder:text-ink-subtle transition-[border-color,background-color,box-shadow] duration-[var(--dur-fast)] hover:border-ink-muted " +
+  "focus:border-primary focus:shadow-[0_0_0_3px_rgb(37_99_235/0.15)] " +
   "disabled:bg-sunken disabled:text-ink-muted disabled:hover:border-line-strong " +
   "aria-[invalid=true]:border-danger aria-[invalid=true]:bg-danger-soft/40 aria-[invalid=true]:hover:border-danger";
 
 export function Input({ className, ...rest }: ComponentProps<"input">) {
-  return <input className={cn(control, "h-12", className)} {...rest} />;
+  return <input className={cn(control, "h-11", className)} {...rest} />;
 }
 
 export function Textarea({ className, rows = 3, ...rest }: ComponentProps<"textarea">) {
@@ -22,7 +22,7 @@ export function Textarea({ className, rows = 3, ...rest }: ComponentProps<"texta
 export function Select({ className, children, ...rest }: ComponentProps<"select">) {
   return (
     <div className="relative">
-      <select className={cn(control, "h-12 cursor-pointer appearance-none pr-10", className)} {...rest}>
+      <select className={cn(control, "h-11 cursor-pointer appearance-none pr-10", className)} {...rest}>
         {children}
       </select>
       <svg

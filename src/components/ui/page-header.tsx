@@ -23,7 +23,7 @@ export function PageHeader({
   return (
     <div className={cn("flex flex-col gap-4 pb-5 sm:flex-row sm:items-end sm:justify-between sm:pb-6", className)}>
       <div className="min-w-0">
-        <h1 className="text-[clamp(1.875rem,1.4rem+2vw,2.75rem)] leading-[1.1] text-ink in-data-[surface=admin]:text-[clamp(1.625rem,1.3rem+1.3vw,2.125rem)] in-data-[surface=admin]:font-bold in-data-[surface=admin]:leading-tight">
+        <h1 className="text-[clamp(1.75rem,1.4rem+1.6vw,2.5rem)] leading-[1.1] tracking-[-0.03em] text-ink in-data-[surface=admin]:text-[clamp(1.5rem,1.3rem+1vw,1.875rem)] in-data-[surface=admin]:leading-tight">
           {title}
         </h1>
         {description ? <p className="mt-2 max-w-prose text-base text-ink-muted">{description}</p> : null}

@@ -1,15 +1,18 @@
 import type { Metadata, Viewport } from "next";
-import { Mukta, Young_Serif } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { brand } from "@/config/brand";
+import { siteUrl } from "@/lib/env";
 import "./globals.css";
 
-const body = Mukta({ variable: "--font-body", subsets: ["latin"], display: "swap", weight: ["400", "600", "700"] });
-const display = Young_Serif({ variable: "--font-display", subsets: ["latin"], display: "swap", weight: "400" });
+const body = Inter({ variable: "--font-body", subsets: ["latin"], display: "swap" });
+const display = Plus_Jakarta_Sans({ variable: "--font-display", subsets: ["latin"], display: "swap", weight: ["600", "700", "800"] });
 
 export const metadata: Metadata = {
-  title: { default: `${brand.name} · Trade ordering for restaurants`, template: `%s · ${brand.name}` },
+  metadataBase: new URL(siteUrl()),
+  title: { default: `${brand.name} · Restaurant wholesale, made simple`, template: `%s · ${brand.name}` },
   description: brand.description,
   applicationName: brand.name,
+  openGraph: { siteName: brand.name, locale: "en_GB", type: "website" },
 };
 
 export const viewport: Viewport = {
