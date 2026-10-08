@@ -220,7 +220,7 @@ for (const width of [390, 1280]) {
   const contextFor = async (as?: string) => {
     const key = as ?? "anon";
     if (!sessions.has(key)) {
-      const ctx = await browser.newContext({ viewport: { width, height: width === 390 ? 844 : 800 }, deviceScaleFactor: 1 });
+      const ctx = await browser.newContext({ viewport: { width, height: width === 390 ? 844 : 800 }, deviceScaleFactor: 1, reducedMotion: "reduce" });
       if (as) {
         const p = await ctx.newPage();
         await p.goto(`${BASE}/login`, { waitUntil: "load" });
@@ -235,12 +235,20 @@ for (const width of [390, 1280]) {
     return sessions.get(key)!;
   };
   for (const shot of shots) {
-    if (filter && !shot.name.includes(filter)) continue;
-    const ctx = shot.before && !shot.as ? await browser.newContext({ viewport: { width, height: width === 390 ? 844 : 800 } }) : await contextFor(shot.as);
+    if (filter && !filter.split(",").some((f) => (f.startsWith("=") ? shot.name === f.slice(1) : shot.name.includes(f)))) continue;
+    const ctx = shot.before && !shot.as ? await browser.newContext({ viewport: { width, height: width === 390 ? 844 : 800 }, reducedMotion: "reduce" }) : await contextFor(shot.as);
     const page = await ctx.newPage();
     await page.goto(`${BASE}${shot.path}`, { waitUntil: "load" });
     if (shot.before) await shot.before(page);
-    await page.waitForTimeout(150);
+    // Scroll through once so lazy images below the fold load before the full-page capture.
+    await page.evaluate(async () => {
+      for (let y = 0; y < document.body.scrollHeight; y += 700) {
+        window.scrollTo(0, y);
+        await new Promise((r) => setTimeout(r, 60));
+      }
+      window.scrollTo(0, 0);
+    });
+    await page.waitForTimeout(400);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     if (overflow > 0) problems.push(`${shot.name}@${width}: horizontal overflow ${overflow}px`);
     await page.screenshot({ path: `${OUT}/${shot.name}-${width}.png`, fullPage: true });

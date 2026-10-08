@@ -1,6 +1,8 @@
 import "server-only";
 import { z } from "zod";
+import { brand } from "@/config/brand";
 import { invoiceSummary, type InvoiceSummary } from "@/domain/invoice";
+import { filled, hasBankDetails } from "@/lib/placeholder";
 import { createClient } from "@/lib/supabase/server";
 import type { Viewer } from "./auth";
 
@@ -35,6 +37,8 @@ export interface InvoiceDocument {
     accountNumber: string;
     iban: string | null;
     footer: string;
+    /** Bank details are complete (else the invoice shows how to reach us instead). */
+    hasBank: boolean;
   };
 }
 
@@ -112,15 +116,16 @@ export async function getInvoiceDocument(id: string, viewer: Viewer): Promise<In
     summary,
     paidPence: (payments ?? []).reduce((a, p) => a + Number(p.amount_pence), 0),
     seller: {
-      legalName: seller.business_legal_name ?? "",
-      address: seller.business_address ?? "",
-      vatNumber: seller.vat_number ?? "",
-      bankName: seller.bank_name ?? "",
-      accountName: seller.bank_account_name ?? "",
-      sortCode: seller.bank_sort_code ?? "",
-      accountNumber: seller.bank_account_number ?? "",
-      iban: seller.bank_iban,
-      footer: seller.invoice_footer ?? "",
+      legalName: filled(seller.business_legal_name) || brand.legalName,
+      address: filled(seller.business_address),
+      vatNumber: filled(seller.vat_number),
+      bankName: filled(seller.bank_name),
+      accountName: filled(seller.bank_account_name),
+      sortCode: filled(seller.bank_sort_code),
+      accountNumber: filled(seller.bank_account_number),
+      iban: filled(seller.bank_iban) || null,
+      footer: filled(seller.invoice_footer),
+      hasBank: hasBankDetails(seller),
     },
   };
 }

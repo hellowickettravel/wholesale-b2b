@@ -29,6 +29,8 @@ export async function setPassword(_prev: FormState, formData: FormData): Promise
     console.error("updateUser password", error.code, error.message);
     return { error: "We could not save your password. Please try again." };
   }
+  // From the account page: stay there and say it worked.
+  if (formData.get("from") === "account") redirect("/account?notice=password");
   const viewer = await loadViewer(supabase, userId);
   redirect(viewer ? homeFor(viewer) : "/login");
 }

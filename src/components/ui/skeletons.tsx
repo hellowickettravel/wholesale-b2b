@@ -48,44 +48,11 @@ export function ChipRowSkeleton({ count = 7, className }: { count?: number; clas
   );
 }
 
-/** One row of the shop list: 56/64px thumb, name and size line, controls (one line wide, two rows on phones). */
-export function ShopRowSkeleton() {
-  return (
-    <li className="grid grid-cols-[3.5rem_minmax(0,1fr)] gap-x-3 gap-y-3 px-3 py-3.5 sm:grid-cols-[4rem_minmax(0,1fr)] sm:px-4 @min-[56rem]:grid-cols-[4rem_minmax(0,1fr)_auto] @min-[56rem]:items-center @min-[56rem]:gap-x-4">
-      <Skeleton className="size-14 rounded-[var(--radius-md)] sm:size-16" />
-      <div className="min-w-0 space-y-2 self-center">
-        <Skeleton className="h-5 w-3/4" />
-        <Skeleton className="h-3.5 w-1/3" />
-      </div>
-      <div className="col-span-2 space-y-2.5 @min-[56rem]:col-span-1 @min-[56rem]:w-[31rem] @min-[56rem]:space-y-0">
-        <Skeleton className="h-11 w-full rounded-[var(--radius-md)] @min-[56rem]:w-[11rem]" />
-        <div className="flex items-center justify-between gap-3 @min-[56rem]:hidden">
-          <Skeleton className="h-9 w-24" />
-          <Skeleton className="h-11 w-44 rounded-[var(--radius-md)]" />
-        </div>
-      </div>
-    </li>
-  );
-}
-
-/** The bordered list that holds shop rows. */
-export function ShopListSkeleton({ rows = 8, className }: { rows?: number; className?: string }) {
-  return (
-    <ul className={cn("@container divide-y divide-line overflow-hidden rounded-[var(--radius-lg)] border border-line bg-raised", className)}>
-      {Array.from({ length: rows }, (_, i) => (
-        <ShopRowSkeleton key={i} />
-      ))}
-    </ul>
-  );
-}
-
 /** A product card: kraft tile with an empty plate outline, then three short lines and a pill. */
 export function ProductCardSkeleton() {
   return (
     <li className="min-w-0 overflow-hidden rounded-[var(--radius-lg)] border border-line bg-raised">
-      <div className="skeleton relative aspect-[4/3] rounded-none">
-        <div className="skeleton-plate absolute inset-3.5" />
-      </div>
+      <div className="skeleton aspect-[4/3] rounded-none" />
       <div className="flex flex-col gap-2 p-3 sm:p-4">
         <Skeleton className="h-3.5 w-1/3" />
         <Skeleton className="h-4 w-4/5" />

@@ -1,5 +1,6 @@
 "use server";
 import { redirect } from "next/navigation";
+import { brand } from "@/config/brand";
 import { siteUrl } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 import { echo, fieldErrorsOf, loginSchema, type FormState } from "@/lib/validation/auth";
@@ -34,7 +35,7 @@ export async function signIn(_prev: FormState, formData: FormData): Promise<Form
         options: { emailRedirectTo: `${siteUrl()}/auth/callback?next=/register/pending` },
       });
       return {
-        error: "Please confirm your email address first. We have sent you a new confirmation link.",
+        error: `Please confirm your email address first. We have sent you a new confirmation link. If it does not arrive, message us on WhatsApp (${brand.contact.phoneDisplay}) and we will activate your account.`,
         values,
       };
     }

@@ -4,7 +4,7 @@ import { SignOutButton } from "@/components/auth/sign-out-button";
 import "./admin-shell.css";
 
 /**
- * Supplier: the same family as the back office (clove bar, flour page, Mukta throughout) with only
+ * Supplier: the same family as the back office (navy bar, light page) with only
  * what a supplier needs. No prices anywhere on these screens.
  */
 export function SupplierShell({ children, supplierName }: { children: ReactNode; supplierName: string }) {

@@ -45,11 +45,11 @@ export default async function SupplierOrders({ searchParams }: PageProps<"/suppl
       {notes && notes.length ? (
         <section aria-labelledby="notes-heading" className="mb-5 rounded-[var(--radius-lg)] border border-accent/40 bg-accent-soft p-4">
           <div className="flex items-center justify-between gap-3">
-            <h2 id="notes-heading" className="flex items-center gap-2 text-sm font-bold text-accent-ink">
+            <h2 id="notes-heading" className="flex items-center gap-2 text-sm font-bold text-ink">
               <Bell className="size-4" aria-hidden="true" /> {notes.length} new {notes.length === 1 ? "update" : "updates"}
             </h2>
             <form action={markAllRead}>
-              <Button type="submit" size="sm" variant="ghost" className="text-accent-ink">Mark all read</Button>
+              <Button type="submit" size="sm" variant="ghost" className="text-ink">Mark all read</Button>
             </form>
           </div>
           <ul className="mt-2 space-y-1">

@@ -112,27 +112,34 @@ function BasketCheckoutForm({
       <section aria-labelledby="lines-heading" className="min-w-0">
         <h2 id="lines-heading" className="sr-only">Items</h2>
 
-        {/* Free-delivery progress: a kraft track with a turmeric fill. */}
-        <div className="mb-4">
-          <p className={cn("flex items-center gap-2 font-bold", !totals.deliveryCharged && totals.goodsNetPence > 0 ? "text-success" : "text-ink")}>
-            <Truck className="size-5 shrink-0" aria-hidden="true" />
-            {totals.goodsNetPence === 0
-              ? "Add items to see delivery"
-              : totals.deliveryCharged
-                ? `Add ${formatPence(totals.shortOfMinimumPence)} more for free delivery`
-                : "Free delivery"}
-          </p>
-          <div className="mt-2.5 h-2.5 overflow-hidden rounded-full bg-sunken" aria-hidden="true">
-            {/* A full-width fill slid left by the shortfall (transform only; the track clips its left end). */}
-            <div
-              className="h-full w-full rounded-full bg-accent transition-transform duration-[var(--dur-base)] ease-[var(--ease-out)]"
-              style={{ transform: `translateX(${progress - 100}%)` }}
-            />
+        {/* Free-delivery progress (only when there is a free-delivery threshold): a track with a red fill. */}
+        {delivery.minOrderPence > 0 && delivery.deliveryChargePence > 0 ? (
+          <div className="mb-4">
+            <p className={cn("flex items-center gap-2 font-bold", !totals.deliveryCharged && totals.goodsNetPence > 0 ? "text-success" : "text-ink")}>
+              <Truck className="size-5 shrink-0" aria-hidden="true" />
+              {totals.goodsNetPence === 0
+                ? "Add items to see delivery"
+                : totals.deliveryCharged
+                  ? `Add ${formatPence(totals.shortOfMinimumPence)} more for free delivery`
+                  : "Free delivery"}
+            </p>
+            <div className="mt-2.5 h-2.5 overflow-hidden rounded-full bg-sunken" aria-hidden="true">
+              {/* A full-width fill slid left by the shortfall (transform only; the track clips its left end). */}
+              <div
+                className="h-full w-full rounded-full bg-accent transition-transform duration-[var(--dur-base)] ease-[var(--ease-out)]"
+                style={{ transform: `translateX(${progress - 100}%)` }}
+              />
+            </div>
+            <p className="mt-2 text-sm text-ink-muted">
+              Orders of {formatPence(delivery.minOrderPence)} or more (ex VAT) deliver free. Below that, delivery is {formatPence(delivery.deliveryChargePence)} + VAT.
+            </p>
           </div>
-          <p className="mt-2 text-sm text-ink-muted">
-            Orders of {formatPence(delivery.minOrderPence)} or more (ex VAT) deliver free. Below that, delivery is {formatPence(delivery.deliveryChargePence)} + VAT.
+        ) : (
+          <p className="mb-4 flex items-center gap-2 font-bold text-success">
+            <Truck className="size-5 shrink-0" aria-hidden="true" />
+            Free delivery on every order
           </p>
-        </div>
+        )}
 
         {lineError ? <Alert tone="danger" className="mb-3">{lineError}</Alert> : null}
         <ul className={cn(card, "overflow-hidden")}>

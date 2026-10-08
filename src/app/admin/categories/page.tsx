@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { FilterBar, FilterSearch, FilterSelect } from "@/components/admin/filter-bar";
 import { CategoryArt } from "@/components/catalogue/category-art";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +8,8 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { Table, TD, TH, THead, TR } from "@/components/ui/table";
 import { formatBp } from "@/domain/money";
+import { matchesWords, searchWords } from "@/lib/catalogue/query";
+import { choiceParam, textParam } from "@/lib/list-params";
 import { categoryImageUrl } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/server/auth";
@@ -15,9 +18,25 @@ import { CategoryForm } from "./category-form";
 
 export const metadata: Metadata = { title: "Categories" };
 
+const STATUSES = [
+  { value: "", label: "Any status" },
+  { value: "visible", label: "Visible" },
+  { value: "hidden", label: "Hidden" },
+] as const;
+const SORTS = [
+  { value: "order", label: "Shop order" },
+  { value: "name", label: "Name A to Z" },
+  { value: "products", label: "Most products" },
+] as const;
+
 export default async function CategoriesPage({ searchParams }: PageProps<"/admin/categories">) {
   await requireRole("admin");
-  const { notice } = await searchParams;
+  const sp = await searchParams;
+  const { notice } = sp;
+  const q = textParam(sp);
+  const status = choiceParam(sp, "status", STATUSES.map((s) => s.value));
+  const sort = choiceParam(sp, "sort", SORTS.map((s) => s.value));
+  const filtered = Boolean(q || status || sort !== "order");
   const supabase = await createClient();
   const [{ data: categories }, { data: products }] = await Promise.all([
     supabase.from("categories").select("id, name, slug, sort, active, image_path, default_vat_rate_bp").order("sort").order("name"),
@@ -26,6 +45,10 @@ export default async function CategoriesPage({ searchParams }: PageProps<"/admin
   const counts = new Map<string, number>();
   for (const p of products ?? []) counts.set(p.category_id, (counts.get(p.category_id) ?? 0) + 1);
   const nextSort = (categories ?? []).reduce((m, c) => Math.max(m, c.sort), 0) + 1;
+  const words = searchWords(q);
+  const rows = (categories ?? [])
+    .filter((c) => matchesWords(`${c.name} ${c.slug}`, words) && (status === "visible" ? c.active : status === "hidden" ? !c.active : true))
+    .sort((a, b) => (sort === "name" ? a.name.localeCompare(b.name) : sort === "products" ? (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0) : 0));
 
   return (
     <>
@@ -33,7 +56,12 @@ export default async function CategoriesPage({ searchParams }: PageProps<"/admin
       {notice === "deleted" ? <Alert tone="success" className="mb-4">Category deleted.</Alert> : null}
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
         <Card>
-          <CardHeader title="All categories" description={`${categories?.length ?? 0} categories`} />
+          <CardHeader title="All categories" description={filtered ? `${rows.length} of ${categories?.length ?? 0} categories` : `${categories?.length ?? 0} categories`} />
+          <FilterBar action="/admin/categories" clearHref="/admin/categories" active={filtered} className="m-3 mb-3 shadow-none">
+            <FilterSearch id="categories-q" label="Search" defaultValue={q} placeholder="Category name" />
+            <FilterSelect id="categories-status" name="status" label="Status" defaultValue={status} options={STATUSES} />
+            <FilterSelect id="categories-sort" name="sort" label="Sort" defaultValue={sort} options={SORTS} />
+          </FilterBar>
           <Table>
             <THead>
               <tr>
@@ -44,7 +72,12 @@ export default async function CategoriesPage({ searchParams }: PageProps<"/admin
               </tr>
             </THead>
             <tbody>
-              {(categories ?? []).map((c) => (
+              {rows.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-8 text-center text-ink-muted">No categories match.</td>
+                </tr>
+              ) : null}
+              {rows.map((c) => (
                 <TR key={c.id}>
                   <TD>
                     <Link href={`/admin/categories/${c.id}`} className="group flex items-center gap-3">

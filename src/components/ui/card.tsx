@@ -9,7 +9,7 @@ export function CardHeader({ title, description, action, className }: { title: R
   return (
     <div className={cn("flex items-start justify-between gap-4 border-b border-line px-5 py-4", className)}>
       <div className="min-w-0">
-        <h2 className="text-xl leading-tight text-ink in-data-[surface=admin]:text-lg in-data-[surface=admin]:font-bold">{title}</h2>
+        <h2 className="text-lg leading-tight text-ink">{title}</h2>
         {description ? <p className="mt-1 text-sm text-ink-muted">{description}</p> : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}

@@ -1,4 +1,7 @@
-import { Landmark } from "lucide-react";
+import { Landmark, Wallet } from "lucide-react";
+import { brand, whatsappHref } from "@/config/brand";
+import { WhatsAppIcon } from "@/components/brand/whatsapp-icon";
+import { hasBankDetails } from "@/lib/placeholder";
 import { formatDayDate } from "@/domain/dates";
 import { formatPence } from "@/domain/money";
 import { CopyButton } from "./copy-button";
@@ -11,8 +14,47 @@ export interface BankSettings {
   bank_iban: string | null;
 }
 
-/** How to pay: bank details (each copyable), the amount, the reference to quote and the promised date. */
+/**
+ * How to pay: bank details (each copyable), the amount, the reference to quote and the promised date.
+ * Until the owner enters bank details in Settings, it shows the amount and reference and how to reach us.
+ */
 export function BankDetails({ bank, reference, amountPence, payBy }: { bank: BankSettings; reference: string; amountPence: number; payBy: string | null }) {
+  if (!hasBankDetails(bank)) {
+    return (
+      <section aria-labelledby="pay-heading" className="overflow-hidden rounded-[var(--radius-lg)] border border-line bg-raised shadow-rest">
+        <div className="flex items-center gap-2.5 border-b border-line px-4 py-4 sm:px-5">
+          <Wallet className="size-5 shrink-0 text-primary" aria-hidden="true" />
+          <h2 id="pay-heading" className="text-lg">Payment</h2>
+        </div>
+        <dl className="divide-y divide-line px-4 sm:px-5">
+          <div className="flex items-center justify-between gap-3 py-3">
+            <dt className="text-sm text-ink-muted">Amount to pay</dt>
+            <dd className="tabular text-xl font-bold text-ink">{formatPence(amountPence)}</dd>
+          </div>
+          <div className="flex items-center justify-between gap-3 py-3">
+            <dt className="text-sm text-ink-muted">Your reference</dt>
+            <dd className="flex items-center gap-1 font-bold text-ink">
+              <span className="tabular">{reference}</span>
+              <CopyButton value={reference} label="reference" />
+            </dd>
+          </div>
+          {payBy ? (
+            <div className="flex items-center justify-between gap-3 py-3">
+              <dt className="text-sm text-ink-muted">Pay by</dt>
+              <dd className="font-bold text-ink">{formatDayDate(payBy)}</dd>
+            </div>
+          ) : null}
+        </dl>
+        <p className="m-4 mt-1 rounded-[var(--radius-md)] bg-primary-soft p-3 text-sm text-ink sm:mx-5">
+          We will send you payment details with your delivery. Questions?{" "}
+          <a href={whatsappHref(`Hello, a question about ${reference}.`)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-primary hover:underline">
+            <WhatsAppIcon className="size-3.5" /> WhatsApp us
+          </a>{" "}
+          or email <a href={`mailto:${brand.contact.email}`} className="font-semibold text-primary hover:underline">{brand.contact.email}</a>.
+        </p>
+      </section>
+    );
+  }
   const rows: [string, string | null, boolean][] = [
     ["Account name", bank.bank_account_name, false],
     ["Sort code", bank.bank_sort_code, true],
@@ -22,7 +64,7 @@ export function BankDetails({ bank, reference, amountPence, payBy }: { bank: Ban
   ];
   return (
     <section aria-labelledby="pay-heading" className="overflow-hidden rounded-[var(--radius-lg)] border border-line bg-raised shadow-rest">
-      <div className="flex items-end justify-between gap-4 border-b border-line bg-sunken px-4 py-4 sm:px-5">
+      <div className="flex items-end justify-between gap-4 border-b border-line px-4 py-4 sm:px-5">
         <h2 id="pay-heading" className="flex items-center gap-2.5 text-xl">
           <Landmark className="size-5 shrink-0 text-primary" aria-hidden="true" /> Pay by bank transfer
         </h2>
@@ -50,15 +92,15 @@ export function BankDetails({ bank, reference, amountPence, payBy }: { bank: Ban
           </div>
         ) : null}
       </dl>
-      <div className="m-4 mt-2 rounded-[var(--radius-md)] bg-accent-soft p-3 sm:mx-5">
+      <div className="m-4 mt-2 rounded-[var(--radius-md)] bg-primary-soft p-3 sm:mx-5">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold text-accent-ink">Quote this reference</p>
-            <p className="tabular text-xl font-bold text-accent-ink">{reference}</p>
+            <p className="text-sm font-semibold text-ink">Quote this reference</p>
+            <p className="tabular text-xl font-bold text-ink">{reference}</p>
           </div>
           <CopyButton value={reference} label="reference" />
         </div>
-        <p className="mt-1 text-[0.8125rem] text-accent-ink">So we can match your payment to this order.</p>
+        <p className="mt-1 text-[0.8125rem] text-ink">So we can match your payment to this order.</p>
       </div>
     </section>
   );

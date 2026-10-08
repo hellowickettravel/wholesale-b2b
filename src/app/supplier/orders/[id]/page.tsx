@@ -96,7 +96,7 @@ export default async function SupplierOrderPage({ params }: PageProps<"/supplier
                   <Phone className="size-4" aria-hidden="true" /> {so.customer_contact ? `${so.customer_contact}, ` : ""}{so.customer_phone}
                 </a>
               ) : null}
-              {so.order_note ? <p className="rounded-[var(--radius-md)] bg-accent-soft px-3 py-2 text-accent-ink">Note: {so.order_note}</p> : null}
+              {so.order_note ? <p className="rounded-[var(--radius-md)] bg-accent-soft px-3 py-2 text-ink">Note: {so.order_note}</p> : null}
             </CardBody>
           </Card>
 

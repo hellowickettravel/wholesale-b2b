@@ -1,16 +1,17 @@
 import type { ReactNode } from "react";
+import { SearchX } from "lucide-react";
 import { cn } from "@/lib/cn";
 
-/**
- * An announcement on an enamel plate: empty lists, nothing found. One plate, a short title, one line of
- * copy and at most one action. The ground behind it is the neutral jute (empty states are not a shelf).
- */
-export function PlateMessage({ title, children, action, className }: { title: ReactNode; children?: ReactNode; action?: ReactNode; className?: string }) {
+/** An announcement: empty lists, nothing found. A short title, one line of copy and at most one action. */
+export function PlateMessage({ title, children, action, className, icon }: { title: ReactNode; children?: ReactNode; action?: ReactNode; className?: string; icon?: ReactNode }) {
   return (
-    <div data-ground="" data-weave="a" className={cn("weave grid place-items-center rounded-[var(--radius-xl)] px-4 py-10 sm:py-14", className)}>
-      <div className="plate w-full max-w-md px-6 py-7 text-center sm:px-8 sm:py-8">
-        <h2 className="text-balance text-2xl leading-tight text-ink sm:text-[1.75rem]">{title}</h2>
-        {children ? <p className="mx-auto mt-2 max-w-[34ch] text-ink-muted">{children}</p> : null}
+    <div className={cn("grid place-items-center rounded-[var(--radius-xl)] border border-dashed border-line-strong/40 bg-raised px-4 py-12 sm:py-16", className)}>
+      <div className="w-full max-w-md text-center">
+        <span aria-hidden="true" className="mx-auto mb-4 grid size-14 place-items-center rounded-full bg-primary-soft text-primary">
+          {icon ?? <SearchX className="size-6" />}
+        </span>
+        <h2 className="text-balance text-xl leading-tight text-ink sm:text-2xl">{title}</h2>
+        {children ? <p className="mx-auto mt-2 max-w-[40ch] text-ink-muted">{children}</p> : null}
         {action ? <div className="mt-5 flex justify-center">{action}</div> : null}
       </div>
     </div>

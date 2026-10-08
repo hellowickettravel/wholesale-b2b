@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import { FilterBar, FilterSearch, FilterSelect } from "@/components/admin/filter-bar";
 import { Badge, type Tone } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { Table, TD, TH, THead, TR } from "@/components/ui/table";
 import { formatTimestamp } from "@/domain/dates";
+import { matchesWords, searchWords } from "@/lib/catalogue/query";
+import { choiceParam, textParam } from "@/lib/list-params";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/server/auth";
@@ -14,8 +17,26 @@ export const metadata: Metadata = { title: "Users" };
 const ROLE_TONE: Record<string, Tone> = { admin: "info", supplier: "accent", customer: "primary" };
 const ROLE_LABEL: Record<string, string> = { admin: "Admin", supplier: "Supplier", customer: "Restaurant" };
 
-export default async function UsersPage() {
+const ROLES = [
+  { value: "", label: "Any role" },
+  { value: "customer", label: "Restaurants" },
+  { value: "supplier", label: "Suppliers" },
+  { value: "admin", label: "Admins" },
+] as const;
+const STATES = [
+  { value: "", label: "Any status" },
+  { value: "active", label: "Active" },
+  { value: "off", label: "Switched off" },
+  { value: "never", label: "Never signed in" },
+] as const;
+
+export default async function UsersPage({ searchParams }: PageProps<"/admin/users">) {
   await requireRole("admin");
+  const sp = await searchParams;
+  const q = textParam(sp);
+  const role = choiceParam(sp, "role", ROLES.map((r) => r.value));
+  const state = choiceParam(sp, "state", STATES.map((r) => r.value));
+  const filtered = Boolean(q || role || state);
   const supabase = await createClient();
   const [{ data: profiles }, { data: suppliers }, authUsers] = await Promise.all([
     supabase
@@ -27,6 +48,14 @@ export default async function UsersPage() {
     createAdminClient().auth.admin.listUsers({ perPage: 1000 }),
   ]);
   const lastSignIn = new Map((authUsers.data?.users ?? []).map((u) => [u.id, u.last_sign_in_at ?? null]));
+  const words = searchWords(q);
+  const all = profiles ?? [];
+  const rows = all.filter(
+    (p) =>
+      matchesWords([p.full_name, p.email, p.customers?.business_name, p.suppliers?.name].filter(Boolean).join(" "), words) &&
+      (!role || p.role === role) &&
+      (state === "active" ? p.active : state === "off" ? !p.active : state === "never" ? !lastSignIn.get(p.id) : true),
+  );
 
   return (
     <>
@@ -39,7 +68,12 @@ export default async function UsersPage() {
           </CardBody>
         </Card>
         <Card>
-          <CardHeader title="All users" description={`${profiles?.length ?? 0} accounts`} />
+          <CardHeader title="All users" description={filtered ? `${rows.length} of ${all.length} accounts` : `${all.length} accounts`} />
+          <FilterBar action="/admin/users" clearHref="/admin/users" active={filtered} className="m-3 mb-3 shadow-none">
+            <FilterSearch id="users-q" label="Search" defaultValue={q} placeholder="Name, email or business" />
+            <FilterSelect id="users-role" name="role" label="Role" defaultValue={role} options={ROLES} />
+            <FilterSelect id="users-state" name="state" label="Status" defaultValue={state} options={STATES} />
+          </FilterBar>
           <Table>
             <THead>
               <tr>
@@ -50,7 +84,12 @@ export default async function UsersPage() {
               </tr>
             </THead>
             <tbody>
-              {(profiles ?? []).map((p) => {
+              {rows.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-8 text-center text-ink-muted">No users match. Try another search or filter.</td>
+                </tr>
+              ) : null}
+              {rows.map((p) => {
                 const seen = lastSignIn.get(p.id);
                 const business = p.customers ? p.customers.business_name : p.suppliers ? p.suppliers.name : null;
                 const pendingStatus = p.customers && p.customers.status !== "approved" ? p.customers.status : null;

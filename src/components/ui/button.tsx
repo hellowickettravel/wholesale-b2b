@@ -7,19 +7,19 @@ type Variant = "primary" | "secondary" | "ghost" | "danger" | "accent";
 type Size = "sm" | "md" | "lg";
 
 const base =
-  "inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap font-bold transition-[background-color,box-shadow,transform] duration-[var(--dur-instant)] ease-[var(--ease-out)] active:translate-y-[2px] active:shadow-none " +
+  "inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap font-semibold transition-[background-color,border-color,box-shadow,transform] duration-[var(--dur-fast)] ease-[var(--ease-out)] active:scale-[0.97] " +
   "disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 select-none";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-primary text-primary-ink hover:bg-primary-strong shadow-[var(--edge-primary)]",
-  accent: "bg-accent text-accent-ink hover:brightness-95 shadow-[var(--edge-accent)]",
-  secondary: "bg-raised text-ink border-[1.5px] border-line-strong hover:bg-sunken active:translate-y-0",
-  ghost: "text-ink hover:bg-sunken active:translate-y-0",
-  danger: "bg-danger text-primary-ink hover:bg-danger-strong shadow-[0_2px_0_var(--danger-strong)]",
+  primary: "bg-primary text-primary-ink hover:bg-primary-strong shadow-[0_1px_2px_rgb(11_42_91/0.25)]",
+  accent: "bg-accent text-accent-ink hover:bg-accent-strong shadow-[0_1px_2px_rgb(216_31_38/0.3)]",
+  secondary: "bg-raised text-ink border border-line-strong/70 hover:border-primary hover:text-primary",
+  ghost: "text-ink hover:bg-sunken",
+  danger: "bg-danger text-primary-ink hover:bg-danger-strong",
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-9 px-3 text-sm rounded-[var(--radius-sm)]",
+  sm: "h-9 px-3 text-sm rounded-[var(--radius-md)]",
   md: "h-11 px-4 text-sm rounded-[var(--radius-md)]",
   lg: "h-12 px-6 text-base rounded-[var(--radius-md)]",
 };

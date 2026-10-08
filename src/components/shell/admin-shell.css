@@ -1,6 +1,6 @@
 /*
- * Back-office surface. Working screens that stay dense and plain: Mukta throughout (the shell sets
- * --font-display to the body font), kraft table headers in sentence case, no tracked capitals.
+ * Back-office surface. Working screens that stay dense and plain: light table headers in sentence case,
+ * no tracked capitals.
  * Unlayered on purpose: it must win over the utility classes the shared Table and PageHeader carry.
  */
 [data-surface="admin"] .uppercase {
@@ -8,21 +8,21 @@
   letter-spacing: 0;
 }
 [data-surface="admin"] thead {
-  background: var(--surface-sunken);
+  background: var(--surface);
 }
 [data-surface="admin"] th {
   text-transform: none;
   letter-spacing: 0;
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--ink);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink-muted);
   border-bottom-color: var(--line);
 }
 [data-surface="admin"] tbody tr {
   transition: background-color var(--dur-fast) var(--ease-out);
 }
 [data-surface="admin"] tbody tr:hover {
-  background-color: var(--surface-paper);
+  background-color: color-mix(in srgb, var(--brand-primary-soft) 45%, white);
 }
 /* The first heading on a page is the page title: sturdy, not shouting */
 [data-surface="admin"] h1 {

@@ -156,3 +156,12 @@
 - **Tokens:** `--ease-in` and `--ease-spring` are gone on purpose; `--ease-drawer` is new. `--ease-out` is mirrored in `components/motion/presets.ts`.
 - **Toasts are one slot**: a new toast supersedes the previous one (it plays its 140 ms exit under the new one). `EXIT_MS` in toast.tsx must equal `.toast-out` in globals.css.
 - The Add button is as wide as "Added" at all times (both labels share a grid cell). Do not make the label swap change the width.
+
+## Phase 12 (8 Oct, Wholesale Street)
+- **Connectors on 8 Oct:** the Unsplash connector refused every call ("email address has not been confirmed") until the owner confirms the Unsplash account email. The Supabase connector was signed in to an account whose only project is "super-voxis": it cannot reach `qtztjbnaofonazruovty`; never run anything against super-voxis.
+- Stock photos are hotlinked `https://images.unsplash.com/...` URLs stored in `products.image_path`; `publicImageUrl` passes them through and `ProductPhoto` renders them `unoptimized` with Unsplash sizing params. The container cannot load them (egress), so local screenshots show the category fallback for those products.
+- `scripts/screens.mts` takes a comma list of filters; `=name` matches a shot exactly (`npx tsx --env-file=.env.local scripts/screens.mts "=shop,=home"`). It now captures with reduced motion, because the scroll-in `.reveal` sections are invisible in a full-page capture otherwise.
+- The catalogue's `unstable_cache` entries persist in `.next/cache/fetch-cache` across builds; a build made before the E2E global setup imports the sample CSV serves a stale drinks list. Delete `.next/cache/fetch-cache` after `npm run build` and before the E2E run.
+- The dev seed now sets the old trading rules (min order £150, £12 delivery, Mon–Sat) on purpose: migration 0010 turns them off, and the E2E tests exercise them.
+- Typing a `const Icon = lookup(slug); <Icon/>` in a component trips the React Compiler lint ("Cannot create components during render"); use `createElement(lookup(slug), props)`.
+- Shop pages have two "Categories" navs (the header bar on md+, chips on phones, `md:hidden`); Playwright's getByRole ignores the hidden one.

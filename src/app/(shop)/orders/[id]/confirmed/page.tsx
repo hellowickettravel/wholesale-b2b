@@ -28,7 +28,7 @@ export default async function OrderConfirmedPage({ params }: PageProps<"/orders/
 
   return (
     <div className="mx-auto max-w-2xl">
-      <div data-ground="rice" data-weave="a" className="weave grid place-items-center rounded-[var(--radius-xl)] px-4 py-12 sm:py-16">
+      <div data-ground="tea-powders-and-milk-mix" data-weave="a" className="weave grid place-items-center rounded-[var(--radius-xl)] px-4 py-12 sm:py-16">
         <div className="plate w-full max-w-xl px-6 py-8 text-center sm:px-8 sm:py-10 motion-safe:animate-stamp">
           <svg viewBox="0 0 48 48" className="mx-auto size-12 text-primary" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <circle cx="24" cy="24" r="20" strokeWidth="2.5" pathLength="1" className="motion-safe:[stroke-dasharray:1] motion-safe:[stroke-dashoffset:1] motion-safe:animate-[draw_300ms_var(--ease-out)_80ms_both]" />

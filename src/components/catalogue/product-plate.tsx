@@ -1,10 +1,10 @@
-import Image from "next/image";
+import { ProductPhoto } from "@/components/brand/product-image";
+import { CategoryIcon } from "@/components/catalogue/category-icon";
 import { cn } from "@/lib/cn";
 
 /**
- * The big tile at the top of a product page: the shelf colour with a plate. With a packshot the plate
- * carries the photo on its paper mat; without one it names the shelf and the pack sizes (the product's
- * own name is the heading beside it, so it is not repeated here).
+ * The big picture at the top of a product page. With a photo it fills a white frame; without one it is the
+ * category's colour wash with its icon and name (the product's own name is the heading beside it).
  */
 export function ProductPlate({
   src,
@@ -18,24 +18,23 @@ export function ProductPlate({
   name: string;
   categoryName: string;
   categorySlug: string;
-  /** Pack size or range for the plate's lower rim. */
+  /** Pack size or range shown on the frame. */
   sizeLabel?: string | null;
   className?: string;
 }) {
   return (
-    <div data-ground={categorySlug} className={cn("weave relative rounded-[var(--radius-xl)] p-5 sm:p-8", className)}>
-      <div className="plate relative grid h-full min-h-[200px] place-items-center sm:min-h-[260px]">
-        {src ? (
-          <div className="plate-photo absolute inset-[5px] rounded-[8px]">
-            <Image src={src} alt={name} fill priority sizes="(min-width: 768px) 520px, 100vw" className="object-contain" />
-          </div>
-        ) : (
-          <span role="img" aria-label={`${name} (photo coming soon)`} className="max-w-[85%] text-balance px-2 text-center font-display text-[clamp(1.75rem,1.2rem+2.4vw,2.75rem)] leading-[1.05] text-ink">
-            {categoryName}
+    <div data-ground={categorySlug} className={cn("relative grid aspect-square place-items-center overflow-hidden rounded-[var(--radius-xl)] border border-line", src ? "bg-raised" : "weave", className)}>
+      {src ? (
+        <ProductPhoto src={src} alt={name} priority sizes="(min-width: 768px) 560px, 100vw" width={1100} />
+      ) : (
+        <span role="img" aria-label={`${name} (photo coming soon)`} className="grid place-items-center gap-4 text-center">
+          <span className="mx-auto grid size-28 place-items-center rounded-full bg-raised/85 shadow-[0_0_0_1px_rgb(15_27_45/0.05)]">
+            <CategoryIcon slug={categorySlug} className="size-14" strokeWidth={1.5} />
           </span>
-        )}
-        {sizeLabel ? <span className="plate-tab text-sm">{sizeLabel}</span> : null}
-      </div>
+          <span className="text-sm font-semibold text-ink-muted">{categoryName}</span>
+        </span>
+      )}
+      {sizeLabel ? <span className="plate-tab !bottom-4 !left-4 !text-sm">{sizeLabel}</span> : null}
     </div>
   );
 }

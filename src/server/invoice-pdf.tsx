@@ -54,13 +54,14 @@ function InvoicePdf({ d }: { d: InvoiceDocument }) {
               <Image src={logo} style={{ height: 36, marginBottom: 6 }} />
             ) : (
               <Text style={s.wordmark}>
-                {brand.wordmark.lead}
-                <Text style={s.wordmarkTail}>{brand.wordmark.tail}</Text>
+                {brand.wordmark.lead} <Text style={s.wordmarkTail}>{brand.wordmark.tail}</Text>
               </Text>
             )}
             <Text style={[s.bold, { marginTop: 10 }]}>{d.seller.legalName}</Text>
-            <Text style={s.muted}>{d.seller.address}</Text>
-            <Text style={s.muted}>VAT number: {d.seller.vatNumber}</Text>
+            <Text style={s.muted}>Trading as {brand.name} · Company no. {brand.companyNumber}</Text>
+            {d.seller.address ? <Text style={s.muted}>{d.seller.address}</Text> : null}
+            {d.seller.vatNumber ? <Text style={s.muted}>VAT number: {d.seller.vatNumber}</Text> : null}
+            <Text style={s.muted}>{brand.contact.email} · WhatsApp {brand.contact.phoneDisplay}</Text>
           </View>
           <View>
             <Text style={s.title}>{d.voidedAt ? "VOID INVOICE" : "INVOICE"}</Text>
@@ -140,12 +141,12 @@ function InvoicePdf({ d }: { d: InvoiceDocument }) {
           ) : null}
           <View style={s.totalRow}><Text style={s.muted}>Total VAT</Text><Text>{formatPence(t.vatPence)}</Text></View>
           <View style={s.grand}><Text style={[s.bold, { fontSize: 12 }]}>Total due</Text><Text style={[s.bold, { fontSize: 12 }]}>{formatPence(t.totalPence)}</Text></View>
-          {d.paidPence ? (
+          {d.voidedAt ? null : (
             <>
-              <View style={s.totalRow}><Text style={s.muted}>Paid</Text><Text>{formatPence(d.paidPence)}</Text></View>
-              <View style={s.totalRow}><Text style={s.bold}>Balance</Text><Text style={s.bold}>{formatPence(balance)}</Text></View>
+              <View style={s.totalRow}><Text style={s.muted}>Paid so far</Text><Text>{formatPence(d.paidPence)}</Text></View>
+              <View style={[s.totalRow, { marginTop: 2 }]}><Text style={[s.bold, { color: c.primary }]}>Balance due</Text><Text style={[s.bold, { color: c.primary }]}>{formatPence(balance)}</Text></View>
             </>
-          ) : null}
+          )}
         </View>
 
         {d.voidedAt ? (
@@ -154,20 +155,23 @@ function InvoicePdf({ d }: { d: InvoiceDocument }) {
           </View>
         ) : (
           <View style={s.pay} wrap={false}>
-            <Text style={s.label}>Pay by bank transfer</Text>
+            <Text style={s.label}>{d.seller.hasBank ? "Pay by bank transfer" : "Payment"}</Text>
             <View style={[s.row, { gap: 24 }]}>
+              {d.seller.hasBank ? (
+                <View>
+                  {d.seller.bankName ? <Text>Bank: <Text style={s.bold}>{d.seller.bankName}</Text></Text> : null}
+                  <Text>Account name: <Text style={s.bold}>{d.seller.accountName}</Text></Text>
+                  <Text>Sort code: <Text style={s.bold}>{d.seller.sortCode}</Text></Text>
+                  <Text>Account number: <Text style={s.bold}>{d.seller.accountNumber}</Text></Text>
+                  {d.seller.iban ? <Text>IBAN: <Text style={s.bold}>{d.seller.iban}</Text></Text> : null}
+                </View>
+              ) : null}
               <View>
-                <Text>Bank: <Text style={s.bold}>{d.seller.bankName}</Text></Text>
-                <Text>Account name: <Text style={s.bold}>{d.seller.accountName}</Text></Text>
-                <Text>Sort code: <Text style={s.bold}>{d.seller.sortCode}</Text></Text>
-                <Text>Account number: <Text style={s.bold}>{d.seller.accountNumber}</Text></Text>
-                {d.seller.iban ? <Text>IBAN: <Text style={s.bold}>{d.seller.iban}</Text></Text> : null}
-              </View>
-              <View>
+                <Text>Balance due: <Text style={s.bold}>{formatPence(balance)}</Text></Text>
                 <Text>Reference: <Text style={s.bold}>{orderRef(d.orderNumber)}</Text></Text>
                 <Text>Terms: {PAYMENT_TERMS_LABEL[d.paymentTerms]}</Text>
                 {d.payBy ? <Text>Please pay by: <Text style={s.bold}>{formatDate(`${d.payBy}T12:00:00Z`)}</Text></Text> : null}
-                {balance && d.paidPence ? <Text>Still to pay: <Text style={s.bold}>{formatPence(balance)}</Text></Text> : null}
+                {d.seller.hasBank ? null : <Text style={[s.muted, { marginTop: 4 }]}>For payment details contact {brand.contact.email} or WhatsApp {brand.contact.phoneDisplay}.</Text>}
               </View>
             </View>
           </View>
@@ -175,7 +179,7 @@ function InvoicePdf({ d }: { d: InvoiceDocument }) {
 
         {/* No render() page counter: with the page's lineHeight it is not drawn at all (react-pdf 4.9). */}
         <Text style={s.footer} fixed>
-          {[d.seller.footer, invoiceRef(d.number)].filter(Boolean).join("  ·  ")}
+          {[d.seller.footer || brand.tradingAs, invoiceRef(d.number)].filter(Boolean).join("  ·  ")}
         </Text>
       </Page>
     </Document>

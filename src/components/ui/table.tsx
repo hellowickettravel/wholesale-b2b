@@ -15,19 +15,19 @@ export function Table({ className, ...rest }: ComponentProps<"table">) {
   );
 }
 export function THead({ className, ...rest }: ComponentProps<"thead">) {
-  return <thead className={cn("bg-sunken text-left", className)} {...rest} />;
+  return <thead className={cn("bg-surface text-left", className)} {...rest} />;
 }
 export function TH({ className, numeric, ...rest }: ComponentProps<"th"> & { numeric?: boolean }) {
   return (
     <th
       scope="col"
-      className={cn("whitespace-nowrap border-b border-line px-4 py-3 text-sm font-bold text-ink", numeric ? "text-right" : "text-left", className)}
+      className={cn("whitespace-nowrap border-b border-line px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.04em] text-ink-muted", numeric ? "text-right" : "text-left", className)}
       {...rest}
     />
   );
 }
 export function TR({ className, ...rest }: ComponentProps<"tr">) {
-  return <tr className={cn("border-b border-line transition-colors duration-[var(--dur-fast)] last:border-0 hover:bg-surface", className)} {...rest} />;
+  return <tr className={cn("border-b border-line transition-colors duration-[var(--dur-fast)] last:border-0 hover:bg-primary-soft/40", className)} {...rest} />;
 }
 export function TD({ className, numeric, ...rest }: ComponentProps<"td"> & { numeric?: boolean }) {
   return <td className={cn("px-4 py-3 align-middle text-ink", numeric && "tabular whitespace-nowrap text-right", className)} {...rest} />;

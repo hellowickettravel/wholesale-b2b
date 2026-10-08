@@ -163,6 +163,17 @@ export const listShopProducts = cache(async (customerId: string): Promise<ShopPr
   return rows.flatMap((r) => project(r, ctx) ?? []);
 });
 
+/** The categories this restaurant has products in, in catalogue order, with how many. */
+export async function listShopCategories(customerId: string): Promise<{ slug: string; name: string; count: number }[]> {
+  const out: { slug: string; name: string; count: number }[] = [];
+  for (const p of await listShopProducts(customerId)) {
+    const c = out.find((x) => x.slug === p.category.slug);
+    if (c) c.count++;
+    else out.push({ slug: p.category.slug, name: p.category.name, count: 1 });
+  }
+  return out;
+}
+
 /** One product by slug, or null when it does not exist or this restaurant may not see it. */
 export async function getShopProduct(customerId: string, slug: string): Promise<ShopProduct | null> {
   const ctx = await context(customerId);

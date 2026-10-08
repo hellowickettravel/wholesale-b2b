@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import {
   BadgePercent,
   Boxes,
@@ -61,9 +61,8 @@ const linkCls =
 const activeCls = "bg-white/12 !text-on-dark shadow-[inset_3px_0_0_var(--brand-accent)]";
 
 /**
- * Admin: clove sidebar on desktop (lg+), sticky for the full viewport height; on tablet and phone a
- * horizontal scrolling nav strip. Working screens: dense, plain, Mukta throughout (the serif is a
- * customer-side device, so --font-display falls back to the body font in here).
+ * Admin: navy sidebar on desktop (lg+), sticky for the full viewport height; on tablet and phone a
+ * horizontal scrolling nav strip. Working screens: dense and plain.
  */
 export function AdminShell({ children, userName, badges = {} }: { children: ReactNode; userName: string; badges?: Record<string, number> }) {
   const flat = groups.flatMap((g) => g.items);
@@ -71,10 +70,9 @@ export function AdminShell({ children, userName, badges = {} }: { children: Reac
     <ToastProvider>
       <div
         data-surface="admin"
-        style={{ "--font-display": "var(--font-body)" } as CSSProperties}
         className="min-h-dvh bg-surface lg:grid lg:grid-cols-[248px_minmax(0,1fr)]"
       >
-        <div className="on-dark hidden bg-dark lg:block">
+        <div className="on-dark hidden bg-primary-strong lg:block">
           <aside className="sticky top-0 flex h-dvh flex-col">
             <div className="px-5 pb-3 pt-4">
               <Logo href="/admin" inverted />
@@ -82,7 +80,7 @@ export function AdminShell({ children, userName, badges = {} }: { children: Reac
             <nav aria-label="Admin" className="flex-1 space-y-4 overflow-y-auto px-3 pb-4">
               {groups.map((g) => (
                 <div key={g.label}>
-                  <div className="px-3 pb-1 text-xs font-bold text-hessian">{g.label}</div>
+                  <div className="px-3 pb-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-white/50">{g.label}</div>
                   <ul className="space-y-0.5">
                     {g.items.map(({ href, label, icon: Icon, exact }) => (
                       <li key={href}>
@@ -109,7 +107,7 @@ export function AdminShell({ children, userName, badges = {} }: { children: Reac
         </div>
 
         <div className="flex min-w-0 flex-col">
-          <header className="on-dark sticky top-0 z-30 bg-dark lg:hidden">
+          <header className="on-dark sticky top-0 z-30 bg-primary-strong lg:hidden">
             <div className="flex h-14 items-center justify-between px-4">
               <Logo href="/admin" inverted />
               <div className="flex min-w-0 items-center gap-4">

@@ -49,7 +49,7 @@ function Job({ job }: { job: DriverJob }) {
         <dt className="text-ink-muted">Order</dt><dd className="font-semibold">{orderRef(job.orderNumber)}</dd>
         <dt className="text-ink-muted">From</dt><dd>{job.supplierName}</dd>
       </dl>
-      {job.note ? <p className="mt-2 rounded-[var(--radius-md)] bg-accent-soft px-3 py-2 text-sm text-accent-ink">Note: {job.note}</p> : null}
+      {job.note ? <p className="mt-2 rounded-[var(--radius-md)] bg-accent-soft px-3 py-2 text-sm text-ink">Note: {job.note}</p> : null}
       <details className="mt-3 rounded-[var(--radius-md)] border border-line">
         <summary className="flex min-h-11 cursor-pointer items-center px-3 text-sm font-bold">
           {job.lines.length} {job.lines.length === 1 ? "line" : "lines"}, {units} {units === 1 ? "item" : "items"}
