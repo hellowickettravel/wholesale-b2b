@@ -1,38 +1,19 @@
-import Image from "next/image";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { Photo, hasStockPhoto } from "@/components/brand/photo";
-import { categoryPhotoSlot, getSlot } from "@/config/photos";
+import { categoryPhotoSlot } from "@/config/photos";
 import { cn } from "@/lib/cn";
-import { publicImageUrl } from "@/lib/storage";
+import { categoryImageUrl } from "@/lib/storage";
+import { CategoryArt } from "./category-art";
 
-/** Photos that must not appear on public pages (identifiable people, foreign-language labels). */
+/** Bundled photos that must not appear on public pages (identifiable people, foreign-language labels). */
 const BLOCKED = /\/(whole-spices|pulses-nuts-and-groceries)\.webp$/;
-
-/** Same twill direction for the same shelf every time, different between neighbours. */
-function weaveFor(slug: string) {
-  let h = 0;
-  for (const ch of slug) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  return h % 2 === 0 ? "a" : "b";
-}
-
-/** The photo to show on a shelf tile, if there is a usable one: a dropped-in stock file, an admin upload, or the bundled one. */
-function shelfPhoto(slug: string, imagePath: string | null): { kind: "slot"; id: NonNullable<ReturnType<typeof categoryPhotoSlot>> } | { kind: "url"; url: string } | null {
-  const slot = categoryPhotoSlot(slug);
-  if (slot && hasStockPhoto(slot)) return { kind: "slot", id: slot };
-  const uploaded = publicImageUrl(imagePath);
-  if (uploaded && !BLOCKED.test(uploaded)) return { kind: "url", url: uploaded };
-  if (slot && getSlot(slot).bundled) return { kind: "slot", id: slot };
-  return null;
-}
 
 export function shelfCount(n: number) {
   return `${n} ${n === 1 ? "product" : "products"}`;
 }
 
-/**
- * One shelf of the shop: its colour, a hessian twill (or the shelf photo in a coloured frame) and a
- * label plate with the shelf name and how many lines are on it.
- */
+/** A category card: its photo (or colour wash and icon), the name, how many products, and an arrow. */
 export function ShelfTile({
   slug,
   name,
@@ -50,30 +31,34 @@ export function ShelfTile({
   className?: string;
   sizes?: string;
 }) {
-  const photo = shelfPhoto(slug, imagePath);
+  const slot = categoryPhotoSlot(slug);
+  const dropped = slot && hasStockPhoto(slot) ? slot : null;
+  const url = categoryImageUrl(slug, imagePath);
+  const image = url && !BLOCKED.test(url) ? url : null;
   return (
     <Link
       href={href}
       data-ground={slug}
-      data-weave={weaveFor(slug)}
       className={cn(
-        "weave group relative block h-[156px] overflow-hidden rounded-[var(--radius-lg)] shadow-rest transition-[box-shadow,transform] duration-[var(--dur-base)] ease-[var(--ease-out)] motion-safe:hover:-translate-y-[3px] hover:shadow-lift sm:h-[196px] lg:h-[216px]",
-        photo && "p-[7px]",
+        "group flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] border border-line bg-raised shadow-rest transition-[box-shadow,transform,border-color] duration-[var(--dur-base)] ease-[var(--ease-out)] hover:border-transparent hover:shadow-lift motion-safe:hover:-translate-y-1",
         className,
       )}
     >
-      {photo ? (
-        <div className="absolute inset-[7px] overflow-hidden rounded-[8px] bg-sunken" aria-hidden="true">
-          {photo.kind === "slot" ? (
-            <Photo slot={photo.id} className="size-full" sizes={sizes} />
-          ) : (
-            <Image src={photo.url} alt="" fill sizes={sizes} className="object-cover" />
-          )}
-        </div>
-      ) : null}
-      <span className="plate plate-sm absolute bottom-3 left-3 right-3 block px-4 pb-3 pt-3.5 sm:right-auto sm:max-w-[min(100%-1.5rem,15rem)]">
-        <span className="block font-display text-[17px] leading-[1.1] text-ink sm:text-[19px]">{name}</span>
-        {count > 0 ? <span className="tabular mt-1 block text-[13px] font-semibold text-ink-muted">{shelfCount(count)}</span> : null}
+      <div className="relative aspect-[4/3] overflow-hidden">
+        {dropped ? (
+          <Photo slot={dropped} className="size-full transition-transform duration-[var(--dur-hero)] ease-[var(--ease-out)] motion-safe:group-hover:scale-[1.04]" sizes={sizes} />
+        ) : (
+          <CategoryArt slug={slug} imageUrl={image} sizes={sizes} iconClassName="size-12 sm:size-14" className="size-full transition-transform duration-[var(--dur-hero)] ease-[var(--ease-out)] motion-safe:group-hover:scale-[1.04]" />
+        )}
+      </div>
+      <span className="flex flex-1 items-center justify-between gap-3 px-3.5 py-3 sm:px-4">
+        <span className="min-w-0">
+          <span className="block font-display text-[15px] font-bold leading-snug text-ink sm:text-base">{name}</span>
+          {count > 0 ? <span className="tabular mt-0.5 block text-xs text-ink-muted">{shelfCount(count)}</span> : null}
+        </span>
+        <span aria-hidden="true" className="grid size-8 shrink-0 place-items-center rounded-full bg-sunken text-ink transition-colors duration-[var(--dur-fast)] group-hover:bg-accent group-hover:text-accent-ink">
+          <ArrowRight className="size-4" />
+        </span>
       </span>
     </Link>
   );

@@ -35,7 +35,7 @@ export function AddToBasket({
   productName: string;
   sizes: SizeOption[];
   vatLabel: string;
-  layout?: "row" | "page";
+  layout?: "row" | "page" | "card";
   initialSizeId?: string;
 }) {
   const firstOrderable = sizes.find((s) => s.orderable) ?? sizes[0];
@@ -50,6 +50,7 @@ export function AddToBasket({
   const toast = useToast();
   const size = sizes.find((s) => s.id === sizeId) ?? firstOrderable;
   const page = layout === "page";
+  const card = layout === "card";
   const idle = page ? "Add to basket" : "Add";
 
   // Product page, phones: dock the buy bar above the tab bar while its inline slot is out of view.
@@ -81,7 +82,12 @@ export function AddToBasket({
 
   const price =
     size.displayPence === null ? (
-      <span className="inline-flex h-8 items-center whitespace-nowrap rounded-[var(--radius-sm)] bg-sunken px-2.5 text-sm font-bold text-ink-muted">Price on request</span>
+      <span className="inline-flex h-8 items-center whitespace-nowrap rounded-full bg-sunken px-3 text-sm font-semibold text-ink-muted">Price on request</span>
+    ) : card ? (
+      <span className="flex items-baseline gap-1.5">
+        <span className="tabular text-xl font-bold leading-none tracking-[-0.02em] text-ink">{formatPence(size.displayPence)}</span>
+        <span className="text-xs text-ink-muted">{vatLabel}</span>
+      </span>
     ) : page ? (
       <span className="flex items-baseline gap-2">
         <span className="tabular text-[1.875rem] font-bold leading-none text-ink">{formatPence(size.displayPence)}</span>
@@ -100,7 +106,7 @@ export function AddToBasket({
       aria-label={page ? undefined : `Size of ${productName}`}
       value={size.id}
       onChange={(e) => setSizeId(e.target.value)}
-      className={page ? "font-semibold" : "text-sm font-semibold sm:!h-11"}
+      className={page ? "font-semibold" : card ? "!h-10 text-sm font-medium" : "text-sm font-semibold sm:!h-11"}
     >
       {sizes.map((s) => (
         <option key={s.id} value={s.id}>
@@ -115,8 +121,9 @@ export function AddToBasket({
     <Button
       onClick={add}
       loading={pending}
+      variant="accent"
       size={page ? "lg" : "md"}
-      className={cn(page ? "flex-1 md:flex-none md:px-8" : "px-5")}
+      className={cn(page ? "flex-1 md:flex-none md:px-8" : card ? "h-10 w-full px-3 @min-[15rem]:w-auto @min-[15rem]:flex-1" : "px-5")}
       icon={added ? <Check className="size-4 motion-safe:animate-[ui-fade-in_var(--dur-fast)_var(--ease-out)_both]" strokeWidth={3} aria-hidden="true" /> : <ShoppingBasket className="size-4" aria-hidden="true" />}
       aria-label={`Add ${productName} ${size.sizeLabel} to basket`}
     >
@@ -128,7 +135,16 @@ export function AddToBasket({
       </span>
     </Button>
   );
-  const stepper = <QtyStepper value={qty} onChange={setQty} label={`Quantity of ${productName} ${size.sizeLabel}`} disabled={pending} className={page ? "h-12" : undefined} />;
+  const stepper = (
+    <QtyStepper
+      value={qty}
+      onChange={setQty}
+      label={`Quantity of ${productName} ${size.sizeLabel}`}
+      disabled={pending}
+      fluid={card}
+      className={page ? "h-12" : card ? "!h-10 @min-[15rem]:!w-[7.5rem] @min-[15rem]:shrink-0" : undefined}
+    />
+  );
 
   const errorText = error ? <p role="alert" className="col-span-full text-sm font-semibold text-danger">{error}</p> : null;
 
@@ -156,7 +172,7 @@ export function AddToBasket({
               className={cn(
                 "flex items-center gap-3",
                 docked &&
-                  "max-md:fixed max-md:inset-x-0 max-md:bottom-[calc(4rem+env(safe-area-inset-bottom))] max-md:z-20 max-md:border-t max-md:border-line max-md:bg-raised max-md:px-4 max-md:py-3 max-md:shadow-[0_-12px_20px_-16px_rgb(42_28_20/0.45)] motion-safe:max-md:animate-toast-in",
+                  "max-md:fixed max-md:inset-x-0 max-md:bottom-[calc(4rem+env(safe-area-inset-bottom))] max-md:z-20 max-md:border-t max-md:border-line max-md:bg-raised max-md:px-4 max-md:py-3 max-md:shadow-[0_-12px_20px_-16px_rgb(15_27_45/0.25)] motion-safe:max-md:animate-toast-in",
               )}
             >
               {stepper}
@@ -166,6 +182,24 @@ export function AddToBasket({
         ) : null}
         {errorText ? <div className="mt-3">{errorText}</div> : null}
       </>
+    );
+  }
+
+  if (card) {
+    return (
+      <div className="@container mt-auto flex flex-col gap-2.5 pt-1">
+        {sizes.length > 1 ? sizeSelect : null}
+        <div aria-live="polite" className="flex min-h-7 items-center">{price}</div>
+        {size.orderable ? (
+          <div className="flex flex-col gap-2 @min-[15rem]:flex-row">
+            {stepper}
+            {addButton}
+          </div>
+        ) : (
+          <p className="text-xs leading-snug text-ink-muted">Ask us for a price on this size.</p>
+        )}
+        {errorText}
+      </div>
     );
   }
 

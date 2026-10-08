@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { cn } from "@/lib/cn";
 import { ProductImage } from "@/components/brand/product-image";
 import { sizeRange } from "@/lib/catalogue/query";
 import { publicImageUrl } from "@/lib/storage";
@@ -12,7 +11,7 @@ export function ProductCard({ product, priority }: { product: PublicProductCard;
     <li className="min-w-0">
       <Link
         href={`/catalogue/${product.slug}`}
-        className="group flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] border border-line bg-raised shadow-rest transition-[box-shadow,transform] duration-[var(--dur-base)] ease-[var(--ease-out)] motion-safe:hover:-translate-y-[3px] hover:shadow-lift"
+        className="group flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] border border-line bg-raised shadow-rest transition-[box-shadow,transform,border-color] duration-[var(--dur-base)] ease-[var(--ease-out)] hover:border-transparent hover:shadow-lift motion-safe:hover:-translate-y-1"
       >
         <ProductImage
           src={publicImageUrl(product.imagePath)}
@@ -21,12 +20,15 @@ export function ProductCard({ product, priority }: { product: PublicProductCard;
           categorySlug={product.category.slug}
           sizeLabel={product.sizes.length === 1 ? product.sizes[0] : undefined}
           priority={priority}
-          className="aspect-[4/3]"
-          sizes="(min-width: 1280px) 270px, (min-width: 768px) 30vw, 46vw"
+          className="aspect-[5/4]"
+          sizes="(min-width: 1280px) 280px, (min-width: 768px) 30vw, 46vw"
         />
         <div className="flex flex-1 flex-col gap-1 p-3 sm:p-4">
-          <span className="truncate text-xs font-medium text-ink-subtle">{product.category.name}</span>
-          <span className={cn("line-clamp-2 text-[15px] font-bold leading-snug text-ink", !product.imagePath && "sr-only")}>{product.name}</span>
+          <span data-ground={product.category.slug} className="flex min-w-0 items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-subtle">
+            <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-[var(--g)]" />
+            <span className="truncate">{product.category.name}</span>
+          </span>
+          <span className="line-clamp-2 text-[15px] font-semibold leading-snug text-ink transition-colors group-hover:text-primary">{product.name}</span>
           <span className="text-sm text-ink-muted">
             {range ? (
               <>
@@ -37,7 +39,7 @@ export function ProductCard({ product, priority }: { product: PublicProductCard;
               "Sizes coming soon"
             )}
           </span>
-          <PriceLock className="mt-auto self-start" />
+          <PriceLock className="mt-auto self-start pt-2" />
         </div>
       </Link>
     </li>

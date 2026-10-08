@@ -220,7 +220,7 @@ for (const width of [390, 1280]) {
   const contextFor = async (as?: string) => {
     const key = as ?? "anon";
     if (!sessions.has(key)) {
-      const ctx = await browser.newContext({ viewport: { width, height: width === 390 ? 844 : 800 }, deviceScaleFactor: 1 });
+      const ctx = await browser.newContext({ viewport: { width, height: width === 390 ? 844 : 800 }, deviceScaleFactor: 1, reducedMotion: "reduce" });
       if (as) {
         const p = await ctx.newPage();
         await p.goto(`${BASE}/login`, { waitUntil: "load" });
@@ -235,8 +235,8 @@ for (const width of [390, 1280]) {
     return sessions.get(key)!;
   };
   for (const shot of shots) {
-    if (filter && !shot.name.includes(filter)) continue;
-    const ctx = shot.before && !shot.as ? await browser.newContext({ viewport: { width, height: width === 390 ? 844 : 800 } }) : await contextFor(shot.as);
+    if (filter && !filter.split(",").some((f) => (f.startsWith("=") ? shot.name === f.slice(1) : shot.name.includes(f)))) continue;
+    const ctx = shot.before && !shot.as ? await browser.newContext({ viewport: { width, height: width === 390 ? 844 : 800 }, reducedMotion: "reduce" }) : await contextFor(shot.as);
     const page = await ctx.newPage();
     await page.goto(`${BASE}${shot.path}`, { waitUntil: "load" });
     if (shot.before) await shot.before(page);

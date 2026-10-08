@@ -1,18 +1,18 @@
 /*
- * The one landing sequence on the site (home hero, plays once): the photograph settles and the plate
- * follows almost at once (60ms), no overshoot and no rotation, so the text is on whole pixels as soon as
- * it stops. Transform only: nothing starts at opacity 0, so the photograph is the LCP element from the
- * first frame and the plate text is readable throughout. Reduced motion gets the finished page.
+ * The one landing sequence on the site (home hero, plays once): the photograph settles, the copy rises a
+ * little, and the price card follows. Transform only: nothing starts at opacity 0, so the heading and the
+ * photograph are readable from the first frame (LCP, axe). Reduced motion gets the finished page.
  */
 @keyframes hero-settle {
-  from { transform: scale(1.04); }
+  from { transform: scale(1.05); }
   to { transform: none; }
 }
-@keyframes plate-drop {
-  from { transform: translateY(14px); }
+@keyframes hero-rise {
+  from { transform: translateY(16px); }
   to { transform: none; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .hero-photo { animation: hero-settle 700ms var(--ease-out) both; }
-  .hero-plate { animation: plate-drop var(--dur-hero) var(--ease-out) 60ms both; }
+  .hero-photo { animation: hero-settle 900ms var(--ease-out) both; }
+  .hero-copy { animation: hero-rise var(--dur-hero) var(--ease-out) both; }
+  .hero-card { animation: hero-rise var(--dur-hero) var(--ease-out) 180ms both; }
 }
