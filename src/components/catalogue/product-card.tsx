@@ -18,28 +18,14 @@ export function ProductCard({ product, priority }: { product: PublicProductCard;
           alt={product.name}
           name={product.name}
           categorySlug={product.category.slug}
-          sizeLabel={product.sizes.length === 1 ? product.sizes[0] : undefined}
           priority={priority}
-          className="aspect-[5/4]"
+          className="aspect-[4/3]"
           sizes="(min-width: 1280px) 280px, (min-width: 768px) 30vw, 46vw"
         />
-        <div className="flex flex-1 flex-col gap-1 p-3 sm:p-4">
-          <span data-ground={product.category.slug} className="flex min-w-0 items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-subtle">
-            <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-[var(--g)]" />
-            <span className="truncate">{product.category.name}</span>
-          </span>
-          <span className="line-clamp-2 text-[15px] font-semibold leading-snug text-ink transition-colors group-hover:text-primary">{product.name}</span>
-          <span className="text-sm text-ink-muted">
-            {range ? (
-              <>
-                {range}
-                {product.sizes.length > 1 ? <span className="text-ink-subtle"> · {product.sizes.length} sizes</span> : null}
-              </>
-            ) : (
-              "Sizes coming soon"
-            )}
-          </span>
-          <PriceLock className="mt-auto self-start pt-2" />
+        <div className="flex flex-1 flex-col p-3 sm:p-4">
+          <span className="line-clamp-2 text-[15px] font-semibold leading-snug text-ink transition-colors group-hover:text-primary sm:text-base">{product.name}</span>
+          <span className="mt-1 text-sm text-ink-muted">{range ?? "Sizes coming soon"}</span>
+          <PriceLock className="mt-auto pt-3" />
         </div>
       </Link>
     </li>

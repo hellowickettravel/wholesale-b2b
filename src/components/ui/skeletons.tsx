@@ -52,7 +52,7 @@ export function ChipRowSkeleton({ count = 7, className }: { count?: number; clas
 export function ProductCardSkeleton() {
   return (
     <li className="min-w-0 overflow-hidden rounded-[var(--radius-lg)] border border-line bg-raised">
-      <div className="skeleton aspect-[5/4] rounded-none" />
+      <div className="skeleton aspect-[4/3] rounded-none" />
       <div className="flex flex-col gap-2 p-3 sm:p-4">
         <Skeleton className="h-3.5 w-1/3" />
         <Skeleton className="h-4 w-4/5" />

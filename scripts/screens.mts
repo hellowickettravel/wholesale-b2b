@@ -240,7 +240,15 @@ for (const width of [390, 1280]) {
     const page = await ctx.newPage();
     await page.goto(`${BASE}${shot.path}`, { waitUntil: "load" });
     if (shot.before) await shot.before(page);
-    await page.waitForTimeout(150);
+    // Scroll through once so lazy images below the fold load before the full-page capture.
+    await page.evaluate(async () => {
+      for (let y = 0; y < document.body.scrollHeight; y += 700) {
+        window.scrollTo(0, y);
+        await new Promise((r) => setTimeout(r, 60));
+      }
+      window.scrollTo(0, 0);
+    });
+    await page.waitForTimeout(400);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     if (overflow > 0) problems.push(`${shot.name}@${width}: horizontal overflow ${overflow}px`);
     await page.screenshot({ path: `${OUT}/${shot.name}-${width}.png`, fullPage: true });

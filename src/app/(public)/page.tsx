@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { ArrowRight, Check, ClipboardCheck, ShieldCheck, Tags, Truck, UserPlus } from "lucide-react";
+import { ArrowRight, ClipboardCheck, Search, ShieldCheck, Tags, Truck, UserPlus } from "lucide-react";
 import { brand, whatsappHref } from "@/config/brand";
 import { LAUNCH_CATEGORIES } from "@/config/launch-categories";
 import { Photo } from "@/components/brand/photo";
 import { WhatsAppIcon } from "@/components/brand/whatsapp-icon";
 import { ProductCard } from "@/components/catalogue/product-card";
-import { ShelfTile, shelfCount } from "@/components/catalogue/shelf-tile";
+import { CategoryTile, shelfCount } from "@/components/catalogue/category-tile";
 import { LinkButton } from "@/components/ui/button";
 import { catalogueHref } from "@/lib/catalogue/query";
 import { slugify } from "@/lib/import/parse-name";
@@ -66,48 +66,42 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* Hero: words on the left, the photograph on the right (above on phones). */}
-      <section aria-labelledby="hero-title" className="relative overflow-hidden bg-[linear-gradient(180deg,var(--surface-raised),var(--surface))]">
-        <div aria-hidden="true" className="absolute -right-40 -top-40 size-[34rem] rounded-full bg-[radial-gradient(closest-side,rgb(11_42_91/0.08),transparent)]" />
-        <div className={`${wrap} relative grid items-center gap-10 py-10 md:grid-cols-[1.05fr_1fr] md:gap-12 md:py-16 lg:py-20`}>
-          <div className="hero-copy order-2 md:order-1">
-            <p className="inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-xs font-bold text-accent-strong">
-              <span className="size-1.5 rounded-full bg-accent" aria-hidden="true" />
-              Trade wholesale for UK restaurants
-            </p>
-            <h1 id="hero-title" className="mt-5 max-w-[15ch] text-[clamp(2.25rem,1.5rem+3.4vw,3.75rem)] font-extrabold leading-[1.02] tracking-[-0.035em] text-primary">
-              Restaurant wholesale, <span className="text-accent">made simple.</span>
+      {/* Hero: one navy banner. Headline, one sentence, a search box and two actions; the photo on the right. */}
+      <section aria-labelledby="hero-title" className="relative overflow-hidden bg-primary text-on-dark-muted" data-surface="dark">
+        <div className={`${wrap} on-dark relative grid items-center gap-8 py-10 md:grid-cols-[1.1fr_1fr] md:gap-12 md:py-14 lg:py-16`}>
+          <div className="hero-copy">
+            <p className="text-sm font-semibold text-sun">Trade wholesale for UK restaurants</p>
+            <h1 id="hero-title" className="mt-3 max-w-[16ch] text-[clamp(2.125rem,1.4rem+3vw,3.5rem)] font-extrabold leading-[1.05] tracking-[-0.035em] text-white">
+              Restaurant wholesale, made simple.
             </h1>
-            <p className="mt-5 max-w-[46ch] text-lg leading-relaxed text-ink-muted">
-              Rice, dal, spices, flours, sauces, drinks and takeaway packaging at your own trade prices. Order online, delivered to your kitchen.
+            <p className="mt-4 max-w-[44ch] text-lg leading-relaxed">
+              Rice, dal, spices, flours, sauces, drinks and packaging at your own trade prices, delivered to your kitchen.
             </p>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <LinkButton href="/register" size="lg" variant="accent" className="w-full rounded-full sm:w-auto">
-                Open a trade account <ArrowRight className="size-4" aria-hidden="true" />
-              </LinkButton>
-              <LinkButton href="/catalogue" size="lg" variant="secondary" className="w-full rounded-full sm:w-auto">Browse the catalogue</LinkButton>
+            <form action="/catalogue" role="search" className="relative mt-7 max-w-lg">
+              <label htmlFor="hero-q" className="sr-only">Search products</label>
+              <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-ink-muted" aria-hidden="true" />
+              <input
+                id="hero-q"
+                name="q"
+                type="search"
+                placeholder="Search 800+ products, e.g. basmati"
+                className="block h-14 w-full rounded-full border-0 bg-white pl-12 pr-32 text-base text-ink shadow-pop placeholder:text-ink-subtle focus:outline-none focus:ring-4 focus:ring-sun/60"
+              />
+              <button type="submit" className="absolute right-1.5 top-1.5 h-11 rounded-full bg-accent px-6 text-sm font-semibold text-white transition-colors hover:bg-accent-strong">
+                Search
+              </button>
+            </form>
+            <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
+              <Link href="/register" className="group inline-flex items-center gap-1.5 text-base font-semibold text-white underline-offset-4 hover:underline">
+                Open a free trade account <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+              </Link>
+              <Link href="/login" className="text-base font-semibold text-on-dark-muted underline-offset-4 hover:text-white hover:underline">
+                Sign in
+              </Link>
             </div>
-            <ul className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-sm text-ink-muted">
-              {["Free to join", "No minimum term", productTotal > 0 ? `${productTotal}+ products` : "Hundreds of products"].map((t) => (
-                <li key={t} className="inline-flex items-center gap-1.5">
-                  <Check className="size-4 text-success" strokeWidth={2.5} aria-hidden="true" /> {t}
-                </li>
-              ))}
-            </ul>
           </div>
-          <div className="relative order-1 md:order-2">
-            <div className="hero-photo relative aspect-[4/3] overflow-hidden rounded-[28px] shadow-pop md:aspect-[5/5.2]">
-              <Photo slot="home-hero" priority sizes="(min-width: 768px) 50vw, 100vw" className="size-full" focal={{ x: 0.42, y: 0.5 }} />
-            </div>
-            <div className="hero-card absolute -bottom-5 left-4 flex items-center gap-3 rounded-[var(--radius-lg)] bg-raised px-4 py-3 shadow-pop sm:left-6 md:-left-8 md:bottom-10">
-              <span className="grid size-10 place-items-center rounded-full bg-success-soft text-success">
-                <Tags className="size-5" aria-hidden="true" />
-              </span>
-              <span className="leading-tight">
-                <span className="block text-sm font-bold text-ink">Your own price list</span>
-                <span className="text-xs text-ink-muted">Agreed for your restaurant</span>
-              </span>
-            </div>
+          <div className="hero-photo relative hidden aspect-[5/4] overflow-hidden rounded-[24px] md:block">
+            <Photo slot="home-hero" priority sizes="(min-width: 768px) 46vw, 100vw" className="size-full" focal={{ x: 0.42, y: 0.5 }} />
           </div>
         </div>
       </section>
@@ -141,10 +135,10 @@ export default async function HomePage() {
             See everything <ArrowRight className="size-4 transition-transform duration-[var(--dur-base)] group-hover:translate-x-0.5" aria-hidden="true" />
           </Link>
         </div>
-        <ul className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+        <ul className="mt-8 grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
           {categories.map((c) => (
             <li key={c.slug} className="reveal min-w-0">
-              <ShelfTile slug={c.slug} name={c.name} count={c.productCount} imagePath={c.imagePath} href={catalogueHref({ category: c.slug })} />
+              <CategoryTile slug={c.slug} name={c.name} count={c.productCount} href={catalogueHref({ category: c.slug })} />
             </li>
           ))}
         </ul>

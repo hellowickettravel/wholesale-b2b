@@ -5,7 +5,7 @@ import { ChevronRight, LayoutGrid, Search, X } from "lucide-react";
 import { CategoryIcon } from "@/components/catalogue/category-icon";
 import { PlateMessage } from "@/components/brand/plate-message";
 import { PriceLockStrip } from "@/components/catalogue/price-lock";
-import { shelfCount } from "@/components/catalogue/shelf-tile";
+import { shelfCount } from "@/components/catalogue/category-tile";
 import { ProductCard } from "@/components/catalogue/product-card";
 import { LinkButton } from "@/components/ui/button";
 import { Pagination } from "@/components/ui/pagination";

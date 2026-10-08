@@ -16,21 +16,16 @@ export function ShopCard({ product, showIncVat, priority }: { product: ShopProdu
           alt=""
           name={product.name}
           categorySlug={product.category.slug}
-          sizeLabel={single?.sizeLabel}
           priority={priority}
-          className="aspect-[5/4] w-full"
+          className="aspect-[4/3] w-full"
           sizes="(min-width: 1280px) 280px, (min-width: 768px) 30vw, 46vw"
         />
       </Link>
-      <div className="flex flex-1 flex-col gap-1.5 p-3 sm:p-4">
-        <p data-ground={product.category.slug} className="flex min-w-0 items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-subtle">
-          <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-[var(--g)]" />
-          <span className="truncate">{product.category.name}</span>
-        </p>
-        <Link href={href} className="line-clamp-2 min-h-[2.6em] text-[15px] font-semibold leading-snug text-ink transition-colors hover:text-primary">
+      <div className="flex flex-1 flex-col gap-1 p-3 sm:p-4">
+        <Link href={href} className="line-clamp-2 text-[15px] font-semibold leading-snug text-ink transition-colors hover:text-primary sm:text-base">
           {product.name}
         </Link>
-        {single ? null : <p className="text-xs text-ink-muted">{product.variants.length} sizes</p>}
+        {single ? <p className="text-sm text-ink-muted">{single.sizeLabel}</p> : null}
         <AddToBasket
           layout="card"
           productName={product.name}
