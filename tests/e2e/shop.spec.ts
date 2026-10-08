@@ -33,7 +33,8 @@ test.describe("shop", () => {
     await expect(page).toHaveURL(/\/shop$/);
 
     // Own prices: rice at Rice margin 10% (cost £12 -> £13.20), mango drink at the fixed £17.00.
-    await page.getByRole("searchbox", { name: "Search your catalogue" }).fill("basant");
+    // Wide screen: the search box in the header.
+    await page.getByRole("searchbox", { name: "Search products" }).fill("basant");
     await page.getByRole("button", { name: "Search" }).click();
     const rice = row(page, "Basant Basmati Rice");
     await expect(rice).toContainText("£13.20");

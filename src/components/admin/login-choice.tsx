@@ -42,10 +42,12 @@ export function LoginChoice({ allowNone = false, defaultMode = "invite", passwor
               mode === value ? "border-primary bg-primary-soft/60 shadow-[inset_0_0_0_1px_var(--brand-primary)]" : "border-line bg-raised hover:border-line-strong/60",
             )}
           >
-            <input type="radio" name="login" value={value} checked={mode === value} onChange={() => setMode(value)} className="sr-only" />
-            <Icon className={cn("mt-0.5 size-5 shrink-0", mode === value ? "text-primary" : "text-ink-muted")} aria-hidden="true" />
+            <input type="radio" name="login" value={value} checked={mode === value} onChange={() => setMode(value)} className="mt-0.5 size-4 shrink-0 cursor-pointer accent-[var(--brand-primary)]" />
             <span className="min-w-0">
-              <span className="block text-sm font-semibold text-ink">{title}</span>
+              <span className="flex items-center gap-1.5 text-sm font-semibold text-ink">
+                <Icon className={cn("size-4 shrink-0", mode === value ? "text-primary" : "text-ink-muted")} aria-hidden="true" />
+                {title}
+              </span>
               <span className="block text-xs leading-snug text-ink-muted">{text}</span>
             </span>
           </label>

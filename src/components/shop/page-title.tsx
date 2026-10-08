@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
-/** Page heading for the restaurant area: Young Serif at display-l, an optional plain sentence under it. */
+/** Page heading for the restaurant area: the display face, an optional plain sentence under it. */
 export function ShopTitle({ children, description, action, className }: { children: ReactNode; description?: ReactNode; action?: ReactNode; className?: string }) {
   return (
     <header className={cn("flex flex-col gap-4 pb-5 sm:flex-row sm:items-end sm:justify-between sm:pb-6", className)}>

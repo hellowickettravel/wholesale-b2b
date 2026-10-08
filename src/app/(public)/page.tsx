@@ -162,7 +162,7 @@ export default async function HomePage() {
                   <span className="grid size-12 place-items-center rounded-full bg-accent text-accent-ink">
                     <Icon className="size-5" aria-hidden="true" />
                   </span>
-                  <span className="font-display text-4xl font-extrabold text-white/15">0{i + 1}</span>
+                  <span aria-hidden="true" className="font-display text-3xl font-extrabold text-sun">0{i + 1}</span>
                 </div>
                 <h3 className="mt-5 text-lg text-on-dark">{title}</h3>
                 <p className="mt-1.5 text-[15px] leading-relaxed">{text}</p>

@@ -1,10 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
-import { registeredRestaurant, signIn, sql } from "./helpers";
+import { PASSWORD, registeredRestaurant, signIn, sql, submitLogin } from "./helpers";
 
 async function openCustomer(page: Page, name: string) {
   await page.goto("/admin/customers");
   await page.getByRole("searchbox", { name: "Search customers" }).fill(name);
-  await page.getByRole("button", { name: "Search" }).click();
+  await page.getByRole("button", { name: "Apply" }).click();
   await page.getByRole("link", { name: new RegExp(name) }).first().click();
   await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
 }
@@ -152,7 +152,7 @@ test.describe("catalogue & prices", () => {
     const target = `E2E Copy Target ${stamp}`;
     await page.goto("/admin/customers/new");
     await page.getByLabel("Restaurant or business name").fill(target);
-    await page.getByLabel(/Email the contact an invitation/).uncheck();
+    await page.getByRole("radio", { name: /No login yet/ }).check();
     await page.getByRole("button", { name: "Add restaurant" }).click();
     await expect(page.getByText(/Restaurant added and approved with every category/)).toBeVisible();
     const [{ id: targetId }] = await sql<{ id: string }>("select id from customers where business_name = $1", [target]);
@@ -187,7 +187,7 @@ test.describe("settings", () => {
   test("change the global margin and see it used; bad input is refused", async ({ page }) => {
     await signIn(page, "admin@example.com");
     await page.goto("/admin/settings");
-    await expect(page.getByText(/business or bank details are still placeholders/)).toBeVisible();
+    await expect(page.getByText(/Not set yet: .*bank details/)).toBeVisible();
     await page.getByLabel("Global margin (%)").fill("abc");
     await page.getByRole("button", { name: "Save settings" }).click();
     await expect(page.getByText("Enter a margin like 20 or 17.5 (per cent)")).toBeVisible();
@@ -202,5 +202,71 @@ test.describe("settings", () => {
     await expect(page.getByText(/then the global margin \(22\.5%\)/)).toBeVisible();
 
     await sql("update settings set global_margin_bp = 2000, delivery_days = '{1,2,3,4,5,6}'");
+  });
+});
+
+test.describe("logins without email (D47)", () => {
+  test("admin invites a customer with a password; they sign in at once and change it from their account", async ({ page, browser }) => {
+    const stamp = Date.now();
+    const name = `E2E Password Cafe ${stamp}`;
+    const email = `e2e-password-${stamp}@example.com`;
+    await signIn(page, "admin@example.com");
+    await page.goto("/admin/customers");
+    await page.getByRole("link", { name: "Invite a customer" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Invite a customer" })).toBeVisible();
+    await page.getByLabel("Restaurant or business name").fill(name);
+    await page.getByLabel("Contact name").fill("Rani");
+    await page.getByLabel("Email", { exact: true }).fill(email);
+    await page.getByRole("radio", { name: /Set a password now/ }).check();
+    await page.getByLabel("Password for them").fill("short");
+    await page.getByRole("button", { name: "Create account" }).click();
+    await expect(page.getByText(/at least 8 characters|8\+ characters|8 characters/i).first()).toBeVisible();
+    await page.getByLabel("Password for them").fill("Kitchen2026x");
+    await page.getByRole("button", { name: "Create account" }).click();
+    await expect(page.getByText(/Restaurant added with a login/)).toBeVisible();
+
+    const ctx = await browser.newContext();
+    const shop = await ctx.newPage();
+    await signIn(shop, email, "Kitchen2026x");
+    await expect(shop).toHaveURL(/\/shop$/);
+    await expect(shop.getByRole("heading", { level: 1, name })).toBeVisible();
+
+    await shop.goto("/account");
+    await shop.getByLabel("New password", { exact: true }).fill("Tandoor2026y");
+    await shop.getByLabel("Confirm new password").fill("Tandoor2026y");
+    await shop.getByRole("button", { name: "Save new password" }).click();
+    await expect(shop.getByText("Your new password is saved.")).toBeVisible();
+    await ctx.close();
+
+    const again = await browser.newContext();
+    const p2 = await again.newPage();
+    await signIn(p2, email, "Tandoor2026y");
+    await expect(p2).toHaveURL(/\/shop$/);
+    await again.close();
+  });
+
+  test("approving a registration whose email was never confirmed lets them sign in", async ({ page, browser }) => {
+    const stamp = Date.now();
+    const email = `e2e-unconfirmed-${stamp}@example.com`;
+    const name = `E2E Unconfirmed Grill ${stamp}`;
+    const id = await registeredRestaurant(email, name, { confirmed: false });
+
+    // Before approval: the login is not confirmed.
+    const before = await browser.newContext();
+    const b = await before.newPage();
+    await submitLogin(b, email, PASSWORD);
+    await expect(b.getByText(/confirm your email address first/)).toBeVisible();
+    await before.close();
+
+    await signIn(page, "admin@example.com");
+    await page.goto(`/admin/customers/${id}`);
+    await page.getByRole("button", { name: "Approve account" }).click();
+    await expect(page.getByText("Approved.", { exact: true })).toBeVisible();
+
+    const after = await browser.newContext();
+    const a = await after.newPage();
+    await signIn(a, email);
+    await expect(a).toHaveURL(/\/shop$/);
+    await after.close();
   });
 });

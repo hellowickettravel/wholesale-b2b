@@ -5,7 +5,7 @@ test.describe("one login routes each role to its own area", () => {
   for (const [email, url, heading] of [
     ["admin@example.com", "/admin", /Hello, Dev/],
     ["supplier.a@example.com", "/supplier", /Your orders/],
-    ["restaurant.a@example.com", "/shop", /Your catalogue/],
+    ["restaurant.a@example.com", "/shop", /Dev Restaurant A/],
     ["pending@example.com", "/register/pending", /reviewing your account/],
   ] as const) {
     test(`${email} lands on ${url}`, async ({ page }) => {
@@ -73,7 +73,8 @@ test.describe("access control in the browser", () => {
     await page.goto("/supplier?show=all");
     await expect(page.getByRole("link", { name: /^ORDER-1001(?!\d)/ })).toBeVisible();
     await expect(page.getByRole("link", { name: /^ORDER-1002(?!\d)/ })).toBeVisible();
-    const html = await page.content();
+    // Ids are random and can contain "1700" by chance: leave them out before looking for a price.
+    const html = (await page.content()).replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g, "");
     expect(html).not.toMatch(/£|unit_price|cost_pence|1700|4620/);
   });
 

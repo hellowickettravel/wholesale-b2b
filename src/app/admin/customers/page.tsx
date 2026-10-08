@@ -80,7 +80,7 @@ export default async function CustomersPage({ searchParams }: PageProps<"/admin/
       />
       <FilterChips label="Filter by status" current={status} items={TABS.map((t, i) => ({ key: t, href: href({ status: t, page: 1 }), label: t ? CUSTOMER_STATUS[t].label : "All", count: counts[i] }))} />
       <FilterBar action="/admin/customers" hidden={{ status }} clearHref={listHref("/admin/customers", { status })} active={filtered}>
-        <FilterSearch id="customers-q" label="Search" defaultValue={q} placeholder="Name, contact, email or postcode" />
+        <FilterSearch id="customers-q" label="Search customers" defaultValue={q} placeholder="Name, contact, email or postcode" />
         <FilterDates idPrefix="customers" label="Joined" from={from} to={to} />
         <FilterSelect id="customers-sort" name="sort" label="Sort" defaultValue={sort} options={SORTS} />
       </FilterBar>

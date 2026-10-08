@@ -7,6 +7,8 @@ import { Alert } from "@/components/ui/alert";
 import { AuthShell } from "@/components/shell/auth-shell";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { createClient } from "@/lib/supabase/server";
+import { brand, whatsappHref } from "@/config/brand";
+import { WhatsAppIcon } from "@/components/brand/whatsapp-icon";
 import { cn } from "@/lib/cn";
 import { getViewer, homeFor } from "@/server/auth";
 
@@ -26,7 +28,7 @@ function Steps({ steps }: { steps: { label: string; detail: string; state: StepS
             className={cn(
               "relative grid size-10 shrink-0 place-items-center rounded-full border-2",
               s.state === "done" && "border-primary bg-primary text-primary-ink",
-              s.state === "current" && "border-accent bg-accent text-accent-ink",
+              s.state === "current" && "border-sun bg-[#fff5d6] text-[#6b4700]",
               s.state === "todo" && "border-line-strong bg-raised text-ink-muted",
             )}
           >
@@ -65,6 +67,14 @@ export default async function PendingPage() {
         />
         <div className="mt-8">
           <LinkButton href="/login" variant="secondary" block size="lg">Go to sign in</LinkButton>
+        <a
+          href={whatsappHref("Hello, I have just registered a trade account on Wholesale Street.")}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-[var(--radius-md)] border border-line bg-raised text-base font-semibold text-ink transition-colors hover:border-[#25D366]"
+        >
+          <WhatsAppIcon className="size-5 text-[#128C4A]" /> No email? WhatsApp us on {brand.contact.phoneDisplay}
+        </a>
         </div>
       </AuthShell>
     );
@@ -115,6 +125,14 @@ export default async function PendingPage() {
       />
       <div className="mt-8">
         <LinkButton href="/catalogue" variant="secondary" block size="lg">Browse the catalogue meanwhile</LinkButton>
+        <a
+          href={whatsappHref(`Hello, ${viewer.customer.businessName} has registered a trade account.`)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-[var(--radius-md)] border border-line bg-raised text-base font-semibold text-ink transition-colors hover:border-[#25D366]"
+        >
+          <WhatsAppIcon className="size-5 text-[#128C4A]" /> Want it sooner? WhatsApp us on {brand.contact.phoneDisplay}
+        </a>
       </div>
     </AuthShell>
   );

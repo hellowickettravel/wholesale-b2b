@@ -48,12 +48,12 @@ export default async function AccountPage({ searchParams }: PageProps<"/account"
           <h2 id="details-heading" className="text-lg">Your details</h2>
           <dl className="mt-3 divide-y divide-line">
             {rows.map(({ icon: Icon, label, value }) => (
-              <div key={label} className="flex gap-3 py-3.5">
-                <Icon className="mt-0.5 size-4 shrink-0 text-ink-subtle" aria-hidden="true" />
-                <div className="min-w-0">
-                  <dt className="text-xs text-ink-muted">{label}</dt>
-                  <dd className="break-words font-semibold text-ink">{value || "Not set"}</dd>
-                </div>
+              <div key={label} className="relative py-3.5 pl-7">
+                <dt className="text-xs text-ink-muted">
+                  <Icon className="absolute left-0 top-[1.1rem] size-4 text-ink-subtle" aria-hidden="true" />
+                  {label}
+                </dt>
+                <dd className="break-words font-semibold text-ink">{value || "Not set"}</dd>
               </div>
             ))}
           </dl>

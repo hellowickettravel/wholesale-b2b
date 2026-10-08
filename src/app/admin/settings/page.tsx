@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Alert } from "@/components/ui/alert";
 import { PageHeader } from "@/components/ui/page-header";
 import { bpToInput, penceToInput } from "@/domain/money";
+import { filled, hasBankDetails } from "@/lib/placeholder";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/server/auth";
 import { SettingsForm } from "./settings-form";
@@ -13,11 +14,22 @@ export default async function SettingsPage() {
   const supabase = await createClient();
   const { data: s } = await supabase.from("settings").select("*").single();
   if (!s) throw new Error("settings row missing");
-  const placeholders = [s.business_legal_name, s.business_address, s.vat_number, s.bank_name, s.bank_account_name, s.bank_sort_code, s.bank_account_number, s.invoice_footer].filter((x) => /^\[.*\]$/.test(x.trim())).length;
+  const missing = [
+    ["business name", s.business_legal_name],
+    ["business address", s.business_address],
+    ["VAT number", s.vat_number],
+  ]
+    .filter(([, v]) => !filled(v))
+    .map(([k]) => k);
   return (
     <>
       <PageHeader title="Settings" description="Prices, delivery rules and the details printed on invoices." />
-      {placeholders ? <Alert tone="warning" className="mb-6">{placeholders} business or bank details are still placeholders. Fill them in before the first order.</Alert> : null}
+      {missing.length || !hasBankDetails(s) ? (
+        <Alert tone="info" className="mb-6">
+          Not set yet: {[...missing, ...(hasBankDetails(s) ? [] : ["bank details"])].join(", ")}. Anything left as a placeholder is simply left off invoices and
+          order pages{hasBankDetails(s) ? "" : "; without bank details, customers are told you will send payment details and how to reach you"}.
+        </Alert>
+      ) : null}
       <div className="max-w-4xl">
         <SettingsForm
           initial={{

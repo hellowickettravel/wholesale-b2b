@@ -3,7 +3,7 @@ import { cn } from "@/lib/cn";
 
 /**
  * Page title block: display-l in the display face, a plain sentence under it, actions on the right.
- * Inside the admin shell (data-surface="admin") the title drops to a working size in Mukta bold.
+ * Inside the admin shell (data-surface="admin") the title drops to a working size in the same face.
  * `eyebrow` is accepted so existing callers keep compiling, but it is deliberately not drawn: a small label
  * above a heading says nothing the sidebar and the heading do not already say.
  */

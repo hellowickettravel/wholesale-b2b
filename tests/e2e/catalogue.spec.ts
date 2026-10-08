@@ -82,7 +82,8 @@ test.describe("public catalogue", () => {
   test("a signed-in restaurant still gets no price from the public pages", async ({ page }) => {
     await signIn(page, "restaurant.a@example.com");
     const res = await page.request.get("/catalogue/mango-drink", { headers: { RSC: "1" } });
-    const body = await res.text();
+    // Ids are random and can contain "1700" by chance: leave them out before looking for a price.
+    const body = (await res.text()).replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g, "");
     expect(body).not.toMatch(/£|17\.00|1700|price_pence/);
   });
 });

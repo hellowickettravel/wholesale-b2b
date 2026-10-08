@@ -64,7 +64,7 @@ export async function sql<T extends Record<string, unknown>>(query: string, para
  * the register form + email (those are covered in auth.spec.ts). handle_new_user() creates the
  * pending customer from the metadata, exactly as for a real sign-up.
  */
-export async function registeredRestaurant(email: string, businessName: string): Promise<string> {
+export async function registeredRestaurant(email: string, businessName: string, opts: { confirmed?: boolean } = {}): Promise<string> {
   const { createClient } = await import("@supabase/supabase-js");
   const admin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321",
@@ -75,7 +75,7 @@ export async function registeredRestaurant(email: string, businessName: string):
   const { error } = await admin.auth.admin.createUser({
     email,
     password: PASSWORD,
-    email_confirm: true,
+    email_confirm: opts.confirmed ?? true,
     user_metadata: { business_name: businessName, contact_name: "E2E Contact", phone: "07700 900456", address_line1: "2 Test Road", city: "London", postcode: "E2 7AA" },
   });
   if (error) throw new Error(`create registration: ${error.message}`);

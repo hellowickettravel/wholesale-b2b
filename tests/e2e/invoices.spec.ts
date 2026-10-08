@@ -20,7 +20,7 @@ async function invoiceOf(orderNumber: number) {
 }
 
 test.describe("invoices", () => {
-  test("a restaurant lists and downloads its own invoice: VAT per rate, delivery, bank details, no costs", async ({ page }) => {
+  test("a restaurant lists and downloads its own invoice: VAT per rate, delivery, balance, no costs", async ({ page }) => {
     const inv = await invoiceOf(1001);
     await signIn(page, "restaurant.a@example.com");
     // The list starts with restaurant A's newest invoice (later runs add more orders).
@@ -37,7 +37,7 @@ test.describe("invoices", () => {
     const pdf = await pdfText(page.request, `/api/invoices/${inv.id}/pdf`);
     expect(pdf.status).toBe(200);
     expect(pdf.type).toBe("application/pdf");
-    for (const s of ["INVOICE", "INV-000001", "ORDER-1001", "Dev Restaurant A", "Basant Basmati Rice", "VAT 0% on £92.40", "VAT 20% on £51.00", "VAT on delivery", "£0.85", "Total due", "£166.45", "PAY BY BANK TRANSFER", "Reference: ORDER-1001"]) {
+    for (const s of ["INVOICE", "INV-000001", "ORDER-1001", "Dev Restaurant A", "Basant Basmati Rice", "VAT 0% on £92.40", "VAT 20% on £51.00", "VAT on delivery", "£0.85", "Total due", "£166.45", "Balance due", "PAYMENT", "Reference: ORDER-1001", "Home High Street Limited", "Company no. 17102079"]) {
       expect(pdf.text, s).toContain(s);
     }
     // Unit costs (rice £42.00, mango £14.50) never appear.
