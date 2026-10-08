@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyNote } from "@/components/admin/empty-note";
-import { Input } from "@/components/ui/field";
+import { FilterBar, FilterDates, FilterSearch, FilterSelect } from "@/components/admin/filter-bar";
 import { Money } from "@/components/ui/money";
 import { PageHeader } from "@/components/ui/page-header";
 import { Pagination } from "@/components/ui/pagination";
@@ -14,11 +14,17 @@ import { Table, TD, TH, THead, TR } from "@/components/ui/table";
 import { formatDate } from "@/domain/dates";
 import { invoiceRef, orderRef } from "@/domain/status";
 import { likePattern } from "@/lib/catalogue/query";
+import { choiceParam, dateParam, dayRange, listHref } from "@/lib/list-params";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/server/auth";
 
 export const metadata: Metadata = { title: "Invoices" };
 const PAGE_SIZE = 50;
+const STATES = [
+  { value: "", label: "All invoices" },
+  { value: "current", label: "Current" },
+  { value: "void", label: "Void" },
+] as const;
 
 function one(v: string | string[] | undefined) {
   return (Array.isArray(v) ? v[0] : v) ?? "";
@@ -29,7 +35,12 @@ export default async function AdminInvoicesPage({ searchParams }: PageProps<"/ad
   const sp = await searchParams;
   const q = one(sp.q).trim().slice(0, 100);
   const page = Math.max(1, Math.min(1000, Number.parseInt(one(sp.page), 10) || 1));
+  const from = dateParam(sp, "from");
+  const to = dateParam(sp, "to");
+  const state = choiceParam(sp, "state", STATES.map((s) => s.value));
+  const filtered = Boolean(q || from || to || state);
   const supabase = await createClient();
+
 
   let customerIds: string[] | null = null;
   const num = /^(?:inv-)?0*(\d{1,9})$/i.exec(q);
@@ -44,6 +55,11 @@ export default async function AdminInvoicesPage({ searchParams }: PageProps<"/ad
     .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
   if (num) query = query.eq("number", Number(num[1]));
   if (customerIds) query = query.in("customer_id", customerIds.length ? customerIds : ["00000000-0000-0000-0000-000000000000"]);
+  if (state === "current") query = query.is("voided_at", null);
+  if (state === "void") query = query.not("voided_at", "is", null);
+  const range = dayRange(from, to);
+  if (range.gte) query = query.gte("issued_at", range.gte);
+  if (range.lte) query = query.lte("issued_at", range.lte);
   const { data, count } = await query;
   const rows = data ?? [];
   const { data: orders } = rows.length
@@ -51,26 +67,20 @@ export default async function AdminInvoicesPage({ searchParams }: PageProps<"/ad
     : { data: [] };
   const order = new Map((orders ?? []).map((o) => [o.id, o]));
   const pageCount = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
-  const href = (p: number) => {
-    const u = new URLSearchParams();
-    if (q) u.set("q", q);
-    if (p > 1) u.set("page", String(p));
-    const s = u.toString();
-    return s ? `/admin/invoices?${s}` : "/admin/invoices";
-  };
+  const href = (p: number) => listHref("/admin/invoices", { q, from, to, state, page: p });
 
   return (
     <>
       <PageHeader title="Invoices" description="Every invoice, numbered without gaps. An invoice follows its order until the first delivery; a cancelled order's invoice is void." />
-      <form action="/admin/invoices" className="mb-4 flex gap-2">
-        <label htmlFor="invoices-q" className="sr-only">Invoice number or restaurant</label>
-        <Input id="invoices-q" name="q" type="search" defaultValue={q} placeholder="Invoice number or restaurant" className="flex-1" />
-        <button type="submit" className={buttonClasses({ className: "sm:h-10" })}>Search</button>
-      </form>
+      <FilterBar action="/admin/invoices" clearHref="/admin/invoices" active={filtered}>
+        <FilterSearch id="invoices-q" label="Search" defaultValue={q} placeholder="Invoice number or restaurant" />
+        <FilterDates idPrefix="invoices" label="Issued" from={from} to={to} />
+        <FilterSelect id="invoices-state" name="state" label="Status" defaultValue={state} options={STATES} />
+      </FilterBar>
       <Card>
         {rows.length === 0 ? (
-          <EmptyNote title={q ? "No invoices match" : "No invoices yet"}>
-            {q ? "Try another number or name." : "An invoice is made for every order."}
+          <EmptyNote title={filtered ? "No invoices match" : "No invoices yet"}>
+            {filtered ? "Try another number, name, date or status." : "An invoice is made for every order."}
           </EmptyNote>
         ) : (
           <Table>

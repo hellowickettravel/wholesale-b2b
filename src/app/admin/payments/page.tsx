@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { FilterBar, FilterDates, FilterSearch, FilterSelect } from "@/components/admin/filter-bar";
 import { FilterChips } from "@/components/admin/filter-chips";
 import Link from "next/link";
 
@@ -12,7 +13,9 @@ import { Table, TD, TH, THead, TR } from "@/components/ui/table";
 import { formatShortDate, todayInLondon } from "@/domain/dates";
 import { chaseFlags, supplierPayState } from "@/domain/ledger";
 import { orderRef, type OrderStatus } from "@/domain/status";
+import { matchesWords, searchWords } from "@/lib/catalogue/query";
 import { cn } from "@/lib/cn";
+import { dateParam, listHref, one, textParam } from "@/lib/list-params";
 import { fetchAll } from "@/lib/supabase/fetch-all";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/server/auth";
@@ -35,6 +38,13 @@ export default async function PaymentsPage({ searchParams }: PageProps<"/admin/p
   const sp = await searchParams;
   const raw = Array.isArray(sp.tab) ? sp.tab[0] : sp.tab;
   const tab: Tab = raw && raw in TABS ? (raw as Tab) : "chase";
+  const q = textParam(sp);
+  const words = searchWords(q);
+  const from = dateParam(sp, "from");
+  const to = dateParam(sp, "to");
+  const supplier = /^[0-9a-f-]{36}$/.test(one(sp.supplier)) ? one(sp.supplier) : "";
+  const filtered = Boolean(q || from || to || supplier);
+  const inRange = (d: string | null | undefined) => (!from || (d ?? "") >= from) && (!to || (!!d && d.slice(0, 10) <= to));
   const today = todayInLondon();
   const supabase = await createClient();
 
@@ -58,7 +68,9 @@ export default async function PaymentsPage({ searchParams }: PageProps<"/admin/p
         .range(from, to),
     ),
   ]);
-  const withFlags = owing.map((o) => ({ ...o, ...chaseFlags({ status: o.status as OrderStatus, balancePence: o.balance_pence ?? 0, promisedPayDate: o.promised_pay_date, nextChaseDate: o.next_chase_date }, today) }));
+  const withFlags = owing
+    .filter((o) => matchesWords(`order-${o.number} ${o.number} ${o.customer_name ?? ""}`, words) && inRange(o.promised_pay_date))
+    .map((o) => ({ ...o, ...chaseFlags({ status: o.status as OrderStatus, balancePence: o.balance_pence ?? 0, promisedPayDate: o.promised_pay_date, nextChaseDate: o.next_chase_date }, today) }));
   const lists = {
     chase: withFlags.filter((o) => o.chaseDue).sort((a, b) => (a.next_chase_date ?? "").localeCompare(b.next_chase_date ?? "")),
     overdue: withFlags.filter((o) => o.overdue).sort((a, b) => (a.promised_pay_date ?? "").localeCompare(b.promised_pay_date ?? "")),
@@ -71,19 +83,27 @@ export default async function PaymentsPage({ searchParams }: PageProps<"/admin/p
       return { ...p, owed: o, left: Math.max(0, o.grossPence - (p.paid_pence ?? 0)), state: supplierPayState(o.grossPence, p.paid_pence ?? 0, false) };
     })
     .filter((p) => p.state !== "paid")
+    .filter((p) => matchesWords(`order-${p.order_number} ${p.order_number} ${p.supplier_name ?? ""} ${p.customer_name ?? ""}`, words) && (!supplier || p.supplier_id === supplier) && inRange(p.delivered_at ?? p.delivery_date))
     .sort((a, b) => Number(b.status === "delivered") - Number(a.status === "delivered") || (a.order_number ?? 0) - (b.order_number ?? 0));
   const counts: Record<Tab, number> = { chase: lists.chase.length, overdue: lists.overdue.length, owed: lists.owed.length, suppliers: supplierRows.length };
   const orderRows = tab === "suppliers" ? [] : lists[tab];
+  const supplierOptions = [{ value: "", label: "Any supplier" }, ...[...new Map(parts.map((p) => [p.supplier_id!, p.supplier_name ?? ""])).entries()].sort((a, b) => a[1].localeCompare(b[1])).map(([value, label]) => ({ value, label }))];
+  const keep = { q, from, to, supplier: tab === "suppliers" ? supplier : "" };
 
   return (
     <>
       <PageHeader title="Payments & chasing" description="Who owes you, who to chase today, and which suppliers are waiting to be paid. Record payments on each order." />
-      <FilterChips label="Lists" current={tab} items={(Object.keys(TABS) as Tab[]).map((t) => ({ key: t, href: `/admin/payments?tab=${t}`, label: TABS[t], count: counts[t] }))} />
+      <FilterChips label="Lists" current={tab} items={(Object.keys(TABS) as Tab[]).map((t) => ({ key: t, href: listHref("/admin/payments", { tab: t, ...keep, supplier: t === "suppliers" ? keep.supplier : "" }), label: TABS[t], count: counts[t] }))} />
+      <FilterBar action="/admin/payments" hidden={{ tab }} clearHref={listHref("/admin/payments", { tab })} active={filtered}>
+        <FilterSearch id="payments-q" label="Search" defaultValue={q} placeholder={tab === "suppliers" ? "Order number, supplier or restaurant" : "Order number or restaurant"} />
+        <FilterDates idPrefix="payments" label={tab === "suppliers" ? "Delivered" : "Promised"} from={from} to={to} />
+        {tab === "suppliers" ? <FilterSelect id="payments-supplier" name="supplier" label="Supplier" defaultValue={supplier} options={supplierOptions} /> : null}
+      </FilterBar>
 
       {tab === "suppliers" ? (
         <Card>
           {supplierRows.length === 0 ? (
-            <EmptyNote title="All suppliers are paid">Supplier parts appear here until you mark them paid.</EmptyNote>
+            filtered ? <EmptyNote title="Nothing matches">Try another search, supplier or date.</EmptyNote> : <EmptyNote title="All suppliers are paid">Supplier parts appear here until you mark them paid.</EmptyNote>
           ) : (
             <Table>
               <THead>
@@ -117,7 +137,7 @@ export default async function PaymentsPage({ searchParams }: PageProps<"/admin/p
       ) : (
         <Card>
           {orderRows.length === 0 ? (
-            <EmptyNote title={tab === "chase" ? "Nobody to chase today" : tab === "overdue" ? "Nothing overdue" : "Nothing is owed to you"}>
+            <EmptyNote title={filtered ? "Nothing matches" : tab === "chase" ? "Nobody to chase today" : tab === "overdue" ? "Nothing overdue" : "Nothing is owed to you"}>
               {tab === "chase" ? "Set a next chase date on an order and it shows up here on that day." : "Unpaid orders appear here."}
             </EmptyNote>
           ) : (

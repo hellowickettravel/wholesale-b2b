@@ -1,32 +1,61 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Mail, MapPin, Phone } from "lucide-react";
+import { FilterBar, FilterDates, FilterSearch, FilterSelect } from "@/components/admin/filter-bar";
 import { Card } from "@/components/ui/card";
 import { EmptyNote } from "@/components/admin/empty-note";
 import { PageHeader } from "@/components/ui/page-header";
 import { formatTimestamp } from "@/domain/dates";
+import { likePattern, searchWords } from "@/lib/catalogue/query";
+import { choiceParam, dateParam, dayRange, textParam } from "@/lib/list-params";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/server/auth";
 
 export const metadata: Metadata = { title: "Approvals" };
 
-export default async function ApprovalsPage() {
+const SORTS = [
+  { value: "oldest", label: "Oldest first" },
+  { value: "newest", label: "Newest first" },
+  { value: "name", label: "Name A to Z" },
+] as const;
+
+export default async function ApprovalsPage({ searchParams }: PageProps<"/admin/approvals">) {
   await requireRole("admin");
+  const sp = await searchParams;
+  const q = textParam(sp);
+  const from = dateParam(sp, "from");
+  const to = dateParam(sp, "to");
+  const sort = choiceParam(sp, "sort", SORTS.map((s) => s.value));
+  const filtered = Boolean(q || from || to || sort !== "oldest");
   const supabase = await createClient();
-  const { data } = await supabase
+  let query = supabase
     .from("customers")
     .select("id, business_name, contact_name, email, phone, address_line1, city, postcode, created_at")
     .eq("status", "pending")
-    .order("created_at")
     .limit(200);
+  for (const w of searchWords(q)) query = query.or(`business_name.ilike.${likePattern(w)},contact_name.ilike.${likePattern(w)},email.ilike.${likePattern(w)},postcode.ilike.${likePattern(w)},city.ilike.${likePattern(w)}`);
+  const range = dayRange(from, to);
+  if (range.gte) query = query.gte("created_at", range.gte);
+  if (range.lte) query = query.lte("created_at", range.lte);
+  query = sort === "name" ? query.order("business_name") : query.order("created_at", { ascending: sort === "oldest" });
+  const { data } = await query;
   const pending = data ?? [];
 
   return (
     <>
-      <PageHeader title="Registration approvals" description="Restaurants that registered and are waiting for you. Oldest first." />
+      <PageHeader title="Registration approvals" description="Restaurants that registered and are waiting for you. Open one to approve it, choose its categories and set its prices." />
+      <FilterBar action="/admin/approvals" clearHref="/admin/approvals" active={filtered}>
+        <FilterSearch id="approvals-q" label="Search" defaultValue={q} placeholder="Business, contact, email, town or postcode" />
+        <FilterDates idPrefix="approvals" label="Registered" from={from} to={to} />
+        <FilterSelect id="approvals-sort" name="sort" label="Sort" defaultValue={sort} options={SORTS} />
+      </FilterBar>
       {pending.length === 0 ? (
         <Card>
-          <EmptyNote title="Nobody is waiting">New registrations appear here and in the sidebar badge.</EmptyNote>
+          {filtered ? (
+            <EmptyNote title="No registrations match">Try another search or date range.</EmptyNote>
+          ) : (
+            <EmptyNote title="Nobody is waiting">New registrations appear here and in the sidebar badge.</EmptyNote>
+          )}
         </Card>
       ) : (
         <ul className="grid gap-3 lg:grid-cols-2">
