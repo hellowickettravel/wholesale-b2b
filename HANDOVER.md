@@ -1,10 +1,12 @@
 # HANDOVER: start here
 
-Last updated: **6 Oct 2026**, Phases 1–10 done and live on production; **Phase 11 (design refresh) done on the branch, not yet merged** (PR #2 merged to `main` on the owner's go-ahead, Vercel production deployment completed). Email sending deferred (D40). A fresh session should read, in order: this file, then
-`docs/BRIEF.md` (the owner's full original brief, verbatim), `PLAN.md`, `DECISIONS.md`, `MEMORY.md`
+Last updated: **8 Oct 2026**. Phases 1–11b are live on production. **Phase 12 (Wholesale Street: rebrand, redesign, admin filters, accounts without email) is on branch `claude/sweet-curie-84sd4e`** (draft PR). A fresh session should read, in order: this file, then
+`docs/BRIEF.md` (the owner's full original brief, verbatim), `PLAN.md`, `DECISIONS.md` (D47–D49 for this phase), `MEMORY.md`
 and `CLAUDE.md`.
 
 ## Who and what
+- **Brand (8 Oct):** **Wholesale Street**, `wholesalestreet.co.uk`, `info@wholesalestreet.co.uk`, WhatsApp +44 7417 564704,
+  a trading name of **Home High Street Limited** (company no. 17102079). All in `src/config/brand.ts` (D47).
 - **Owner:** Touseef (hellotouseefzahid@gmail.com). The owner only runs SQL in Supabase, sets Vercel env vars
   and supplies secrets/client content. Everything else is done by the agent without asking permission for
   normal engineering decisions. Decide, record it in `DECISIONS.md`, carry on.
@@ -32,8 +34,9 @@ and `CLAUDE.md`.
 | 7. Admin orders, payments, chasing, suppliers | **Done** on the same branch and PR. Migration 0009 applied to hosted. |
 | 8. Invoices (PDF) and email (Resend) | **Invoices done** on the same branch and PR. **Email sending deferred by the owner** (D40): messages are queued in `email_log`. |
 | 9. Polish and hardening | **Done** on the same branch and PR. No schema change. |
-| 11. Design refresh (owner request 6 Oct) | **Done on branch `claude/sleepy-cori-mq31fu`, not merged, not pushed** (GitHub write access returned 403 after a worker restart; reconnect GitHub and push, then open a PR). Verified: `npm run verify` (169 unit), 424 security, 57 E2E incl. axe on 33 screens and leak scans; screenshots at 390 and 1280 reviewed; no overflow. See D43–D45. No schema change. |
-| 11b. Motion pass (7 Oct) | **Done in the working tree, uncommitted.** `motion` 14.0.0 on the basket route only (D46); other motion is CSS. Verified by frame captures and `npm run verify`; the E2E suite and axe with motion on were **not** run by the agent: run `npm run test:e2e` first. See D46 and MEMORY.md "Motion". |
+| 11. Design refresh (owner request 6 Oct) | **Done and merged** (PR #3). Superseded visually by Phase 12 (D47). |
+| 11b. Motion pass (7 Oct) | **Done and merged** (PR #4). See D46. |
+| 12. Wholesale Street (owner request 8 Oct) | **On branch `claude/sweet-curie-84sd4e`.** Rebrand (name, SVG logo, favicon, navy/red "Street" palette, Inter + Plus Jakarta Sans), shop redesign (header search, category bar, sortable product grid, welcome banner), public site redesign, filters on every admin list, "Invite a customer" with email invitation or a password set by the admin, approval confirms the login, password change on My account, invoices without bank details, launch-settings migration 0010 (no minimum order, free delivery, every day). See D47–D49. **Product photos wait on the Unsplash connector** (owner checklist for Phase 12, step 1). |
 | 10. Deploy | **Done.** PR #2 merged to `main` (69e8b62); Vercel production deployment reported success. The live site itself was not opened by the agent (network limits): owner smoke test below. |
 
 ### Done in Phase 2 (verified locally: `npm run verify` green, 96 unit, 257 security, 24 E2E)
@@ -276,7 +279,18 @@ After merging, smoke test (the agent's container cannot reach the live site, so 
 4. As that restaurant: see the price, place an order, open the invoice PDF.
 5. As admin: the order appears with its supplier part; record a payment.
 
-## Owner checklist (what Touseef must do)
+## Owner checklist for Phase 12 (Wholesale Street), in this order
+1. **Unsplash**: confirm the email address on the Unsplash account the connector uses (the connector refuses every call until then). Then ask the agent to "add the product photos": `scripts/stock-photos.mts` maps the 510 products without a photo to 114 photo themes and writes `data/import/stock-photos.sql`.
+2. **Supabase connector**: it is signed in to an account whose only project is "super-voxis", not `qtztjbnaofonazruovty`. Reconnect it with the account that owns the portal's project, or run the SQL yourself: **SQL editor → paste `supabase/migrations/0010_wholesale_street.sql` → Run** (business name, invoice footer, no minimum order, free delivery, deliveries every day; only changes values still at their defaults).
+3. **Merge the PR** (production deploys from `main`).
+4. **Domain**: Vercel → project `wholesale-b2b` → Settings → Domains → add `wholesalestreet.co.uk` and `www.wholesalestreet.co.uk`, then add the DNS records Vercel shows at your domain registrar. Then Vercel → Environment Variables → `NEXT_PUBLIC_SITE_URL` = `https://wholesalestreet.co.uk` (Production) → Redeploy.
+5. **Supabase → Authentication → URL Configuration**: Site URL `https://wholesalestreet.co.uk`; add Redirect URL `https://wholesalestreet.co.uk/**` (keep the vercel.app ones).
+6. **Email (so confirmations, invitations and password resets reach customers)**: Supabase's built-in mailer only delivers to your own team's addresses. Create a free account at resend.com → Domains → add `wholesalestreet.co.uk` → add the DNS records it shows (SPF/DKIM) → wait for "Verified" → API Keys → create one. Then **Supabase → Authentication → SMTP Settings → Enable custom SMTP**: host `smtp.resend.com`, port `465`, username `resend`, password = the API key, sender email `info@wholesalestreet.co.uk`, sender name `Wholesale Street`. Until this is done, accounts still work: approving a registration confirms it, and you can create a customer login with a password ("Invite a customer" → "Set a password now") and send it on WhatsApp (D48).
+7. **Supabase → Authentication → Email Templates**: paste the four rebranded templates again (C below; they now carry the Wholesale Street header and footer).
+8. Optional: Admin → Settings: business address and VAT number (left off invoices until set); bank details only if you want them on invoices.
+
+## Owner checklist (earlier phases; still valid where not replaced above)
+
 **A. Vercel → Project wholesale-b2b → Settings → Environment Variables** (already set by the agent:
 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` for all environments, `NEXT_PUBLIC_SITE_URL` for Production)
 - ✅ `SUPABASE_SERVICE_ROLE_KEY` added by the owner (4 Oct) for **Production only**, as a plain encrypted
@@ -354,8 +368,7 @@ npm run verify
   (psql locally, `execute_sql` on hosted) and compare.
 
 ## Waiting on the owner (content; nothing blocks Phase 3)
-1. `/brand/`: logo (SVG + PNG for PDF), business name, colours. Until then the brand stays "Order Desk".
-   (Source lists received 4 Oct and imported: see "Real catalogue" above.)
+1. ~~`/brand/`~~ Done 8 Oct: Wholesale Street, logo designed by the agent (D47).
 2. `/data/source/`: `SHRIVI_ITEMS.pdf`, `Drinks_List.pdf`, `Shrivi_Limited_Packaging_Catalogue_.pdf`
    (the packaging one is image-only and must be read visually, because `tesseract` is not installed).
    **This is now the only thing between the hosted site and a real catalogue** (the import is built).
