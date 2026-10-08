@@ -216,7 +216,7 @@ test.describe("logins without email (D47)", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Invite a customer" })).toBeVisible();
     await page.getByLabel("Restaurant or business name").fill(name);
     await page.getByLabel("Contact name").fill("Rani");
-    await page.getByLabel("Email", { exact: true }).fill(email);
+    await page.locator('input[name="email"]').fill(email);
     await page.getByRole("radio", { name: /Set a password now/ }).check();
     await page.getByLabel("Password for them").fill("short");
     await page.getByRole("button", { name: "Create account" }).click();

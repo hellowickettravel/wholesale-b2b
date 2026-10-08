@@ -201,7 +201,7 @@ export default async function HomePage() {
           <div className="on-dark relative flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
             <div>
               <h2 id="cta-title" className="text-[clamp(1.625rem,1.3rem+1.4vw,2.25rem)] leading-[1.12] text-white">Ready to see your prices?</h2>
-              <p className="mt-2 max-w-[48ch] text-base text-white/90">Open a free trade account with {brand.name}. Questions first? Message us on WhatsApp.</p>
+              <p className="mt-2 max-w-[48ch] text-base text-white">Open a free trade account with {brand.name}. Questions first? Message us on WhatsApp.</p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <LinkButton href="/register" size="lg" className="rounded-full !bg-white !text-accent-strong hover:!bg-primary-soft">Open a trade account</LinkButton>
