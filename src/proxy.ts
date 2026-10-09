@@ -1,8 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { canonicalRedirect } from "@/lib/canonical-host";
 
 /**
  * Runs before every page request:
+ *   0. in production, sends visitors of the *.vercel.app alias to the real domain (src/lib/canonical-host.ts),
  *   1. refreshes the Supabase session cookie (the only place it can be written for RSC pages),
  *   2. sends signed-out visitors of signed-in areas to /login?next=…
  * This is an optimistic check only. Real authorisation (role, approval) happens in
@@ -11,6 +13,14 @@ import { NextResponse, type NextRequest } from "next/server";
 const SIGNED_IN_AREAS = ["/admin", "/supplier", "/shop", "/basket", "/orders", "/invoices", "/account"];
 
 export async function proxy(request: NextRequest) {
+  const canonical = canonicalRedirect({
+    host: request.headers.get("host"),
+    pathAndQuery: `${request.nextUrl.pathname}${request.nextUrl.search}`,
+    siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
+    vercelEnv: process.env.VERCEL_ENV,
+  });
+  if (canonical) return NextResponse.redirect(canonical, 308);
+
   let response = NextResponse.next({ request });
   const pending: { name: string; value: string; options: Record<string, unknown> }[] = [];
   let cacheHeaders: Record<string, string> = {};
