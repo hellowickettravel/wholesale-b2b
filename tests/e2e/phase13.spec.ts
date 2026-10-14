@@ -111,8 +111,10 @@ test.describe("Phase 13 fixes", () => {
 
   test("a supplier login made with 'set a password now' signs in", async ({ page, browser }) => {
     const email = `e2e-supplier-pw-${Date.now()}@example.com`;
+    // A throw-away supplier (removed by global setup), so the dev suppliers keep exactly their own logins.
+    const [sup] = await sql<{ id: string }>("insert into suppliers (name, email) values ($1, null) returning id", [`E2E Supplier Pw ${Date.now()}`]);
     await signIn(page, "admin@example.com");
-    await page.goto("/admin/suppliers/00000000-0000-4000-a000-000000000001", { waitUntil: "load" });
+    await page.goto(`/admin/suppliers/${sup.id}`, { waitUntil: "load" });
     await page.getByText("Invite someone to sign in").click();
     const invite = page.locator("details");
     await invite.locator('input[name="full_name"]').fill("Pat Password");
