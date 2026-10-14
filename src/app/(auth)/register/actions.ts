@@ -56,8 +56,8 @@ export async function register(_prev: FormState, formData: FormData): Promise<Fo
       }
       userId = made.userId;
       held = true;
-    } else if (error.code === "over_email_send_rate_limit") {
-      return { error: "We could not send the confirmation email just now. Please try again in a few minutes.", values };
+    } else if (error.code === "email_address_invalid") {
+      return { fieldErrors: { email: ["Enter a real email address we can reach you on."] }, values };
     } else {
       console.error("signUp failed", error.code, error.message);
       return { error: "Something went wrong creating your account. Please try again.", values };
