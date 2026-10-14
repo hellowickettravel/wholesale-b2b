@@ -299,7 +299,8 @@ test.describe("Two-step sign-in for the admin", () => {
     const third = await nextCode(secret, second);
     await other.locator('input[name="code"]').fill(third);
     await other.getByRole("button", { name: "Switch off two-step sign-in" }).click();
-    await expect(other.getByText("Two-step sign-in is off.")).toBeVisible();
+    // The page re-renders into the "set up" state once it is off.
+    await expect(other.getByRole("button", { name: "Set up two-step sign-in" })).toBeVisible();
     const left = await sql<{ n: number }>("select count(*)::int n from auth.mfa_factors f join auth.users u on u.id = f.user_id where u.email = $1", [email]);
     expect(left[0].n).toBe(0);
   });
