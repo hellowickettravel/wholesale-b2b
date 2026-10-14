@@ -7,10 +7,12 @@ describe("isConfirmationEmailFailure", () => {
     expect(isConfirmationEmailFailure({ message: "Error sending confirmation email" })).toBe(true);
     expect(isConfirmationEmailFailure({ message: "Email address not authorized" })).toBe(true);
     expect(isConfirmationEmailFailure({ code: "email_provider_disabled" })).toBe(true);
+    // Supabase's built-in sender is rate limited to a few emails an hour: the application must not be refused for that.
+    expect(isConfirmationEmailFailure({ code: "over_email_send_rate_limit", message: "email rate limit exceeded" })).toBe(true);
   });
   it("does not swallow other sign-up errors", () => {
     expect(isConfirmationEmailFailure({ code: "weak_password", message: "Password should be at least 8 characters" })).toBe(false);
-    expect(isConfirmationEmailFailure({ code: "over_email_send_rate_limit", message: "email rate limit exceeded" })).toBe(false);
+    expect(isConfirmationEmailFailure({ code: "email_address_invalid", message: 'Email address "x@example.com" is invalid' })).toBe(false);
     expect(isConfirmationEmailFailure({ code: "validation_failed", message: "Unable to validate email address: invalid format" })).toBe(false);
   });
 });
