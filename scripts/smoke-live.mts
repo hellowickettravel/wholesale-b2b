@@ -284,6 +284,21 @@ async function main() {
         console.log("invoice pdf bytes", body.length, href);
       });
     }
+    if (STAGE === "costs-live") {
+      // Uploads a one-row cost file for the throw-away "ZZ Smoke" rice size, applies it, and prints the preview text.
+      await login(page, env("ADMIN_EMAIL"), env("ADMIN_PASSWORD"));
+      await page.goto(`${BASE}/admin/products/costs`, { waitUntil: "load" });
+      await page.waitForLoadState("networkidle").catch(() => {});
+      const csv = `variant_id,cost\n${env("VARIANT_ID")},${env("NEW_COST")}\n`;
+      await page.locator('input[type="file"]').setInputFiles({ name: "costs.csv", mimeType: "text/csv", buffer: Buffer.from(csv) });
+      await page.getByRole("button", { name: "Preview changes" }).click();
+      await page.getByText("Preview only: nothing has been saved yet").waitFor({ timeout: 30_000 });
+      console.log("preview:", (await page.locator("section[aria-label='Import report']").innerText()).replace(/\s+/g, " ").slice(0, 300));
+      await page.screenshot({ path: `${OUT}/costs-preview.png`, fullPage: true });
+      await page.getByRole("button", { name: /^Apply 1 change/ }).click();
+      await page.getByText("Costs saved").waitFor({ timeout: 30_000 });
+      console.log("applied");
+    }
     if (STAGE === "bust-cache") {
       // Saving a category (no change) clears the 1-hour catalogue cache, so rows written straight to the database show up.
       await login(page, env("ADMIN_EMAIL"), env("ADMIN_PASSWORD"));
