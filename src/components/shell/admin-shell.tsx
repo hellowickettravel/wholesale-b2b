@@ -6,6 +6,8 @@ import {
   FileText,
   FolderTree,
   LayoutDashboard,
+  KeyRound,
+  Mail,
   ScrollText,
   Settings,
   ShieldCheck,
@@ -50,6 +52,8 @@ const groups = [
     label: "System",
     items: [
       { href: "/admin/users", label: "Users", icon: ShieldCheck },
+      { href: "/admin/emails", label: "Emails", icon: Mail },
+      { href: "/admin/security", label: "Security", icon: KeyRound },
       { href: "/admin/audit", label: "Audit log", icon: ScrollText },
       { href: "/admin/settings", label: "Settings", icon: Settings },
     ],

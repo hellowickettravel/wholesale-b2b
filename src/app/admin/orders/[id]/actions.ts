@@ -14,6 +14,8 @@ import { cancelSchema, chaseSchema, paymentSchema, readLineEdits } from "@/lib/v
 import { requireRole } from "@/server/auth";
 import { createDriverLink, submitProof, type ProofResult } from "@/server/delivery";
 import { hit } from "@/server/rate-limit";
+import { flushEmails } from "@/server/email-queue";
+import { mailerConfigured } from "@/server/mailer";
 
 /**
  * Admin order actions. requireRole("admin") first; simple writes go through the admin's OWN
@@ -104,6 +106,7 @@ export async function editOrder(orderId: string, _prev: FormState, fd: FormData)
     console.error("admin_edit_order:", error.message);
     return { error: "Could not save the changes. Try again." };
   }
+  flushEmails();
   refresh(orderId);
   return { notice: "Order updated. The suppliers involved and the restaurant have been told." };
 }
@@ -119,6 +122,7 @@ export async function cancelOrder(orderId: string, _prev: FormState, fd: FormDat
     console.error("admin_cancel_order:", error.message);
     return { error: "Could not cancel the order. Try again." };
   }
+  flushEmails();
   refresh(orderId);
   return { notice: "Order cancelled. Suppliers and the restaurant have been told." };
 }
@@ -284,7 +288,8 @@ export async function sendReminder(orderId: string): Promise<FormState> {
   if (error) return { error: "Could not queue the reminder. Try again." };
   await supabase.from("orders").update({ next_chase_date: nextChaseAfterReminder(today) }).eq("id", orderId);
   refresh(orderId);
-  return { notice: "Reminder queued. Next chase moved on three days." };
+  flushEmails();
+  return { notice: mailerConfigured() ? "Reminder sent. Next chase moved on three days." : "Reminder saved, but email is not set up yet, so it has not been sent. Next chase moved on three days." };
 }
 
 export async function adminDriverLink(supplierOrderId: string): Promise<LinkResult> {

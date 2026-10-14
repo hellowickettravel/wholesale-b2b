@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useActionState, type ReactNode } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Field, Input } from "@/components/ui/field";
@@ -85,6 +86,10 @@ export function RegisterForm() {
         <SubmitButton pendingText="Creating your account…">Create trade account</SubmitButton>
         <p className="text-center text-sm text-ink-muted">
           We review every account before prices are shown, usually the same working day.
+        </p>
+        <p className="text-center text-xs text-ink-muted">
+          By creating an account you agree to our <Link href="/terms" className="font-semibold text-primary underline">Terms of trade</Link> and have read our{" "}
+          <Link href="/privacy" className="font-semibold text-primary underline">Privacy policy</Link>.
         </p>
       </div>
     </form>

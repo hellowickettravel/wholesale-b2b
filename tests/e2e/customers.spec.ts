@@ -38,8 +38,10 @@ test.describe("approvals", () => {
     expect(access.map((a) => a.slug)).toEqual(["drinks", "rice"]);
     const [priv] = await sql<{ default_margin_bp: number }>("select default_margin_bp from customer_private where customer_id = $1", [id]);
     expect(priv.default_margin_bp).toBe(2500);
-    const mail = await sql<{ template: string; status: string }>("select template, status from email_log where entity_id = $1", [id]);
-    expect(mail).toEqual([{ template: "account_approved", status: "queued" }]);
+    // One approval email, queued by the action and sent right after the response (SMTP points at Mailpit here).
+    await expect
+      .poll(async () => (await sql<{ template: string; status: string }>("select template, status from email_log where entity_id = $1 and template = 'account_approved'", [id])).map((m) => `${m.template}:${m.status}`), { timeout: 15_000 })
+      .toEqual(["account_approved:sent"]);
 
     const ctx = await browser.newContext();
     const shop = await ctx.newPage();

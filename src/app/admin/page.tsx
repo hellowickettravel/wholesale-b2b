@@ -6,6 +6,7 @@ import { OrderStatusBadge } from "@/components/shop/order-status";
 import { LinkButton } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { EmptyNote } from "@/components/admin/empty-note";
+import { SetupChecklist } from "@/components/admin/setup-checklist";
 import { Money } from "@/components/ui/money";
 import { PageHeader } from "@/components/ui/page-header";
 import { Stat } from "@/components/ui/stat";
@@ -25,6 +26,7 @@ export default async function AdminDashboard() {
   return (
     <>
       <PageHeader title={firstName ? `Hello, ${firstName}` : "Dashboard"} description="Money in, money out, and what needs you today." />
+      <SetupChecklist />
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <Stat
           label="Owed to you"

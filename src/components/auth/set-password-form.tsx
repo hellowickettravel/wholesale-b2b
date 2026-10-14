@@ -7,7 +7,7 @@ import { SubmitButton } from "@/components/auth/submit-button";
 import type { FormState } from "@/lib/validation/auth";
 import { setPassword } from "./set-password-action";
 
-export function SetPasswordForm({ submitLabel, from, autoFocus = true }: { submitLabel: string; from?: "account"; autoFocus?: boolean }) {
+export function SetPasswordForm({ submitLabel, from, autoFocus = true }: { submitLabel: string; from?: "account" | "admin"; autoFocus?: boolean }) {
   const [state, action] = useActionState<FormState, FormData>(setPassword, {});
   const fe = state.fieldErrors ?? {};
   return (

@@ -9,6 +9,7 @@ import { CategoryTile, shelfCount } from "@/components/catalogue/category-tile";
 import { LinkButton } from "@/components/ui/button";
 import { catalogueHref } from "@/lib/catalogue/query";
 import { slugify } from "@/lib/import/parse-name";
+import { categoryImageUrl } from "@/lib/storage";
 import { getPublicCategories, searchPublicProducts, type PublicCategory, type PublicProductCard } from "@/server/catalogue";
 
 export const revalidate = 3600;
@@ -138,7 +139,7 @@ export default async function HomePage() {
         <ul className="mt-8 grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
           {categories.map((c) => (
             <li key={c.slug} className="reveal min-w-0">
-              <CategoryTile slug={c.slug} name={c.name} count={c.productCount} href={catalogueHref({ category: c.slug })} />
+              <CategoryTile slug={c.slug} name={c.name} count={c.productCount} href={catalogueHref({ category: c.slug })} imageUrl={categoryImageUrl(c.slug, c.imagePath)} />
             </li>
           ))}
         </ul>

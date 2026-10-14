@@ -8,6 +8,7 @@ import { echo, fieldErrorsOf, passwordSchema, type FormState } from "@/lib/valid
 import { requireRole } from "@/server/auth";
 import { confirmCustomerLogins, createLoginWithPassword, inviteLogin } from "@/server/invite";
 import { hit } from "@/server/rate-limit";
+import { flushEmails } from "@/server/email-queue";
 
 const DETAIL_FIELDS = ["business_name", "contact_name", "email", "phone", "address_line1", "address_line2", "city", "postcode", "delivery_notes"];
 const uuid = z.uuid();
@@ -171,6 +172,7 @@ export async function changeStatus(customerId: string, _prev: FormState, formDat
       entity: "customer",
       entity_id: customerId,
     });
+    flushEmails();
   }
 
   refreshCustomer(customerId);

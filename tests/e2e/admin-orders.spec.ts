@@ -111,7 +111,7 @@ test.describe("admin orders and payments", () => {
     // A reminder is queued once and moves the chase on.
     const row = page.getByRole("row", { name: new RegExp(`ORDER-${o.number}`) });
     await row.getByRole("button", { name: "Send payment reminder" }).click();
-    await expect(page.getByText("Reminder queued. Next chase moved on three days.")).toBeVisible();
+    await expect(page.getByText("Reminder sent. Next chase moved on three days.")).toBeVisible();
     // Dealt with for today: it leaves the chase list.
     await expect(row).toHaveCount(0);
     const [mail] = await sql<{ n: number; next: string }>(

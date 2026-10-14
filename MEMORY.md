@@ -165,3 +165,12 @@
 - The dev seed now sets the old trading rules (min order £150, £12 delivery, Mon–Sat) on purpose: migration 0010 turns them off, and the E2E tests exercise them.
 - Typing a `const Icon = lookup(slug); <Icon/>` in a component trips the React Compiler lint ("Cannot create components during render"); use `createElement(lookup(slug), props)`.
 - Shop pages have two "Categories" navs (the header bar on md+, chips on phones, `md:hidden`); Playwright's getByRole ignores the hidden one.
+
+## Phase 13 additions
+- **Local mail:** `supabase/config.toml` now publishes Mailpit's SMTP on `127.0.0.1:54325` and enables TOTP; `.env.local` needs `SMTP_HOST=127.0.0.1 SMTP_PORT=54325 SMTP_SECURE=false ADMIN_NOTIFY_EMAIL=team@example.com CRON_SECRET=...` (E2E reads the mails from Mailpit's API). After a config change: `npx supabase stop && npm run db:start && npm run db:reset`; the first E2E run after a reset re-imports the sample catalogue and takes minutes before the first test shows.
+- **Never `pkill -f playwright`** (matches your own shell): kill by PID.
+- **Supabase MCP and DELETE:** the connector cancels any DELETE/DROP (it waits for a confirmation nobody can give). Deleting test data on hosted means giving the owner SQL to run in the dashboard (see `/tmp`-style cleanup scripts), or writing the app so nothing needs deleting.
+- **Catalogue cache:** public catalogue reads are cached for an hour (`unstable_cache`). Rows written straight to the database show up late; saving anything in Admin > Categories clears it.
+- **`notFound()` inside admin returns HTTP 200** (D45: the page streams behind `loading.tsx`); the admin/supplier/shop `not-found.tsx` files keep the menu on screen.
+- **Hosted email** needs two separate set-ups: the website's own mail (Vercel env `SMTP_*`) and Supabase Auth's SMTP (dashboard). The guide covers both.
+- **Admin MFA test:** `tests/e2e/phase13.spec.ts` computes TOTP codes itself (RFC 6238 in the test) and waits for the next 30-second window between codes, so it takes about a minute.

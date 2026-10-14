@@ -10,6 +10,7 @@ import { checkoutSchema } from "@/lib/validation/checkout";
 import { requireRole } from "@/server/auth";
 import { hit } from "@/server/rate-limit";
 import { basketForOrder, canOrderVariant, getShopSettings } from "@/server/shop";
+import { flushEmails } from "@/server/email-queue";
 
 /** A restaurant's basket holds at most this many different sizes. */
 const MAX_LINES = 150;
@@ -193,6 +194,7 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
     return { error: "We could not place your order. Nothing was charged. Try again, or call us." };
   }
   const { order_id: orderId } = result.data as { order_id: string };
+  flushEmails();
 
   // Empty the ordered lines (RLS: own basket). Anything added meanwhile in another tab stays.
   const { error: clearError } = await supabase

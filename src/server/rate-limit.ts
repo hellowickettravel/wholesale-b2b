@@ -10,6 +10,7 @@ export const LIMITS = {
   registerPerIp: { limit: 5, window: 60 * 60 },
   resetPerIp: { limit: 20, window: 60 * 60 },
   resetPerAccount: { limit: 5, window: 60 * 60 },
+  twoStepPerUser: { limit: 10, window: 15 * 60 },
   passwordSetPerUser: { limit: 10, window: 60 * 60 },
   invitePerAdmin: { limit: 60, window: 60 * 60 },
   orderPerCustomer: { limit: 30, window: 60 * 60 },
