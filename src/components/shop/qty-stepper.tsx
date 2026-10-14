@@ -1,6 +1,7 @@
 "use client";
 
 import { Minus, Plus } from "lucide-react";
+import { useState } from "react";
 import { MAX_LINE_QTY } from "@/domain/order";
 import { cn } from "@/lib/cn";
 
@@ -23,7 +24,13 @@ export function QtyStepper({
   fluid?: boolean;
   className?: string;
 }) {
-  const set = (n: number) => onChange(Math.max(min, Math.min(MAX_LINE_QTY, n)));
+  // What the person has typed, kept as text until they leave the field: an empty box stays empty (so typing "5"
+  // gives 5, not 15) and the committed value is only shown again on blur.
+  const [draft, setDraft] = useState<string | null>(null);
+  const set = (n: number) => {
+    setDraft(null);
+    onChange(Math.max(min, Math.min(MAX_LINE_QTY, n)));
+  };
   const btn =
     "grid h-full w-10 shrink-0 place-items-center text-ink transition-colors duration-[var(--dur-instant)] hover:bg-sunken active:bg-primary-soft disabled:pointer-events-none disabled:opacity-40";
   return (
@@ -37,11 +44,13 @@ export function QtyStepper({
         pattern="[0-9]*"
         aria-label={label}
         disabled={disabled}
-        value={value}
+        value={draft ?? String(value)}
         onChange={(e) => {
           const digits = e.target.value.replace(/\D/g, "").slice(0, 4);
-          set(digits === "" ? min : Number(digits));
+          setDraft(digits);
+          if (digits !== "") onChange(Math.max(min, Math.min(MAX_LINE_QTY, Number(digits))));
         }}
+        onBlur={() => setDraft(null)}
         onFocus={(e) => e.target.select()}
         className={cn("tabular h-full min-w-0 border-x border-line", fluid ? "flex-1" : "w-12", " bg-transparent text-center text-base font-bold text-ink focus:outline-none focus:ring-2 focus:ring-inset focus:ring-focus")}
       />

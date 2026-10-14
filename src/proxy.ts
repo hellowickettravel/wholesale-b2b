@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { canonicalRedirect } from "@/lib/canonical-host";
+import { hardenCookie } from "@/lib/supabase/cookies";
 
 /**
  * Runs before every page request:
@@ -37,8 +38,9 @@ export async function proxy(request: NextRequest) {
           for (const { name, value } of cookiesToSet) request.cookies.set(name, value);
           response = NextResponse.next({ request });
           for (const c of cookiesToSet) {
-            response.cookies.set(c.name, c.value, c.options);
-            pending.push(c);
+            const options = hardenCookie(c.options);
+            response.cookies.set(c.name, c.value, options);
+            pending.push({ ...c, options });
           }
           cacheHeaders = { ...cacheHeaders, ...headers };
           for (const [k, v] of Object.entries(headers)) response.headers.set(k, v);

@@ -31,6 +31,7 @@ export async function setPassword(_prev: FormState, formData: FormData): Promise
   }
   // From the account page: stay there and say it worked.
   if (formData.get("from") === "account") redirect("/account?notice=password");
+  if (formData.get("from") === "admin") redirect("/admin/security?notice=password");
   const viewer = await loadViewer(supabase, userId);
   redirect(viewer ? homeFor(viewer) : "/login");
 }

@@ -163,6 +163,99 @@ describe("signed-in non-admins cannot write prices, payments, orders or approval
   }
 });
 
+describe("admin two-step sign-in is enforced by the database (0012)", () => {
+  /** Runs as the admin with the given JWT assurance level, after optionally adding an authenticator factor. */
+  async function adminSees(opts: { factor?: "verified" | "unverified"; aal: "aal1" | "aal2" }) {
+    await db.query("begin");
+    try {
+      if (opts.factor) {
+        await db.query(
+          "insert into auth.mfa_factors (id, user_id, friendly_name, factor_type, status, created_at, updated_at, secret) values (gen_random_uuid(), $1, 'test', 'totp', $2::auth.factor_status, now(), now(), 'x')",
+          [IDS.users.admin, opts.factor],
+        );
+      }
+      await db.query("set local role authenticated");
+      await db.query("select set_config('request.jwt.claims', $1, true)", [JSON.stringify({ sub: IDS.users.admin, role: "authenticated", aud: "authenticated", aal: opts.aal })]);
+      const isAdmin = (await db.query<{ a: boolean }>("select public.is_admin() a")).rows[0].a;
+      const customers = (await db.query("select id from public.customers")).rows.length;
+      const costs = (await db.query("select id from public.product_variants where cost_pence is not null")).rows.length;
+      return { isAdmin, customers, costs };
+    } finally {
+      await db.query("rollback");
+    }
+  }
+
+  it("an admin with no authenticator factor is unchanged (nobody is locked out)", async () => {
+    const r = await adminSees({ aal: "aal1" });
+    expect(r.isAdmin).toBe(true);
+    expect(r.customers).toBeGreaterThan(0);
+  });
+  it("an unfinished set-up (unverified factor) does not lock the admin out", async () => {
+    expect((await adminSees({ factor: "unverified", aal: "aal1" })).isAdmin).toBe(true);
+  });
+  it("with a verified factor, a password-only session (aal1) is not admin and sees nothing", async () => {
+    const r = await adminSees({ factor: "verified", aal: "aal1" });
+    expect(r).toEqual({ isAdmin: false, customers: 0, costs: 0 });
+  });
+  it("with a verified factor, a session that passed the code check (aal2) is admin", async () => {
+    const r = await adminSees({ factor: "verified", aal: "aal2" });
+    expect(r.isAdmin).toBe(true);
+    expect(r.customers).toBeGreaterThan(0);
+  });
+  it("a customer cannot become admin by claiming aal2", async () => {
+    await db.query("begin");
+    try {
+      await db.query("set local role authenticated");
+      await db.query("select set_config('request.jwt.claims', $1, true)", [JSON.stringify({ sub: IDS.users.customerA, role: "authenticated", aud: "authenticated", aal: "aal2" })]);
+      expect((await db.query<{ a: boolean }>("select public.is_admin() a")).rows[0].a).toBe(false);
+    } finally {
+      await db.query("rollback");
+    }
+  });
+});
+
+describe("bulk cost function (0011)", () => {
+  const rows = JSON.stringify([{ id: IDS.variants.rice5, cost_pence: 1 }]);
+  it.each(NON_ADMINS)("%s cannot call admin_set_variant_costs", async (actor) => {
+    const result = await as(db, actor, async (q) => {
+      try {
+        await q("select public.admin_set_variant_costs($1::jsonb)", [rows]);
+        return "WROTE";
+      } catch (e) {
+        return (e as { code?: string }).code;
+      }
+    });
+    expect(result).toBe(DENIED);
+  });
+  it("the admin can, and only the named columns change (positive control)", async () => {
+    await as(db, "admin", async (q) => {
+      const [{ vat_rate_bp: vatBefore, supplier_id: supplierBefore }] = await q<{ vat_rate_bp: number; supplier_id: string }>(
+        "select vat_rate_bp, supplier_id from public.product_variants where id = $1", [IDS.variants.rice5]);
+      const [{ n }] = await q<{ n: number }>("select public.admin_set_variant_costs($1::jsonb) n", [rows]);
+      expect(n).toBe(1);
+      const [after] = await q<{ cost_pence: string; vat_rate_bp: number; supplier_id: string }>(
+        "select cost_pence, vat_rate_bp, supplier_id from public.product_variants where id = $1", [IDS.variants.rice5]);
+      expect(Number(after.cost_pence)).toBe(1);
+      expect(after.vat_rate_bp).toBe(vatBefore);
+      expect(after.supplier_id).toBe(supplierBefore);
+      const audit = await q("select 1 from public.audit_log where entity = 'product_variants' and entity_id = $1 and actor_id = $2 and at > now() - interval '1 minute'", [IDS.variants.rice5, IDS.users.admin]);
+      expect(audit.length).toBeGreaterThan(0);
+    });
+  });
+  it("refuses more than 1000 rows at once", async () => {
+    const many = JSON.stringify(Array.from({ length: 1001 }, () => ({ id: IDS.variants.rice5, cost_pence: 1 })));
+    const result = await as(db, "admin", async (q) => {
+      try {
+        await q("select public.admin_set_variant_costs($1::jsonb)", [many]);
+        return "ok";
+      } catch (e) {
+        return (e as { code?: string }).code;
+      }
+    });
+    expect(result).toBe("22023");
+  });
+});
+
 describe("customer A", () => {
   it("sees only its own profile and customer record", async () => {
     await as(db, "customerA", async (q) => {

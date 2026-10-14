@@ -99,6 +99,16 @@ export function destinationFor(viewer: Viewer, next: string | null | undefined):
 }
 
 /**
+ * True when this admin has switched on two-step sign-in but this session has not passed the code check yet. The
+ * database enforces the same rule (is_admin(), migration 0012); this redirect just gives a screen instead of empty pages.
+ */
+const needsSecondStep = cache(async (): Promise<boolean> => {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  return Boolean(data && data.nextLevel === "aal2" && data.currentLevel !== "aal2");
+});
+
+/**
  * Gate for every protected page, layout and server action. Not signed in -> /login;
  * wrong role -> 403; customer not approved -> pending page.
  */
@@ -107,6 +117,7 @@ export async function requireRole(role: Role): Promise<Viewer> {
   if (!viewer) redirect("/login");
   if (!viewer.active) redirect("/account-disabled");
   if (viewer.role !== role) forbidden();
+  if (role === "admin" && (await needsSecondStep())) redirect("/two-step");
   if (role === "customer" && viewer.customer?.status !== "approved") redirect("/register/pending");
   if (role === "supplier" && !viewer.supplier) redirect("/account-disabled");
   return viewer;

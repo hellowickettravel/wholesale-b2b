@@ -47,8 +47,38 @@ function Steps({ steps }: { steps: { label: string; detail: string; state: StepS
   );
 }
 
-export default async function PendingPage() {
+export default async function PendingPage({ searchParams }: PageProps<"/register/pending">) {
   const viewer = await getViewer();
+  const held = (await searchParams).held === "1";
+
+  // Registered, but the confirmation email could not be sent: we hold the application and approve by hand.
+  if (!viewer && held) {
+    return (
+      <AuthShell title="Thanks, we have your application" description="We review every trade account by hand before prices are shown.">
+        <PlateMessage fit="full" title="We will email you once you are approved" plateClassName="mb-5">
+          <p>There is no confirmation email to wait for. Once we approve your account you can sign in with the email and password you just chose.</p>
+        </PlateMessage>
+        <Steps
+          steps={[
+            { label: "Account details sent", detail: "Thanks for registering.", state: "done" },
+            { label: "We review your account", detail: "Usually the same working day. We may call to agree your prices.", state: "current" },
+            { label: "You sign in and order", detail: "We email you as soon as you are approved.", state: "todo" },
+          ]}
+        />
+        <div className="mt-8">
+          <LinkButton href="/catalogue" variant="secondary" block size="lg">Browse the catalogue meanwhile</LinkButton>
+          <a
+            href={whatsappHref("Hello, I have just registered a trade account on Wholesale Street.")}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-[var(--radius-md)] border border-line bg-raised text-base font-semibold text-ink transition-colors hover:border-[#25D366]"
+          >
+            <WhatsAppIcon className="size-5 text-[#128C4A]" /> Want it sooner? WhatsApp us on {brand.contact.phoneDisplay}
+          </a>
+        </div>
+      </AuthShell>
+    );
+  }
 
   // Not signed in: they have just registered and must confirm their email.
   if (!viewer) {

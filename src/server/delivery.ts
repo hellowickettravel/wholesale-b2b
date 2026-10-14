@@ -2,6 +2,7 @@ import "server-only";
 import { createHash, randomBytes } from "node:crypto";
 import { checkProofFile, PROOF_MAX_TOTAL, type ProofFileKind } from "@/lib/proof-files";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { flushEmails } from "@/server/email-queue";
 
 /**
  * Driver links and proof of delivery (DECISIONS D9, D35). Server-only: uses the service role
@@ -67,6 +68,7 @@ export async function findDriverJob(token: string): Promise<DriverJob | null> {
     .from("order_items")
     .select("product_name, size_label, qty")
     .eq("supplier_order_id", proof.supplier_order_id)
+    .is("removed_at", null)
     .order("sort");
 
   type SO = {
@@ -176,6 +178,7 @@ export async function submitProof(
     console.error("record_delivery_proof failed:", error.message);
     return { ok: false, error: "Could not save the proof. Try again." };
   }
+  flushEmails();
   return { ok: true };
 }
 

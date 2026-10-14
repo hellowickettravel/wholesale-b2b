@@ -91,6 +91,9 @@ export default async function ProductsPage({ searchParams }: PageProps<"/admin/p
             >
               Missing price/photo
             </LinkButton>
+            <LinkButton href="/admin/products/costs" variant="secondary" size="sm" icon={<FileSpreadsheet className="size-4" aria-hidden="true" />}>
+              Import costs
+            </LinkButton>
             <LinkButton href="/admin/products/import" variant="secondary" size="sm" icon={<FileSpreadsheet className="size-4" aria-hidden="true" />}>
               Import CSV
             </LinkButton>

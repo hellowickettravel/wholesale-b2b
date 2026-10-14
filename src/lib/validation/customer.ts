@@ -102,6 +102,8 @@ const money = (label: string) =>
     return p;
   });
 const required = (label: string, max: number) => z.string().trim().min(1, `Enter ${label}`).max(max, "Too long");
+/** Business and bank details may be left empty: invoices simply leave out what is not set (src/lib/placeholder.ts). */
+const optionalText = (max: number) => z.string().trim().max(max, "Too long").optional().default("");
 
 export const settingsSchema = z.object({
   global_margin: z.string().trim().transform((s, ctx) => {
@@ -126,12 +128,12 @@ export const settingsSchema = z.object({
   delivery_days: z.array(z.coerce.number().int().min(1).max(7)).min(1, "Choose at least one delivery day").max(7),
   show_prices_inc_vat: z.preprocess((v) => v === "on" || v === "true", z.boolean()),
   business_legal_name: required("the legal business name", 200),
-  business_address: required("the business address", 500),
-  vat_number: required("the VAT number", 30),
-  bank_name: required("the bank name", 100),
-  bank_account_name: required("the account name", 140),
-  bank_sort_code: required("the sort code", 20),
-  bank_account_number: required("the account number", 20),
+  business_address: optionalText(500),
+  vat_number: optionalText(30),
+  bank_name: optionalText(100),
+  bank_account_name: optionalText(140),
+  bank_sort_code: optionalText(20),
+  bank_account_number: optionalText(20),
   bank_iban: z.string().trim().max(40).optional().default(""),
-  invoice_footer: required("the invoice footer", 2000),
+  invoice_footer: optionalText(2000),
 });

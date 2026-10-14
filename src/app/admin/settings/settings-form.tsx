@@ -84,31 +84,31 @@ export function SettingsForm({ initial }: { initial: SettingsValues }) {
             <Field label="Legal business name" required error={fe.business_legal_name} hint={hint("business_legal_name")}>
               {(p) => <Input {...p} name="business_legal_name" defaultValue={v("business_legal_name")} />}
             </Field>
-            <Field label="VAT number" required error={fe.vat_number} hint={hint("vat_number")}>
+            <Field label="VAT number" error={fe.vat_number} hint={hint("vat_number")}>
               {(p) => <Input {...p} name="vat_number" defaultValue={v("vat_number")} />}
             </Field>
           </div>
-          <Field label="Business address" required error={fe.business_address} hint={hint("business_address")}>
+          <Field label="Business address" error={fe.business_address} hint={hint("business_address")}>
             {(p) => <Textarea {...p} name="business_address" rows={3} defaultValue={v("business_address")} />}
           </Field>
           <div className="grid gap-4 @lg:grid-cols-2">
-            <Field label="Bank name" required error={fe.bank_name} hint={hint("bank_name")}>
+            <Field label="Bank name" error={fe.bank_name} hint={hint("bank_name")}>
               {(p) => <Input {...p} name="bank_name" defaultValue={v("bank_name")} />}
             </Field>
-            <Field label="Account name" required error={fe.bank_account_name} hint={hint("bank_account_name")}>
+            <Field label="Account name" error={fe.bank_account_name} hint={hint("bank_account_name")}>
               {(p) => <Input {...p} name="bank_account_name" defaultValue={v("bank_account_name")} />}
             </Field>
-            <Field label="Sort code" required error={fe.bank_sort_code} hint={hint("bank_sort_code")}>
+            <Field label="Sort code" error={fe.bank_sort_code} hint={hint("bank_sort_code")}>
               {(p) => <Input {...p} name="bank_sort_code" defaultValue={v("bank_sort_code")} />}
             </Field>
-            <Field label="Account number" required error={fe.bank_account_number} hint={hint("bank_account_number")}>
+            <Field label="Account number" error={fe.bank_account_number} hint={hint("bank_account_number")}>
               {(p) => <Input {...p} name="bank_account_number" defaultValue={v("bank_account_number")} />}
             </Field>
             <Field label="IBAN" error={fe.bank_iban} hint="Optional.">
               {(p) => <Input {...p} name="bank_iban" defaultValue={v("bank_iban")} />}
             </Field>
           </div>
-          <Field label="Invoice footer" required error={fe.invoice_footer} hint={hint("invoice_footer", "Payment terms and anything else printed at the bottom of every invoice.")}>
+          <Field label="Invoice footer" error={fe.invoice_footer} hint={hint("invoice_footer", "Payment terms and anything else printed at the bottom of every invoice.")}>
             {(p) => <Textarea {...p} name="invoice_footer" rows={3} defaultValue={v("invoice_footer")} />}
           </Field>
         </CardBody>

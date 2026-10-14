@@ -7,10 +7,10 @@ import { addDays, compareIso, todayInLondon } from "@/domain/dates";
 import { owedToSupplier } from "@/domain/ledger";
 import { formatPence } from "@/domain/money";
 import { createClient } from "@/lib/supabase/server";
-import { echo, fieldErrorsOf, type FormState } from "@/lib/validation/auth";
+import { echo, fieldErrorsOf, passwordSchema, type FormState } from "@/lib/validation/auth";
 import { PAYMENT_METHODS, supplierSchema } from "@/lib/validation/admin-orders";
 import { requireRole } from "@/server/auth";
-import { inviteLogin } from "@/server/invite";
+import { createLoginWithPassword, inviteLogin } from "@/server/invite";
 import { hit } from "@/server/rate-limit";
 
 /** Supplier records, logins and paying them. Admin's own client throughout (RLS + audit log). */
@@ -67,19 +67,35 @@ export async function setSupplierActive(id: string, active: boolean): Promise<Fo
 export async function inviteSupplierLogin(id: string, _prev: FormState, fd: FormData): Promise<FormState> {
   const viewer = await requireRole("admin");
   if (!uuid.safeParse(id).success) return { error: "Not found." };
-  const values = echo(fd, ["email", "full_name"]);
+  const values = echo(fd, ["email", "full_name", "login"]);
   const parsed = z
-    .object({ email: z.string().trim().toLowerCase().pipe(z.email("Enter a valid email address")), full_name: z.string().trim().min(1, "Enter their name").max(200) })
+    .object({
+      email: z.string().trim().toLowerCase().pipe(z.email("Enter a valid email address")),
+      full_name: z.string().trim().min(1, "Enter their name").max(200),
+      login: z.enum(["invite", "password"]).optional().default("invite"),
+      password: z.string().max(200).optional().default(""),
+    })
+    .superRefine((v, ctx) => {
+      if (v.login !== "password") return;
+      const pw = passwordSchema.safeParse(v.password);
+      if (!pw.success) ctx.addIssue({ code: "custom", path: ["password"], message: pw.error.issues[0]?.message ?? "Choose a stronger password" });
+    })
     .safeParse(Object.fromEntries(fd));
   if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error), values };
   if (!(await hit("invitePerAdmin", viewer.userId))) return { error: "Too many invites in the last hour.", values };
   const supabase = await createClient();
   const { data: existing } = await supabase.from("profiles").select("id").eq("email", parsed.data.email).maybeSingle();
   if (existing) return { fieldErrors: { email: ["Someone already has an account with this email."] }, values };
-  const invited = await inviteLogin(supabase, { email: parsed.data.email, fullName: parsed.data.full_name, role: "supplier", supplierId: id });
-  if (invited.error) return { error: invited.error, values };
+  const login = { email: parsed.data.email, fullName: parsed.data.full_name, role: "supplier" as const, supplierId: id };
+  const made = parsed.data.login === "password" ? await createLoginWithPassword(supabase, { ...login, password: parsed.data.password }) : await inviteLogin(supabase, login);
+  if (made.error) return { error: made.error, values };
   refresh(id);
-  return { notice: `Invitation sent to ${parsed.data.email}.` };
+  return {
+    notice:
+      parsed.data.login === "password"
+        ? `Login created for ${parsed.data.email}. Send them the password you chose; they can sign in now.`
+        : `Invitation sent to ${parsed.data.email}.`,
+  };
 }
 
 /** Switch a login off (it can no longer sign in) or back on. An admin cannot switch off their own login. */

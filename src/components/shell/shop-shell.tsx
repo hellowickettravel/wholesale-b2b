@@ -126,7 +126,9 @@ export function ShopShell({
         <footer className="hidden border-t border-line bg-raised md:block">
           <div className="mx-auto flex max-w-[80rem] flex-wrap items-center justify-between gap-4 px-6 py-6 text-xs text-ink-muted lg:px-8">
             <p>{brand.tradingAs}</p>
-            <p className="flex gap-4">
+            <p className="flex flex-wrap gap-4">
+              <Link className="font-semibold text-primary hover:underline" href="/terms">Terms</Link>
+              <Link className="font-semibold text-primary hover:underline" href="/privacy">Privacy</Link>
               <a className="font-semibold text-primary hover:underline" href={whatsappHref()} target="_blank" rel="noopener noreferrer">WhatsApp us</a>
               <a className="font-semibold text-primary hover:underline" href={`mailto:${brand.contact.email}`}>{brand.contact.email}</a>
             </p>

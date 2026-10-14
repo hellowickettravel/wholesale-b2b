@@ -50,7 +50,12 @@ export function SiteFooter() {
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-[1200px] flex-col gap-2 px-4 py-5 text-xs leading-relaxed sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
           <p>&copy; {new Date().getFullYear()} {brand.legalName}. {brand.tradingAs.replace(`, company number ${brand.companyNumber}.`, ".")}</p>
-          <p className="shrink-0">Company no. {brand.companyNumber}</p>
+          <p className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1">
+            <Link className={`${link} !min-h-0`} href="/terms">Terms of trade</Link>
+            <Link className={`${link} !min-h-0`} href="/privacy">Privacy</Link>
+            <Link className={`${link} !min-h-0`} href="/cookies">Cookies</Link>
+            <span>Company no. {brand.companyNumber}</span>
+          </p>
         </div>
       </div>
     </footer>

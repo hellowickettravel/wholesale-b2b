@@ -1094,6 +1094,9 @@ isOneToOne: false
 "admin_edit_order":
 { Args: { "p": Json }; Returns: Json
                            },
+"admin_set_variant_costs":
+{ Args: { "p_rows": Json }; Returns: number
+                           },
 "app_role":
 { Args: Record<PropertyKey, never>; Returns: Database["public"]['Enums']["user_role"]
                            },

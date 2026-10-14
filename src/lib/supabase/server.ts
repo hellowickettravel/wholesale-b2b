@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { Database } from "@/lib/database.types";
 import { supabaseAnonKey, supabaseUrl } from "@/lib/env";
+import { hardenCookie } from "./cookies";
 
 /**
  * Supabase client acting AS THE SIGNED-IN USER (anon key + session cookie). Every query is
@@ -17,7 +18,7 @@ export async function createClient() {
       },
       setAll(cookiesToSet) {
         try {
-          for (const { name, value, options } of cookiesToSet) cookieStore.set(name, value, options);
+          for (const { name, value, options } of cookiesToSet) cookieStore.set(name, value, hardenCookie(options));
         } catch {
           // Called from a Server Component, where cookies are read-only. proxy.ts refreshes
           // the session on every request, so this is safe to ignore.
