@@ -10,7 +10,7 @@
  * Credentials come from the environment only and are never written anywhere.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
-import { chromium, type Page } from "@playwright/test";
+import { chromium } from "@playwright/test";
 
 const BASE = (process.env.BASE ?? "http://localhost:3000").replace(/\/$/, "");
 const OUT = process.env.OUT ?? "test-results/crawl";
