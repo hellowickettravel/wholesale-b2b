@@ -75,7 +75,8 @@ test.describe("Phase 13 fixes", () => {
     await box.press("Control+A");
     await box.press("Backspace");
     await box.blur();
-    await expect(box).toHaveValue("1");
+    // Leaving the box empty puts back what was there before (12), never a surprise number.
+    await expect(box).toHaveValue("12");
   });
 
   test("a bad admin address keeps the admin menu and says the page was not found", async ({ page }) => {
@@ -112,10 +113,12 @@ test.describe("Phase 13 fixes", () => {
     const email = `e2e-supplier-pw-${Date.now()}@example.com`;
     await signIn(page, "admin@example.com");
     await page.goto("/admin/suppliers/00000000-0000-4000-a000-000000000001", { waitUntil: "load" });
-    await page.locator('input[name="full_name"]').fill("Pat Password");
-    await page.locator('input[name="email"]').fill(email);
-    await page.locator('input[name="login"][value="password"]').check();
-    await page.locator('input[name="password"]').fill("Supplier-pass-123");
+    await page.getByText("Invite someone to sign in").click();
+    const invite = page.locator("details");
+    await invite.locator('input[name="full_name"]').fill("Pat Password");
+    await invite.locator('input[name="email"]').fill(email);
+    await invite.locator('input[name="login"][value="password"]').check();
+    await invite.locator('input[name="password"]').fill("Supplier-pass-123");
     await page.getByRole("button", { name: "Create login" }).click();
     await expect(page.getByText(`Login created for ${email}`)).toBeVisible();
     const other = await (await browser.newContext()).newPage();
@@ -145,8 +148,9 @@ test.describe("Phase 13 fixes", () => {
     const token = randomBytes(32).toString("base64url");
     await sql(`select public.create_driver_link($1, decode($2, 'hex'), now() + interval '72 hours', null)`, [so.id, createHash("sha256").update(token).digest("hex")]);
     await page.goto(`/d/${token}`, { waitUntil: "load" });
-    await expect(page.getByText("E2E Kept Lentils")).toBeVisible();
-    await expect(page.getByText("E2E Removed Rice")).toHaveCount(0);
+    // The item list sits in a collapsed section; its text is still in the page.
+    await expect(page.locator("body")).toContainText("E2E Kept Lentils");
+    await expect(page.locator("body")).not.toContainText("E2E Removed Rice");
   });
 });
 
@@ -272,7 +276,7 @@ test.describe("Two-step sign-in for the admin", () => {
     const first = await nextCode(secret);
     await page.locator('input[name="code"]').fill(first);
     await page.getByRole("button", { name: "Turn on two-step sign-in" }).click();
-    await expect(page.getByText("Two-step sign-in is on.")).toBeVisible();
+    await expect(page.getByText("Signing in asks for a code from your authenticator app.")).toBeVisible();
 
     // A fresh password-only sign-in is stopped at the code screen, and the database agrees.
     const other: Page = await (await browser.newContext()).newPage();
