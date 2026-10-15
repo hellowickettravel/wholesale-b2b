@@ -284,6 +284,20 @@ async function main() {
         console.log("invoice pdf bytes", body.length, href);
       });
     }
+    if (STAGE === "approve") {
+      // Approves the application made by STAGE=register, then signs in as that restaurant.
+      await login(page, env("ADMIN_EMAIL"), env("ADMIN_PASSWORD"));
+      await page.goto(`${BASE}/admin/approvals`, { waitUntil: "load" });
+      await page.getByRole("link", { name: new RegExp(env("RESTAURANT_NAME")) }).first().click();
+      await page.getByRole("button", { name: "Approve account" }).click();
+      await page.getByText("Approved.", { exact: true }).waitFor({ timeout: 30_000 });
+      console.log("approved");
+      const other = await (await browser.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
+      other.setDefaultTimeout(30_000);
+      await login(other, env("RESTAURANT_EMAIL"), env("RESTAURANT_PASSWORD"));
+      console.log("restaurant signs in →", new URL(other.url()).pathname);
+      await other.screenshot({ path: `${OUT}/approved-shop.png`, fullPage: true });
+    }
     if (STAGE === "costs-live") {
       // Uploads a one-row cost file for the throw-away "ZZ Smoke" rice size, applies it, and prints the preview text.
       await login(page, env("ADMIN_EMAIL"), env("ADMIN_PASSWORD"));
