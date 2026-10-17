@@ -162,7 +162,7 @@ function ImportReport({ result: r }: { result: NonNullable<ImportState["result"]
                 </div>
                 <div className="flex flex-wrap gap-1 sm:justify-end">
                   {p.sizes.map((s) => (
-                    <Badge key={s.label} tone={s.isNew ? "accent" : "neutral"}>{s.label}</Badge>
+                    <Badge key={s.label} tone={s.isNew ? "primary" : "neutral"}>{s.label}</Badge>
                   ))}
                 </div>
               </li>

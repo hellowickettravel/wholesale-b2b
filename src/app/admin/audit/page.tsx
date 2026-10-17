@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { buttonClasses } from "@/components/ui/button";
+import { FilterBar, FilterDates, FilterSelect } from "@/components/admin/filter-bar";
 import { Card } from "@/components/ui/card";
 import { EmptyNote } from "@/components/admin/empty-note";
-import { Input, Select } from "@/components/ui/field";
 import { PageHeader } from "@/components/ui/page-header";
 import { Pagination } from "@/components/ui/pagination";
 import { formatTimestamp } from "@/domain/dates";
@@ -88,28 +87,16 @@ export default async function AuditPage({ searchParams }: PageProps<"/admin/audi
   return (
     <>
       <PageHeader title="Audit log" description="Who changed what, and when: prices, costs, payments, orders, accounts and settings. Read-only." />
-      <form action="/admin/audit" className="mb-4 grid items-end gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.5fr)_repeat(2,minmax(0,1fr))_auto]">
-        {record ? <input type="hidden" name="id" value={record} /> : null}
-        <div>
-          <label htmlFor="audit-entity" className="sr-only">What changed</label>
-          <Select id="audit-entity" name="entity" defaultValue={entity}>
-            <option value="">Everything</option>
-            {Object.entries(ENTITIES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </Select>
-        </div>
-        <div>
-          <label htmlFor="audit-from" className="mb-1 block text-sm font-semibold text-ink">From</label>
-          <Input id="audit-from" name="from" type="date" defaultValue={from} />
-        </div>
-        <div>
-          <label htmlFor="audit-to" className="mb-1 block text-sm font-semibold text-ink">To</label>
-          <Input id="audit-to" name="to" type="date" defaultValue={to} />
-        </div>
-        <div className="flex gap-2">
-          <button type="submit" className={buttonClasses({ className: "flex-1 sm:h-10 sm:flex-none" })}>Filter</button>
-          {entity || from || to || record ? <Link href="/admin/audit" className={buttonClasses({ variant: "ghost", className: "sm:h-10" })}>Clear</Link> : null}
-        </div>
-      </form>
+      <FilterBar action="/admin/audit" hidden={{ id: record }} clearHref="/admin/audit" active={Boolean(entity || from || to || record)}>
+        <FilterSelect
+          id="audit-entity"
+          name="entity"
+          label="What changed"
+          defaultValue={entity}
+          options={[{ value: "", label: "Everything" }, ...Object.entries(ENTITIES).map(([k, v]) => ({ value: k, label: v }))]}
+        />
+        <FilterDates idPrefix="audit" label="Changed" from={from} to={to} />
+      </FilterBar>
 
       <Card>
         {rows.length === 0 ? (

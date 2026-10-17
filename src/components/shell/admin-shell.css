@@ -1,30 +1,9 @@
 /*
- * Back-office surface. Working screens that stay dense and plain: light table headers in sentence case,
- * no tracked capitals.
- * Unlayered on purpose: it must win over the utility classes the shared Table and PageHeader carry.
+ * Back-office surface. Working screens stay dense and plain: no tracked capitals anywhere, so a stray
+ * `uppercase` from a shared component reads in sentence case here. Unlayered on purpose: it must win over
+ * utility classes. (Table headers, row hover and title sizes come from the shared components.)
  */
 [data-surface="admin"] .uppercase {
   text-transform: none;
   letter-spacing: 0;
-}
-[data-surface="admin"] thead {
-  background: var(--surface);
-}
-[data-surface="admin"] th {
-  text-transform: none;
-  letter-spacing: 0;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--ink-muted);
-  border-bottom-color: var(--line);
-}
-[data-surface="admin"] tbody tr {
-  transition: background-color var(--dur-fast) var(--ease-out);
-}
-[data-surface="admin"] tbody tr:hover {
-  background-color: color-mix(in srgb, var(--brand-primary-soft) 45%, white);
-}
-/* The first heading on a page is the page title: sturdy, not shouting */
-[data-surface="admin"] h1 {
-  letter-spacing: -0.015em;
 }

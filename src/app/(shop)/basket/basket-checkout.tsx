@@ -312,7 +312,7 @@ function BasketCheckoutForm({
             block
             loading={placing}
             disabled={saving || blocked || orderable.length === 0 || deliveryDates.length === 0}
-            className="!h-[3.25rem] text-lg"
+            className="h-[3.25rem] text-lg"
           >
             Place order · {formatPence(totals.totalPence)}
           </Button>

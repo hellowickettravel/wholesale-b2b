@@ -63,7 +63,7 @@ export default async function CataloguePage({ searchParams }: PageProps<"/catalo
                 </span>
               ) : null}
               <div>
-                <h1 className="text-[clamp(1.75rem,1.4rem+1.6vw,2.5rem)] leading-[1.1] text-ink">{active ? active.name : "The catalogue"}</h1>
+                <h1 className="text-2xl font-semibold leading-tight sm:text-3xl text-ink">{active ? active.name : "The catalogue"}</h1>
                 <p className="tabular mt-1 text-sm text-ink-muted">{shelfCount(active ? active.productCount : totalProducts)}{active?.description ? ` · ${active.description}` : " for restaurants, takeaways and caterers"}</p>
               </div>
             </div>
@@ -90,7 +90,7 @@ export default async function CataloguePage({ searchParams }: PageProps<"/catalo
       <div className={`${wrap} grid gap-6 py-6 sm:gap-8 sm:py-8 lg:grid-cols-[230px_1fr]`}>
         {/* Shelves: chips on mobile, list on desktop */}
         <nav aria-label="Categories" className="min-w-0 lg:sticky lg:top-32 lg:self-start lg:rounded-[var(--radius-lg)] lg:border lg:border-line lg:bg-raised lg:p-2">
-          <h2 className="hidden px-3 pb-2 pt-2 text-xs font-bold uppercase tracking-[0.08em] text-ink-subtle lg:block">Categories</h2>
+          <h2 className="hidden px-3 pb-2 pt-2 text-sm font-semibold text-ink lg:block">Categories</h2>
           <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] lg:mx-0 lg:flex-col lg:gap-0.5 lg:overflow-visible lg:px-0 lg:pb-0">
             <CategoryLink href={catalogueHref({ q: query.q })} current={!active} label="All products" count={totalProducts} />
             {categories.map((c) => (
@@ -168,7 +168,7 @@ function CategoryLink({ href, current, label, count, slug }: { href: string; cur
         )}
       >
         <span className="flex min-w-0 items-center gap-2.5">
-          {slug ? <CategoryIcon slug={slug} className={cn("size-4 shrink-0 max-lg:hidden", current && "!text-primary")} /> : <LayoutGrid className="size-4 shrink-0 max-lg:hidden" aria-hidden="true" />}
+          {slug ? <CategoryIcon slug={slug} className={cn("size-4 shrink-0 max-lg:hidden", current && "text-primary")} /> : <LayoutGrid className="size-4 shrink-0 max-lg:hidden" aria-hidden="true" />}
           <span>{label}</span>
         </span>
         <span className={cn("tabular text-xs", current ? "text-on-dark-muted lg:text-primary" : "text-ink-muted")}>{count}</span>

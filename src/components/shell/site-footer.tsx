@@ -3,6 +3,7 @@ import { Mail } from "lucide-react";
 import { brand, whatsappHref } from "@/config/brand";
 import { Logo } from "@/components/brand/logo";
 import { WhatsAppIcon } from "@/components/brand/whatsapp-icon";
+import { cn } from "@/lib/cn";
 
 const link = "inline-flex min-h-8 items-center text-on-dark-muted underline-offset-4 transition-colors hover:text-on-dark hover:underline";
 
@@ -16,7 +17,7 @@ export function SiteFooter() {
           <p className="max-w-xs text-sm leading-relaxed">{brand.tagline} Trade prices on rice, dal, spices, flours, sauces, drinks and packaging for UK restaurants.</p>
         </div>
         <div>
-          <h2 className="text-sm font-bold uppercase tracking-[0.08em] text-on-dark">Ordering</h2>
+          <h2 className="text-sm font-semibold text-on-dark">Ordering</h2>
           <ul className="mt-3 space-y-1 text-sm">
             <li><Link className={link} href="/catalogue">Browse the catalogue</Link></li>
             <li><Link className={link} href="/register">Open a trade account</Link></li>
@@ -24,7 +25,7 @@ export function SiteFooter() {
           </ul>
         </div>
         <div>
-          <h2 className="text-sm font-bold uppercase tracking-[0.08em] text-on-dark">Trading</h2>
+          <h2 className="text-sm font-semibold text-on-dark">Trading</h2>
           <ul className="mt-3 space-y-1 text-sm">
             <li className="py-1">Trade customers only</li>
             <li className="py-1">Prices for approved accounts</li>
@@ -32,7 +33,7 @@ export function SiteFooter() {
           </ul>
         </div>
         <div>
-          <h2 className="text-sm font-bold uppercase tracking-[0.08em] text-on-dark">Talk to us</h2>
+          <h2 className="text-sm font-semibold text-on-dark">Talk to us</h2>
           <ul className="mt-3 space-y-2 text-sm">
             <li>
               <a className={`${link} gap-2`} href={whatsappHref()} target="_blank" rel="noopener noreferrer">
@@ -51,9 +52,9 @@ export function SiteFooter() {
         <div className="mx-auto flex max-w-[1200px] flex-col gap-2 px-4 py-5 text-xs leading-relaxed sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
           <p>&copy; {new Date().getFullYear()} {brand.legalName}. {brand.tradingAs.replace(`, company number ${brand.companyNumber}.`, ".")}</p>
           <p className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1">
-            <Link className={`${link} !min-h-0`} href="/terms">Terms of trade</Link>
-            <Link className={`${link} !min-h-0`} href="/privacy">Privacy</Link>
-            <Link className={`${link} !min-h-0`} href="/cookies">Cookies</Link>
+            <Link className={cn(link, "min-h-0")} href="/terms">Terms of trade</Link>
+            <Link className={cn(link, "min-h-0")} href="/privacy">Privacy</Link>
+            <Link className={cn(link, "min-h-0")} href="/cookies">Cookies</Link>
             <span>Company no. {brand.companyNumber}</span>
           </p>
         </div>

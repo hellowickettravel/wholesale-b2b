@@ -79,7 +79,7 @@ export function SizesEditor({
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.notice ? <Alert tone="success">{state.notice}</Alert> : null}
 
-      <div className="hidden grid-cols-[minmax(0,1.3fr)_minmax(0,1.3fr)_minmax(0,0.9fr)_76px_minmax(0,0.9fr)_64px] gap-2 px-1 text-xs font-semibold uppercase tracking-wide text-ink-muted md:grid">
+      <div className="hidden grid-cols-[minmax(0,1.3fr)_minmax(0,1.3fr)_minmax(0,0.9fr)_76px_minmax(0,0.9fr)_64px] gap-2 px-1 text-xs font-medium text-ink-muted md:grid">
         <span>Size</span>
         <span>Supplier</span>
         <span>Cost (£, ex VAT)</span>

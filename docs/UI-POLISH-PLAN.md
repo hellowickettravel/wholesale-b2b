@@ -2,7 +2,7 @@
 
 Owner request, 17 Oct 2026: re-look at every page and screen (design, structure, colours, fonts, sizes) and upgrade the
 whole front end to a minimal, clean, professional look. In the owner's words: **"smooth minimalism is needed"**.
-This is the plan. Nothing in it is built yet; the owner says "go ahead" to start, phase by phase.
+This is the plan. The owner said "go ahead" on 17 Oct. **Progress: 14.0 done** (DECISIONS D55); 14.1 is next.
 
 **How it was made.** The skills `frontend-design` (Anthropic) and `ui-ux-pro-max` (v2.15.0) are installed in
 `.claude/skills/` and match their GitHub sources. Every screen was screenshotted on the local stack at phone (390px) and
@@ -119,7 +119,7 @@ work properly, and the owner can drop them.
 
 Size: S is up to about half a day of agent work, M about a day, L about two days.
 
-### Phase 14.0: Foundations (M), done first, everything else builds on it
+### Phase 14.0: Foundations (M), done first, everything else builds on it: **done**
 Fix once in shared code, and every screen improves.
 - **`cn()` with `tailwind-merge`**, then remove the about 12 `!` workarounds. Card photos become 4:3 as intended.
 - **Tokens and type:**

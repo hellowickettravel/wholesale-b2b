@@ -2,9 +2,8 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 /**
- * An empty list as one enamel plate on a kraft panel: a heading, at most two lines, one action.
- * Fits inside a Card or sits on its own. (`icon` is accepted for compatibility and not drawn: the plate is
- * the picture.)
+ * An empty list: a heading, at most two lines, one action. Flat (no panel, no card): it sits inside the Card or
+ * page that holds the list. (`icon` is accepted for compatibility and not drawn.)
  */
 export function EmptyState({
   title,
@@ -20,12 +19,10 @@ export function EmptyState({
   className?: string;
 }) {
   return (
-    <div className={cn("grid place-items-center rounded-[var(--radius-md)] bg-sunken px-4 py-8 sm:py-10", className)}>
-      <div className="plate w-full max-w-[24rem] px-6 pb-7 pt-7 text-center [--rim:var(--hessian)] sm:px-8">
-        <h3 className="text-[1.375rem] leading-[1.15] text-ink in-data-[surface=admin]:text-xl in-data-[surface=admin]:font-bold">{title}</h3>
-        {children ? <div className="mt-2 text-sm text-ink-muted">{children}</div> : null}
-        {action ? <div className="mt-5 flex justify-center">{action}</div> : null}
-      </div>
+    <div className={cn("mx-auto max-w-md px-4 py-10 text-center sm:py-12", className)}>
+      <h3 className="text-lg font-semibold text-ink">{title}</h3>
+      {children ? <div className="mt-1.5 text-sm text-ink-muted [&_p+p]:mt-1.5">{children}</div> : null}
+      {action ? <div className="mt-5 flex flex-wrap justify-center gap-2">{action}</div> : null}
     </div>
   );
 }

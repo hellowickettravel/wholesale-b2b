@@ -54,7 +54,7 @@ export default async function ShopProductPage({ params }: PageProps<"/shop/p/[sl
               categoryName={product.category.name}
               imageUrl={publicImageUrl(product.imagePath)}
               sizes={product.variants.map((v) => ({ id: v.id, label: v.sizeLabel }))}
-              className="!aspect-[4/3] w-full md:!aspect-square"
+              className="aspect-[4/3] w-full md:aspect-square"
             />
           </div>
 
@@ -63,7 +63,7 @@ export default async function ShopProductPage({ params }: PageProps<"/shop/p/[sl
               <span aria-hidden="true" className="size-1.5 rounded-full bg-[var(--g)]" />
               {product.category.name}
             </p>
-            <h1 className="text-[clamp(1.75rem,1.4rem+1.6vw,2.5rem)] leading-[1.1]">{product.name}</h1>
+            <h1 className="text-2xl font-semibold leading-tight sm:text-3xl">{product.name}</h1>
 
             <AddToBasket
               layout="page"
@@ -78,7 +78,7 @@ export default async function ShopProductPage({ params }: PageProps<"/shop/p/[sl
               <h2 id="sizes-heading" className="text-lg">Your prices</h2>
               <div className="mt-3 overflow-x-auto rounded-[var(--radius-lg)] border border-line bg-raised">
                 <table className="w-full text-sm">
-                  <thead className="bg-surface text-left text-xs font-semibold uppercase tracking-[0.04em] text-ink-muted">
+                  <thead className="bg-surface text-left text-xs font-medium text-ink-muted">
                     <tr>
                       <th scope="col" className="px-4 py-2.5">Size</th>
                       <th scope="col" className="px-4 py-2.5 text-right">Ex VAT</th>
