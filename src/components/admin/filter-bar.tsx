@@ -41,7 +41,7 @@ export function FilterBar({
       {Object.entries(hidden).map(([k, v]) => (v ? <input key={k} type="hidden" name={k} value={v} /> : null))}
       <FilterFields active={active}>
         {children}
-        <div className="flex gap-2 max-sm:w-full">
+        <div className="ml-auto flex gap-2 max-sm:w-full">
           <button type="submit" className={buttonClasses({ variant: "secondary", className: "max-sm:flex-1" })}>
             <SlidersHorizontal className="size-4" aria-hidden="true" /> Apply
           </button>
@@ -58,7 +58,7 @@ export function FilterBar({
 
 export function FilterSearch({ id, name = "q", defaultValue, placeholder, label }: { id: string; name?: string; defaultValue?: string; placeholder: string; label: string }) {
   return (
-    <div className="min-w-0 flex-[1_1_12rem]">
+    <div className="min-w-0 flex-[1_1_14rem]">
       <label htmlFor={id} className="mb-1 block text-xs font-medium text-ink-muted">{label}</label>
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-subtle" aria-hidden="true" />
@@ -84,7 +84,7 @@ export function FilterSelect({
   className?: string;
 }) {
   return (
-    <div className={cn("min-w-0 flex-[1_1_9rem] sm:max-w-[13rem]", className)}>
+    <div className={cn("min-w-0 flex-[1_1_10rem] sm:max-w-[14rem]", className)}>
       <label htmlFor={id} className="mb-1 block text-xs font-medium text-ink-muted">{label}</label>
       <Select id={id} name={name} defaultValue={defaultValue}>
         {options.map((o) => (
