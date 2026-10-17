@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Download, FileSpreadsheet, Plus, Search } from "lucide-react";
+import { Download, FileSpreadsheet, Plus } from "lucide-react";
 import { ProductImage } from "@/components/brand/product-image";
+import { FilterBar, FilterSearch, FilterSelect } from "@/components/admin/filter-bar";
 import { FilterChips } from "@/components/admin/filter-chips";
 import { Badge } from "@/components/ui/badge";
-import { buttonClasses, LinkButton } from "@/components/ui/button";
-import { Input, Select } from "@/components/ui/field";
+import { LinkButton } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyNote } from "@/components/admin/empty-note";
 import { Pagination } from "@/components/ui/pagination";
@@ -106,28 +106,16 @@ export default async function ProductsPage({ searchParams }: PageProps<"/admin/p
 
       <FilterChips label="Filter by status" current={status} items={STATUSES.map((s) => ({ key: s.value, href: href({ status: s.value, page: 1 }), label: s.label, count: totals[s.value] }))} />
 
-      <form action="/admin/products" className="mb-4 flex flex-col gap-2 sm:flex-row">
-        {status ? <input type="hidden" name="status" value={status} /> : null}
-        <label htmlFor="products-q" className="sr-only">
-          Search products
-        </label>
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-subtle" aria-hidden="true" />
-          <Input id="products-q" name="q" type="search" defaultValue={q} placeholder="Search by name" className="pl-9" />
-        </div>
-        <label htmlFor="products-category" className="sr-only">
-          Category
-        </label>
-        <Select id="products-category" name="category" defaultValue={category} className="sm:w-56">
-          <option value="">All categories</option>
-          {(categories ?? []).map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </Select>
-        <button type="submit" className={buttonClasses({ className: "sm:h-10" })}>Filter</button>
-      </form>
+      <FilterBar action="/admin/products" hidden={{ status }} clearHref={status ? `/admin/products?status=${status}` : "/admin/products"} active={Boolean(q || category)}>
+        <FilterSearch id="products-q" label="Search" placeholder="Product name" defaultValue={q} />
+        <FilterSelect
+          id="products-category"
+          name="category"
+          label="Category"
+          defaultValue={category}
+          options={[{ value: "", label: "All categories" }, ...(categories ?? []).map((c) => ({ value: c.id, label: c.name }))]}
+        />
+      </FilterBar>
 
       <Card>
         {rows.length === 0 ? (

@@ -43,7 +43,7 @@ export default async function SupplierOrderPage({ params }: PageProps<"/supplier
         <ArrowLeft className="size-4" aria-hidden="true" /> Orders
       </Link>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 pb-5">
-        <h1 className="tabular text-3xl font-bold">{orderRef(so.order_number!)}</h1>
+        <h1 className="text-2xl font-semibold leading-tight sm:text-3xl">{orderRef(so.order_number!)}</h1>
         <DeliveryStatusBadge status={so.status!} />
         <span className="w-full text-sm text-ink-muted sm:w-auto">Received {formatTimestamp(so.created_at!)}</span>
       </div>

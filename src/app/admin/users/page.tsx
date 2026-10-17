@@ -14,7 +14,7 @@ import { InviteForm } from "./invite-form";
 
 export const metadata: Metadata = { title: "Users" };
 
-const ROLE_TONE: Record<string, Tone> = { admin: "info", supplier: "accent", customer: "primary" };
+const ROLE_TONE: Record<string, Tone> = { admin: "neutral", supplier: "neutral", customer: "neutral" };
 const ROLE_LABEL: Record<string, string> = { admin: "Admin", supplier: "Supplier", customer: "Restaurant" };
 
 const ROLES = [
@@ -69,7 +69,7 @@ export default async function UsersPage({ searchParams }: PageProps<"/admin/user
         </Card>
         <Card>
           <CardHeader title="All users" description={filtered ? `${rows.length} of ${all.length} accounts` : `${all.length} accounts`} />
-          <FilterBar action="/admin/users" clearHref="/admin/users" active={filtered} className="m-3 mb-3 shadow-none">
+          <FilterBar action="/admin/users" clearHref="/admin/users" active={filtered} plain className="mb-0">
             <FilterSearch id="users-q" label="Search" defaultValue={q} placeholder="Name, email or business" />
             <FilterSelect id="users-role" name="role" label="Role" defaultValue={role} options={ROLES} />
             <FilterSelect id="users-state" name="state" label="Status" defaultValue={state} options={STATES} />

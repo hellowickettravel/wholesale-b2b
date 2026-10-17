@@ -26,9 +26,11 @@
   --color-on-dark-muted: var(--on-dark-muted);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
+  --color-line-control: var(--line-control);
 
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
+  --color-success-on-dark: var(--success-on-dark);
   --color-warning: var(--warning);
   --color-warning-soft: var(--warning-soft);
   --color-danger: var(--danger);
@@ -52,7 +54,7 @@
   --ease-out-soft: var(--ease-out);
 
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-display), var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --animate-kraft: kraft-pulse 1.6s var(--ease-inout) 300ms infinite;
@@ -61,7 +63,8 @@
   --animate-toast-in: toast-in var(--dur-base) var(--ease-out) both;
 }
 
-/* Type scale: nothing under 13px, secondary 15px, body 16px */
+/* Type scale (Phase 14): nothing under 13px; secondary 15px; body 16px; card title 17px; section 20px;
+   page title 24px phone / 28px desktop (text-2xl sm:text-3xl); public hero up to 44px. */
 @theme {
   --text-xs: 0.8125rem;
   --text-xs--line-height: 1.4;
@@ -69,16 +72,16 @@
   --text-sm--line-height: 1.45;
   --text-base: 1rem;
   --text-base--line-height: 1.55;
-  --text-lg: 1.125rem;
+  --text-lg: 1.0625rem;
   --text-lg--line-height: 1.45;
-  --text-xl: 1.3125rem;
+  --text-xl: 1.25rem;
   --text-xl--line-height: 1.3;
-  --text-2xl: 1.625rem;
-  --text-2xl--line-height: 1.2;
-  --text-3xl: 2rem;
-  --text-3xl--line-height: 1.12;
-  --text-4xl: 2.5rem;
-  --text-4xl--line-height: 1.06;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 1.25;
+  --text-3xl: 1.75rem;
+  --text-3xl--line-height: 1.2;
+  --text-4xl: 2.25rem;
+  --text-4xl--line-height: 1.1;
 }
 
 @layer base {
@@ -93,12 +96,15 @@
     font-size: 1rem;
     line-height: 1.55;
   }
+  /* One family (Inter). Headings are semibold with gentle negative tracking; never tighter than -0.02em,
+     or punctuation starts to drift away from the word. */
   h1, h2, h3, .font-display {
     font-family: var(--font-display);
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    font-weight: 600;
+    letter-spacing: -0.015em;
     text-wrap: balance;
   }
+  h1 { letter-spacing: -0.02em; }
   :focus-visible {
     outline: 3px solid var(--focus);
     outline-offset: 2px;
@@ -114,24 +120,12 @@
 }
 
 @layer components {
-  /* Category tint. Set data-ground="<category slug>" on any ancestor; --g is the category colour. */
+  /* Category art tint. data-ground="<category slug>" is still set by callers; every slug now shares one quiet colour. */
   [data-ground] { --g: var(--ground-default); --on-g: var(--on-ground-light); }
-  [data-ground="rice"] { --g: var(--ground-rice); }
-  [data-ground="pulses-nuts-and-groceries"] { --g: var(--ground-pulses); }
-  [data-ground="whole-spices"] { --g: var(--ground-whole-spices); }
-  [data-ground="powders-and-ground-masala"] { --g: var(--ground-powders); }
-  [data-ground="flours-atta-and-rava"] { --g: var(--ground-flours); }
-  [data-ground="tea-powders-and-milk-mix"] { --g: var(--ground-tea); }
-  [data-ground="sauces"] { --g: var(--ground-sauces); }
-  [data-ground="food-colours"] { --g: var(--ground-colours); }
-  [data-ground="restaurant-groceries"] { --g: var(--ground-groceries); }
-  [data-ground="drinks"] { --g: var(--ground-drinks); }
-  [data-ground="restaurant-packing-and-cleaning"] { --g: var(--ground-packing); }
 
-  /* A soft wash of the category colour (was a hessian twill). */
+  /* A flat, quiet wash behind product art without a photo (one tint for every category). */
   .weave {
-    background-color: color-mix(in srgb, var(--g, var(--ground-default)) 9%, white);
-    background-image: radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--g, var(--ground-default)) 14%, transparent), transparent 60%);
+    background-color: color-mix(in srgb, var(--g, var(--ground-default)) 5%, white);
   }
 
   /* A clean white card used to announce one thing (was the enamel sign). */

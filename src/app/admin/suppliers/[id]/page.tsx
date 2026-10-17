@@ -51,7 +51,7 @@ export default async function SupplierPage({ params, searchParams }: PageProps<"
       </Link>
       <div className="flex flex-col gap-4 pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <h1 className="flex flex-wrap items-center gap-3 text-2xl font-bold text-ink sm:text-[28px]">
+          <h1 className="flex flex-wrap items-center gap-3 text-2xl font-semibold leading-tight sm:text-3xl text-ink">
             {s.name}
             {s.active ? <Badge tone="success">Active</Badge> : <Badge tone="neutral">Switched off</Badge>}
           </h1>

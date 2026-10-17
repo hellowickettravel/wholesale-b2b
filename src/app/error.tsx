@@ -10,7 +10,6 @@ export default function ErrorPage({ error, retry }: { error: Error & { digest?: 
   }, [error]);
   return (
     <StatusPage
-      ground="powders-and-ground-masala"
       title="Something went wrong"
       actions={
         <>
