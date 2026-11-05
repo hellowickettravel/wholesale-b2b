@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink, Trash2 } from "lucide-react";
+import { ArrowLeft, Boxes, ExternalLink, Plus, Trash2 } from "lucide-react";
+import { LinkButton } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { PhotoForm } from "@/components/admin/photo-form";
 import { CategoryArt } from "@/components/catalogue/category-art";
@@ -35,14 +36,22 @@ export default async function CategoryPage({ params, searchParams }: PageProps<"
       <PageHeader title={c.name}
         description={`${count ?? 0} products`}
         actions={
-          c.active ? (
-            <Link href={`/catalogue?category=${c.slug}`} target="_blank" className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline">
-              View on site <ExternalLink className="size-4" aria-hidden="true" />
-            </Link>
-          ) : null
+          <>
+            {c.active ? (
+              <Link href={`/catalogue?category=${c.slug}`} target="_blank" className="inline-flex items-center gap-1.5 self-center text-sm font-semibold text-primary hover:underline">
+                View on site <ExternalLink className="size-4" aria-hidden="true" />
+              </Link>
+            ) : null}
+            <LinkButton href={`/admin/products?category=${c.id}`} variant="secondary" size="sm" icon={<Boxes className="size-4" aria-hidden="true" />}>
+              See its products
+            </LinkButton>
+            <LinkButton href={`/admin/products/new?category=${c.id}`} size="sm" icon={<Plus className="size-4" aria-hidden="true" />}>
+              Add a product
+            </LinkButton>
+          </>
         }
       />
-      {notice === "created" ? <Alert tone="success" className="mb-4">Category added. Add a photo, then put products in it.</Alert> : null}
+      {notice === "created" ? <Alert tone="success" className="mb-4">Category added. Add a photo, then use &ldquo;Add a product&rdquo; to put products in it.</Alert> : null}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <Card className="self-start">
           <CardHeader title="Details" />

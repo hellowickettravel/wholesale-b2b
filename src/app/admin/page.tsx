@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BellRing } from "lucide-react";
+import { ArrowRight, BellRing, Plus, UserPlus } from "lucide-react";
 import { PaymentBadge } from "@/components/admin/payment-badge";
 import { OrderStatusBadge } from "@/components/shop/order-status";
 import { LinkButton } from "@/components/ui/button";
@@ -25,7 +25,20 @@ export default async function AdminDashboard() {
 
   return (
     <>
-      <PageHeader title={firstName ? `Hello, ${firstName}` : "Dashboard"} description="Money in, money out, and what needs you today." />
+      <PageHeader
+        title={firstName ? `Hello, ${firstName}` : "Dashboard"}
+        description="Money in, money out, and what needs you today."
+        actions={
+          <>
+            <LinkButton href="/admin/customers/new" variant="secondary" size="sm" icon={<UserPlus className="size-4" aria-hidden="true" />}>
+              Add a customer
+            </LinkButton>
+            <LinkButton href="/admin/products/new" size="sm" icon={<Plus className="size-4" aria-hidden="true" />}>
+              Add a product
+            </LinkButton>
+          </>
+        }
+      />
       <SetupChecklist />
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <Stat

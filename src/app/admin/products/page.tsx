@@ -97,7 +97,7 @@ export default async function ProductsPage({ searchParams }: PageProps<"/admin/p
             <LinkButton href="/admin/products/import" variant="secondary" size="sm" icon={<FileSpreadsheet className="size-4" aria-hidden="true" />}>
               Import CSV
             </LinkButton>
-            <LinkButton href="/admin/products/new" size="sm" icon={<Plus className="size-4" aria-hidden="true" />}>
+            <LinkButton href={category ? `/admin/products/new?category=${category}` : "/admin/products/new"} size="sm" icon={<Plus className="size-4" aria-hidden="true" />}>
               New product
             </LinkButton>
           </>
@@ -139,7 +139,12 @@ export default async function ProductsPage({ searchParams }: PageProps<"/admin/p
                   Clear filters
                 </LinkButton>
               ) : (
-                <LinkButton href="/admin/products/import">Import a CSV</LinkButton>
+                <span className="flex flex-wrap justify-center gap-2">
+                  <LinkButton href={category ? `/admin/products/new?category=${category}` : "/admin/products/new"} icon={<Plus className="size-4" aria-hidden="true" />}>
+                    New product
+                  </LinkButton>
+                  <LinkButton href="/admin/products/import" variant="secondary">Import a CSV</LinkButton>
+                </span>
               )
             }
           >

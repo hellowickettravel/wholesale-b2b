@@ -28,7 +28,7 @@ export default async function NewProductPage({ searchParams }: PageProps<"/admin
             submitLabel="Create product"
             categories={categories ?? []}
             showSlug={false}
-            initial={{ name: "", slug: "", category_id: typeof category === "string" ? category : "", description: "", active: true }}
+            initial={{ name: "", slug: "", category_id: typeof category === "string" && (categories ?? []).some((c) => c.id === category) ? category : "", description: "", active: true }}
           />
         </CardBody>
       </Card>
