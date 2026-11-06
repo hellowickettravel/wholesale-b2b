@@ -34,7 +34,7 @@ export function ProductPlate({
           <span className="text-sm font-semibold text-ink-muted">{categoryName}</span>
         </span>
       )}
-      {sizeLabel ? <span className="plate-tab !bottom-4 !left-4 !text-sm">{sizeLabel}</span> : null}
+      {sizeLabel ? <span className="plate-tab bottom-4 left-4 text-sm">{sizeLabel}</span> : null}
     </div>
   );
 }

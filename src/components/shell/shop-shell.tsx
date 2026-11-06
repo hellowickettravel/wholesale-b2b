@@ -85,7 +85,7 @@ export function ShopShell({
                   href={href}
                   exact={exact}
                   className="inline-flex h-11 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-md)] px-2.5 text-[11px] font-semibold text-ink-muted transition-colors duration-[var(--dur-fast)] hover:bg-surface hover:text-primary lg:flex-row lg:gap-2 lg:px-3 lg:text-sm"
-                  activeClassName="!text-primary bg-primary-soft"
+                  activeClassName="text-primary bg-primary-soft"
                 >
                   <Icon className="size-[18px]" aria-hidden="true" />
                   {label}
@@ -99,7 +99,7 @@ export function ShopShell({
               >
                 <basket.icon className="size-[18px]" aria-hidden="true" />
                 {basket.label}
-                <BasketBadge count={basketCount} className="!bg-raised !text-accent" />
+                <BasketBadge count={basketCount} className="bg-raised text-accent" />
               </NavLink>
               <SignOutButton iconOnly className="ml-1 grid size-11 place-items-center rounded-full text-ink-muted transition-colors hover:bg-surface hover:text-ink" />
             </nav>
@@ -147,7 +147,7 @@ export function ShopShell({
                   href={href}
                   exact={exact}
                   className="flex min-h-16 flex-col items-center justify-start gap-0.5 pt-2 text-xs font-semibold text-ink-muted transition-colors active:bg-sunken"
-                  activeClassName="!text-primary font-bold"
+                  activeClassName="text-primary font-bold"
                 >
                   <span className="relative grid h-8 w-14 place-items-center rounded-full">
                     <Icon className="size-[22px]" aria-hidden="true" />

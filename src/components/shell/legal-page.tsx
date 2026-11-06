@@ -27,7 +27,7 @@ export function LegalPage({ title, intro, current, sections }: { title: string; 
           </Link>
         ))}
       </nav>
-      <h1 className="text-[clamp(1.75rem,1.3rem+2vw,2.5rem)] font-bold leading-tight text-ink">{title}</h1>
+      <h1 className="text-2xl font-semibold leading-tight sm:text-3xl text-ink">{title}</h1>
       <p className="mt-2 text-sm text-ink-muted">Last updated {LEGAL_UPDATED}</p>
       <p className="mt-5 max-w-[65ch] text-base leading-relaxed text-ink-muted">{intro}</p>
 

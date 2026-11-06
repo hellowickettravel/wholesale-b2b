@@ -20,7 +20,7 @@ export default function SupplierPreview() {
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-semibold">#{r.id}</span>
-                  <Badge tone={r.status === "Delivered" ? "success" : r.status === "New" ? "accent" : "primary"} dot>{r.status}</Badge>
+                  <Badge tone={r.status === "Delivered" ? "success" : r.status === "New" ? "neutral" : "primary"} dot>{r.status}</Badge>
                 </div>
                 <p className="mt-0.5 truncate text-sm text-ink-muted">{r.customer}, {r.postcode}, {r.items} lines</p>
               </div>

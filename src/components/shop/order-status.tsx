@@ -1,19 +1,19 @@
 import { Badge, type Tone } from "@/components/ui/badge";
 import { STATUS_LABEL, SUPPLIER_STATUS_LABEL, type OrderStatus, type SupplierOrderStatus } from "@/domain/status";
 
-/** placed: turmeric mist, with the supplier: indigo, on the road: cardamom, delivered: leaf, finished: kraft, cancelled: chilli. */
+/** One status map for shop, admin and supplier: waiting = neutral, moving = blue, done = green, a problem = red. */
 const ORDER_TONE: Record<OrderStatus, Tone> = {
-  placed: "accent",
+  placed: "neutral",
   sent: "info",
   out_for_delivery: "primary",
-  partially_delivered: "warning",
+  partially_delivered: "info",
   delivered: "success",
-  completed: "neutral",
+  completed: "success",
   cancelled: "danger",
 };
 
 const SUPPLIER_TONE: Record<SupplierOrderStatus, Tone> = {
-  placed: "accent",
+  placed: "neutral",
   sent: "info",
   out_for_delivery: "primary",
   delivered: "success",

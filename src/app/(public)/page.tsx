@@ -199,7 +199,7 @@ export default async function HomePage() {
               <p className="mt-2 max-w-[48ch] text-base text-white">Open a free trade account with {brand.name}. Questions first? Message us on WhatsApp.</p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <LinkButton href="/register" size="lg" className="rounded-full !bg-white !text-accent-strong hover:!bg-primary-soft">Open a trade account</LinkButton>
+              <LinkButton href="/register" size="lg" className="rounded-full bg-white text-accent-strong hover:bg-primary-soft">Open a trade account</LinkButton>
               <a href={whatsappHref("Hello, I would like to know more about a trade account.")} target="_blank" rel="noopener noreferrer" className="inline-flex h-12 items-center gap-2 rounded-full px-5 text-base font-semibold text-white ring-1 ring-white/50 transition-colors hover:bg-white/10">
                 <WhatsAppIcon className="size-5" /> WhatsApp us
               </a>

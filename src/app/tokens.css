@@ -3,8 +3,9 @@
  * motion) live here only. Components use semantic Tailwind utilities generated from @theme in globals.css
  * (bg-primary, text-ink-muted, border-line, …). Keep hex in sync with src/config/brand.ts.
  *
- * Direction: a UK cash-and-carry that feels modern. Deep navy for trust and structure, a confident
- * red for the one thing to do (add, order, open an account), white cards on a cool light-grey page.
+ * Direction: "smooth minimalism" (Phase 14, docs/UI-POLISH-PLAN.md). Deep navy for structure and primary actions,
+ * red only for buying (add, place order, open an account) and danger, white flat surfaces on a cool light-grey page.
+ * Separate with space before lines; shadows only on things that float (menus, dialogs, sticky bars, toasts).
  * Contrast (WCAG 2.2): every text/background pair below is AA (4.5:1) or better; control borders 3:1+.
  */
 :root {
@@ -37,11 +38,13 @@
 
   /* Lines */
   --line: #e1e6ee;
-  --line-strong: #7c889b; /* control boundaries: 3.5:1 on white */
+  --line-strong: #7c889b; /* strong dividers: 3.5:1 on white */
+  --line-control: #8792a3; /* input, select and secondary-button borders: 3.1:1 on white */
 
   /* Status */
   --success: #13703a;
   --success-soft: #e3f4ea;
+  --success-on-dark: #6fdc9c; /* tick on the navy toast: 8.3:1 */
   --warning: #8a4b00;
   --warning-soft: #fff1d6;
   --danger: #c0181f;
@@ -53,34 +56,21 @@
   --focus: #2563eb;
   --focus-on-dark: #ffc532;
 
-  /* Category tints: a light wash behind products without a photo, and the dot beside a category name.
-     Text never sits on --g except --on-g (all >= 4.5:1). */
-  --ground-default: #46546a;
-  --ground-rice: #b7791f;
-  --ground-pulses: #c2410c;
-  --ground-whole-spices: #7c2d12;
-  --ground-powders: #c0181f;
-  --ground-flours: #a16207;
-  --ground-tea: #166534;
-  --ground-sauces: #9f1239;
-  --ground-colours: #a21caf;
-  --ground-groceries: #4d7c0f;
-  --ground-drinks: #0e7490;
-  --ground-packing: #0b2a5b;
+  /* Category art: every category uses the same quiet navy icon on a light wash (no rainbow). */
+  --ground-default: #0b2a5b;
   --on-ground-light: #ffffff;
-  --on-ground-dark: #ffffff;
 
   /* Shape */
   --radius-sm: 6px;
   --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 20px;
-  --radius-plate: 14px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-plate: 12px;
 
-  /* Elevation: cool, soft, layered */
-  --elev-rest: 0 1px 2px rgb(15 27 45 / 0.05);
+  /* Elevation: surfaces at rest are flat (a 1px --line border does the work); only floating things cast a shadow. */
+  --elev-rest: 0 0 #0000;
   --elev-lift: 0 12px 28px -12px rgb(15 27 45 / 0.22), 0 2px 6px rgb(15 27 45 / 0.06);
-  --elev-plate: 0 1px 2px rgb(15 27 45 / 0.05), 0 0 0 1px rgb(15 27 45 / 0.04);
+  --elev-plate: 0 0 0 1px var(--line);
   --elev-pop: 0 24px 56px -16px rgb(15 27 45 / 0.35), 0 2px 8px rgb(15 27 45 / 0.08);
   --edge-primary: 0 0 0 0 transparent;
   --edge-accent: 0 0 0 0 transparent;

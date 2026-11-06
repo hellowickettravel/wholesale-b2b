@@ -5,6 +5,7 @@ import { Check, ShoppingBasket } from "lucide-react";
 import { addToBasket } from "@/app/(shop)/basket/actions";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/field";
+import { useDockOffset } from "@/components/ui/sticky-action-bar";
 import { useToast } from "@/components/ui/toast";
 import { formatPence } from "@/domain/money";
 import { cn } from "@/lib/cn";
@@ -55,6 +56,7 @@ export function AddToBasket({
 
   // Product page, phones: dock the buy bar above the tab bar while its inline slot is out of view.
   const slot = useRef<HTMLDivElement>(null);
+  const bar = useRef<HTMLDivElement>(null);
   const [docked, setDocked] = useState(false);
   const hasBar = page && size.orderable;
   useEffect(() => {
@@ -64,6 +66,8 @@ export function AddToBasket({
     io.observe(el);
     return () => io.disconnect();
   }, [hasBar]);
+  // While docked, the toast rises above the bar instead of covering Add.
+  useDockOffset(bar, docked);
 
   function add() {
     setError(null);
@@ -106,7 +110,7 @@ export function AddToBasket({
       aria-label={page ? undefined : `Size of ${productName}`}
       value={size.id}
       onChange={(e) => setSizeId(e.target.value)}
-      className={page ? "font-semibold" : card ? "!h-10 text-sm font-medium" : "text-sm font-semibold sm:!h-11"}
+      className={page ? "font-semibold" : card ? "h-10 text-sm font-medium" : "text-sm font-semibold sm:h-11"}
     >
       {sizes.map((s) => (
         <option key={s.id} value={s.id}>
@@ -142,7 +146,7 @@ export function AddToBasket({
       label={`Quantity of ${productName} ${size.sizeLabel}`}
       disabled={pending}
       fluid={card}
-      className={page ? "h-12" : card ? "!h-10 @min-[15rem]:!w-[7.5rem] @min-[15rem]:shrink-0" : undefined}
+      className={page ? "h-12" : card ? "h-10 @min-[15rem]:w-[7.5rem] @min-[15rem]:shrink-0" : undefined}
     />
   );
 
@@ -169,10 +173,11 @@ export function AddToBasket({
         {size.orderable ? (
           <div ref={slot} className="mt-3 h-12">
             <div
+              ref={bar}
               className={cn(
                 "flex items-center gap-3",
                 docked &&
-                  "max-md:fixed max-md:inset-x-0 max-md:bottom-[calc(4rem+env(safe-area-inset-bottom))] max-md:z-20 max-md:border-t max-md:border-line max-md:bg-raised max-md:px-4 max-md:py-3 max-md:shadow-[0_-12px_20px_-16px_rgb(15_27_45/0.25)] motion-safe:max-md:animate-toast-in",
+                  "max-md:fixed max-md:inset-x-0 max-md:bottom-[calc(4rem+env(safe-area-inset-bottom))] max-md:z-20 max-md:border-t max-md:border-line max-md:bg-raised max-md:px-4 max-md:py-3 max-md:shadow-pop motion-safe:max-md:animate-toast-in",
               )}
             >
               {stepper}

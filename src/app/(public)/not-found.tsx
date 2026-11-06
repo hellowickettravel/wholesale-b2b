@@ -10,7 +10,7 @@ export default function PublicNotFound() {
     <PlateMessage
       ground="default"
       headingLevel={1}
-      tab="404"
+      tab="Error 404"
       title="We can't find that page"
       className="py-14 sm:py-20"
       actions={

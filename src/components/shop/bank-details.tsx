@@ -34,7 +34,7 @@ export function BankDetails({ bank, reference, amountPence, payBy }: { bank: Ban
           <div className="flex items-center justify-between gap-3 py-3">
             <dt className="text-sm text-ink-muted">Your reference</dt>
             <dd className="flex items-center gap-1 font-bold text-ink">
-              <span className="tabular">{reference}</span>
+              <span>{reference}</span>
               <CopyButton value={reference} label="reference" />
             </dd>
           </div>
@@ -96,7 +96,7 @@ export function BankDetails({ bank, reference, amountPence, payBy }: { bank: Ban
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-ink">Quote this reference</p>
-            <p className="tabular text-xl font-bold text-ink">{reference}</p>
+            <p className="text-xl font-semibold text-ink">{reference}</p>
           </div>
           <CopyButton value={reference} label="reference" />
         </div>

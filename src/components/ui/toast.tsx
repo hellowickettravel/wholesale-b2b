@@ -55,7 +55,7 @@ function ToastView({ item, superseded, onDone }: { item: ToastItem; superseded: 
       {danger ? (
         <XCircle className="size-5 shrink-0" aria-hidden="true" />
       ) : (
-        <CheckCircle2 className="size-5 shrink-0 text-accent" aria-hidden="true" />
+        <CheckCircle2 className="size-5 shrink-0 text-success-on-dark" aria-hidden="true" />
       )}
       <span className="min-w-0 py-2">{item.message}</span>
       <button
@@ -82,7 +82,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div
         aria-live="polite"
-        className="pointer-events-none fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-50 grid items-end justify-items-center px-4 sm:bottom-6"
+        className="pointer-events-none fixed inset-x-0 bottom-[calc(5rem+var(--dock-h,0px)+env(safe-area-inset-bottom))] z-50 grid items-end justify-items-center px-4 transition-[bottom] duration-[var(--dur-base)] ease-[var(--ease-out)] sm:bottom-[calc(1.5rem+var(--dock-h,0px))]"
       >
         {/* One cell: toasts stack on top of each other, so nothing is pushed around when a new one arrives. */}
         {items.map((t, i) => (

@@ -32,7 +32,7 @@ export function AuthShell({
         </header>
         <main id="main" className="flex flex-1 items-start justify-center px-4 pb-16 pt-8 sm:px-8 lg:items-center lg:py-10">
           <div className={wide ? "w-full max-w-2xl" : "w-full max-w-md"}>
-            <h1 className="text-[clamp(1.75rem,1.4rem+1.6vw,2.5rem)] leading-[1.08] tracking-[-0.03em] text-ink">{title}</h1>
+            <h1 className="text-2xl font-semibold leading-tight sm:text-3xl text-ink">{title}</h1>
             {description ? <div className="mt-3 max-w-prose text-base text-ink-muted sm:text-lg">{description}</div> : null}
             <div className="mt-8">{children}</div>
             {footer ? <div className="mt-8 border-t border-line pt-6 text-base text-ink-muted">{footer}</div> : null}

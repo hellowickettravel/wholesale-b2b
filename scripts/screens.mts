@@ -1,7 +1,8 @@
 /**
  * Screenshots of key screens at phone (390) and desktop (1280) widths, plus a horizontal
  * overflow check. Needs the app on :3000 and the seeded local stack.
- *   npx tsx scripts/screens.mts [filter]
+ *   npx tsx scripts/screens.mts [filter]      (filter: comma list of name parts; "=name" for an exact name)
+ *   WIDTHS=1280 npx tsx scripts/screens.mts  (one width only)
  * Output: test-results/screens/<name>-<width>.png
  */
 import { mkdirSync } from "node:fs";
@@ -22,7 +23,7 @@ const shots: Shot[] = [
   { name: "catalogue-empty", path: "/catalogue?q=zzzz" },
   { name: "catalogue-page2", path: "/catalogue?page=2" },
   { name: "product", path: "/catalogue/basant-basmati-rice" },
-  { name: "product-single", path: "/catalogue/rose-water" },
+  { name: "product-single", path: "/catalogue/green-cardamom" },
   { name: "login", path: "/login" },
   {
     name: "login-error",
@@ -153,6 +154,17 @@ const shots: Shot[] = [
   { name: "driver-invalid", path: "/d/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" },
   { name: "order-proof", path: "/orders/{deliveredOrderA}", as: "restaurant.a@example.com" },
   { name: "account-disabled", path: "/account-disabled" },
+  { name: "terms", path: "/terms" },
+  { name: "privacy", path: "/privacy" },
+  { name: "cookies", path: "/cookies" },
+  { name: "notfound-public", path: "/catalogue/no-such-product" },
+  { name: "notfound-root", path: "/no-such-page" },
+  { name: "pending-held", path: "/register/pending?held=1" },
+  { name: "admin-emails", path: "/admin/emails", as: "admin@example.com" },
+  { name: "admin-security", path: "/admin/security", as: "admin@example.com" },
+  { name: "admin-costs", path: "/admin/products/costs", as: "admin@example.com" },
+  { name: "admin-notfound", path: "/admin/no-such-page", as: "admin@example.com" },
+  { name: "shop-notfound", path: "/shop/no-such-page", as: "restaurant.a@example.com" },
 ];
 
 // Local test stack only: start with fresh rate-limit counters (many sign-ins from 127.0.0.1).
@@ -190,10 +202,13 @@ const { rowCount: reused } = await db.query(
   "update public.delivery_proofs set revoked_at = null, expires_at = now() + interval '72 hours' where token_hash = extensions.digest($1, 'sha256') and submitted_at is null",
   [driverToken],
 );
-if (!reused && openA[2]) {
+// The seed has two open supplier-A parts: the driver link goes on the first one (the second gets the
+// "make a link" screenshot), so the driver page always has a job to show.
+const driverPart = openA[2] ?? openA[0];
+if (!reused && driverPart) {
   await db.query(
     "select public.create_driver_link($1, extensions.digest($2, 'sha256'), now() + interval '72 hours', null)",
-    [openA[2].id, driverToken],
+    [driverPart.id, driverToken],
   );
 }
 // Payments screens: seed order 1002 is overdue and due a chase today.
@@ -211,16 +226,17 @@ const vars: Record<string, string> = {
 for (const s of shots) s.path = s.path.replace(/\{(\w+)\}/g, (_, k: string) => vars[k] ?? "none");
 await db.end();
 
-const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? "/opt/pw-browsers/chromium-1194/chrome-linux/chrome" });
+// --lang: Chrome formats date inputs by its own UI language, not the page locale.
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? "/opt/pw-browsers/chromium-1194/chrome-linux/chrome", args: ["--lang=en-GB"] });
 mkdirSync(OUT, { recursive: true });
 const problems: string[] = [];
 
-for (const width of [390, 1280]) {
+for (const width of (process.env.WIDTHS ?? "390,1280").split(",").map(Number)) {
   const sessions = new Map<string, Awaited<ReturnType<typeof browser.newContext>>>();
   const contextFor = async (as?: string) => {
     const key = as ?? "anon";
     if (!sessions.has(key)) {
-      const ctx = await browser.newContext({ viewport: { width, height: width === 390 ? 844 : 800 }, deviceScaleFactor: 1, reducedMotion: "reduce" });
+      const ctx = await browser.newContext({ viewport: { width, height: width === 390 ? 844 : 800 }, deviceScaleFactor: 1, reducedMotion: "reduce", locale: "en-GB", timezoneId: "Europe/London" });
       if (as) {
         const p = await ctx.newPage();
         await p.goto(`${BASE}/login`, { waitUntil: "load" });
@@ -236,10 +252,11 @@ for (const width of [390, 1280]) {
   };
   for (const shot of shots) {
     if (filter && !filter.split(",").some((f) => (f.startsWith("=") ? shot.name === f.slice(1) : shot.name.includes(f)))) continue;
-    const ctx = shot.before && !shot.as ? await browser.newContext({ viewport: { width, height: width === 390 ? 844 : 800 }, reducedMotion: "reduce" }) : await contextFor(shot.as);
+    const ctx = shot.before && !shot.as ? await browser.newContext({ viewport: { width, height: width === 390 ? 844 : 800 }, reducedMotion: "reduce", locale: "en-GB", timezoneId: "Europe/London" }) : await contextFor(shot.as);
     const page = await ctx.newPage();
     await page.goto(`${BASE}${shot.path}`, { waitUntil: "load" });
-    if (shot.before) await shot.before(page);
+    // One broken step (a changed label, missing fixture data) is reported, not fatal: the rest still get taken.
+    if (shot.before) await shot.before(page).catch((e: Error) => problems.push(`${shot.name}@${width}: before() failed: ${e.message.split("\n")[0]}`));
     // Scroll through once so lazy images below the fold load before the full-page capture.
     await page.evaluate(async () => {
       for (let y = 0; y < document.body.scrollHeight; y += 700) {
@@ -260,4 +277,4 @@ for (const width of [390, 1280]) {
   for (const ctx of sessions.values()) await ctx.close();
 }
 await browser.close();
-console.log(problems.length ? problems.join("\n") : "no horizontal overflow");
+console.log(problems.length ? problems.join("\n") : "no horizontal overflow, no failed steps");

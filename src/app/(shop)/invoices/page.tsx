@@ -57,7 +57,7 @@ export default async function InvoicesPage({ searchParams }: PageProps<"/invoice
               <li key={inv.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-3 rounded-[var(--radius-lg)] border border-line bg-raised px-4 py-4 shadow-rest sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:gap-x-6 sm:px-5">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                    <span className="tabular text-lg font-bold text-ink">{invoiceRef(inv.number)}</span>
+                    <span className="text-lg font-semibold text-ink">{invoiceRef(inv.number)}</span>
                     {inv.voided_at ? <Badge tone="neutral">Void</Badge> : <Badge tone={state.tone}>{state.label}</Badge>}
                   </div>
                   <p className="mt-1 text-sm text-ink-muted">

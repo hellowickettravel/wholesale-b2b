@@ -9,7 +9,6 @@ export default function Forbidden() {
   return (
     <StatusPage
       code="403"
-      ground="restaurant-packing-and-cleaning"
       title="You don't have access to this page"
       actions={
         <>

@@ -57,7 +57,7 @@ export default async function CategoriesPage({ searchParams }: PageProps<"/admin
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
         <Card>
           <CardHeader title="All categories" description={filtered ? `${rows.length} of ${categories?.length ?? 0} categories` : `${categories?.length ?? 0} categories`} />
-          <FilterBar action="/admin/categories" clearHref="/admin/categories" active={filtered} className="m-3 mb-3 shadow-none">
+          <FilterBar action="/admin/categories" clearHref="/admin/categories" active={filtered} plain className="mb-0">
             <FilterSearch id="categories-q" label="Search" defaultValue={q} placeholder="Category name" />
             <FilterSelect id="categories-status" name="status" label="Status" defaultValue={status} options={STATUSES} />
             <FilterSelect id="categories-sort" name="sort" label="Sort" defaultValue={sort} options={SORTS} />

@@ -132,7 +132,7 @@ export default async function ShopHome({ searchParams }: PageProps<"/shop">) {
                 <CategoryIcon slug={active.slug} className="size-6" />
               </span>
             ) : null}
-            <h1 className="text-[clamp(1.625rem,1.3rem+1.6vw,2.375rem)] leading-tight text-ink">
+            <h1 className="text-2xl font-semibold leading-tight sm:text-3xl text-ink">
               {query.q ? <>Results for &ldquo;{query.q}&rdquo;</> : (active?.name ?? "All products")}
             </h1>
           </div>

@@ -42,7 +42,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
         </Link>
       </nav>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pb-5">
-        <h1 className="tabular font-sans text-[clamp(1.875rem,1.4rem+2vw,2.5rem)] font-bold leading-[1.1]">{ref}</h1>
+        <h1 className="text-2xl font-semibold leading-tight sm:text-3xl">{ref}</h1>
         <OrderStatusBadge status={order.status!} />
         <span className="w-full text-ink-muted sm:w-auto">Placed {formatDate(order.created_at!)}</span>
       </div>

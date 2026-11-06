@@ -62,7 +62,7 @@ const groups = [
 
 const linkCls =
   "flex min-h-9 items-center gap-3 rounded-[var(--radius-md)] px-3 py-1.5 text-sm font-semibold text-on-dark-muted transition-colors duration-[var(--dur-fast)] hover:bg-white/8 hover:text-on-dark";
-const activeCls = "bg-white/12 !text-on-dark shadow-[inset_3px_0_0_var(--brand-accent)]";
+const activeCls = "bg-white/12 text-on-dark shadow-[inset_3px_0_0_var(--brand-accent)]";
 
 /**
  * Admin: navy sidebar on desktop (lg+), sticky for the full viewport height; on tablet and phone a
@@ -84,7 +84,7 @@ export function AdminShell({ children, userName, badges = {} }: { children: Reac
             <nav aria-label="Admin" className="flex-1 space-y-4 overflow-y-auto px-3 pb-4">
               {groups.map((g) => (
                 <div key={g.label}>
-                  <div className="px-3 pb-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-white/50">{g.label}</div>
+                  <div className="px-3 pb-1 text-xs font-medium text-on-dark-muted/70">{g.label}</div>
                   <ul className="space-y-0.5">
                     {g.items.map(({ href, label, icon: Icon, exact }) => (
                       <li key={href}>
@@ -127,7 +127,7 @@ export function AdminShell({ children, userName, badges = {} }: { children: Reac
                       href={href}
                       exact={exact}
                       className="inline-flex min-h-9 items-center rounded-[var(--radius-sm)] px-3 text-sm font-semibold text-on-dark-muted transition-colors duration-[var(--dur-fast)] hover:bg-white/8 hover:text-on-dark"
-                      activeClassName="bg-accent !text-accent-ink hover:bg-accent"
+                      activeClassName="bg-accent text-accent-ink hover:bg-accent"
                     >
                       {label}
                       {badges[href] ? <span className="tabular ml-1.5 rounded-[var(--radius-sm)] bg-raised px-1.5 text-xs font-bold text-ink">{badges[href]}</span> : null}

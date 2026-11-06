@@ -5,6 +5,7 @@ import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { StickyActionBar } from "@/components/ui/sticky-action-bar";
 import { bpToInput, formatBp, formatPence, parsePercent, parsePounds, penceToInput } from "@/domain/money";
 import { resolvePrice, type PricingRules, type ResolvedPrice } from "@/domain/pricing";
 import { isProductVisible, type ProductRuleMode, type VisibilityRules } from "@/domain/visibility";
@@ -194,7 +195,7 @@ export function PricingWorkbench({ data }: { data: WorkbenchData }) {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-line text-left text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                  <tr className="border-b border-line text-left text-xs font-medium text-ink-muted">
                     <th className="py-2 pr-3">Shows</th>
                     <th className="py-2 pr-3">Category</th>
                     <th className="hidden py-2 pr-3 text-right sm:table-cell">Products</th>
@@ -355,7 +356,7 @@ export function PricingWorkbench({ data }: { data: WorkbenchData }) {
                     <div className="mt-3 overflow-x-auto">
                       <table className="w-full min-w-[560px] text-sm">
                         <thead>
-                          <tr className="text-left text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                          <tr className="text-left text-xs font-medium text-ink-muted">
                             <th className="pb-1.5 pr-3 font-semibold">Size</th>
                             <th className="pb-1.5 pr-3 text-right font-semibold">Cost</th>
                             <th className="pb-1.5 pr-3 text-right font-semibold">Their price</th>
@@ -411,24 +412,15 @@ export function PricingWorkbench({ data }: { data: WorkbenchData }) {
         </CardBody>
       </Card>
 
-      <div
-        className={cn(
-          "fixed inset-x-0 bottom-0 z-30 border-t border-line bg-raised/95 px-4 py-3 shadow-[0_-8px_24px_-12px_rgba(24,33,29,0.25)] backdrop-blur transition-[transform,visibility] ease-[var(--ease-out)] lg:left-[248px]",
-          // `visibility` interpolates, so the bar stays visible for the whole exit and flips hidden at the end.
-          changes > 0 || saving ? "translate-y-0 duration-200" : "invisible translate-y-full duration-150",
-        )}
-        aria-hidden={changes === 0 && !saving}
-      >
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
-          <p className="text-sm font-medium text-ink">
-            {invalid ? <span className="text-danger">Fix the highlighted values to save.</span> : `${changes} unsaved ${changes === 1 ? "change" : "changes"}`}
-          </p>
-          <div className="flex gap-2">
-            <Button size="sm" variant="ghost" icon={<Undo2 className="size-4" aria-hidden="true" />} disabled={saving} onClick={() => setS(stateFrom(data))}>Discard</Button>
-            <Button size="sm" loading={saving} disabled={invalid || changes === 0} onClick={save}>Save changes</Button>
-          </div>
+      <StickyActionBar show={changes > 0 || saving} sidebar>
+        <p className="text-sm font-medium text-ink">
+          {invalid ? <span className="text-danger">Fix the highlighted values to save.</span> : `${changes} unsaved ${changes === 1 ? "change" : "changes"}`}
+        </p>
+        <div className="flex gap-2">
+          <Button size="sm" variant="ghost" icon={<Undo2 className="size-4" aria-hidden="true" />} disabled={saving} onClick={() => setS(stateFrom(data))}>Discard</Button>
+          <Button size="sm" loading={saving} disabled={invalid || changes === 0} onClick={save}>Save changes</Button>
         </div>
-      </div>
+      </StickyActionBar>
     </div>
   );
 }

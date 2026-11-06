@@ -15,7 +15,7 @@ function Items({ categories, base, active }: { categories: NavCategory[]; base: 
   const item =
     "relative inline-flex h-11 shrink-0 items-center gap-2 whitespace-nowrap px-3 text-sm font-semibold text-ink-muted transition-colors duration-[var(--dur-fast)] hover:text-primary " +
     "after:absolute after:inset-x-3 after:bottom-0 after:h-[3px] after:origin-center after:scale-x-0 after:rounded-full after:bg-accent after:transition-transform after:duration-[var(--dur-base)] after:ease-[var(--ease-out)]";
-  const on = "!text-primary after:scale-x-100";
+  const on = "text-primary after:scale-x-100";
   return (
     <ul className="flex items-center">
       <li>

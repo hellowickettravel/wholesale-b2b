@@ -174,3 +174,9 @@
 - **`notFound()` inside admin returns HTTP 200** (D45: the page streams behind `loading.tsx`); the admin/supplier/shop `not-found.tsx` files keep the menu on screen.
 - **Hosted email** needs two separate set-ups: the website's own mail (Vercel env `SMTP_*`) and Supabase Auth's SMTP (dashboard). The guide covers both.
 - **Admin MFA test:** `tests/e2e/phase13.spec.ts` computes TOTP codes itself (RFC 6238 in the test) and waits for the next 30-second window between codes, so it takes about a minute.
+
+## Phase 14 additions
+- **`cn()` is tailwind-merge now:** the last conflicting class wins (`cn("aspect-square", "aspect-[4/3]")` is 4:3). Do not reach for `!important`. New named theme values that clash with Tailwind's own groups (like `shadow-rest`) must be taught in `src/lib/cn.ts`.
+- **`--dock-h`:** anything fixed to the bottom of the screen should use `StickyActionBar` or `useDockOffset(ref, active)` so the toast sits above it.
+- **Screenshots:** `scripts/screens.mts` launches Chrome with `--lang=en-GB` (date inputs follow the browser's UI language, not the page or context locale), takes `WIDTHS=1280` for one width, and reports a failing `before()` step instead of stopping. Before/after sets for a phase: copy `test-results/screens` aside before changing code.
+- The seed has only two open supplier-A parts; the driver screenshot uses the first, and `admin-order-delivered` / `order-proof` / `supplier-order-proof` stay 404 until a delivered order with a driver proof exists in the seed.

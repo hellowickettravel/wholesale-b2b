@@ -21,7 +21,7 @@ export function CategoryArt({
 }) {
   return (
     <div aria-hidden="true" data-ground={slug} className={cn("relative grid place-items-center overflow-hidden", imageUrl ? "bg-sunken" : "weave", className)}>
-      {imageUrl ? <ProductPhoto src={imageUrl} alt="" sizes={sizes} width={600} className="!object-cover !p-0" /> : <CategoryIcon slug={slug} className={iconClassName} />}
+      {imageUrl ? <ProductPhoto src={imageUrl} alt="" sizes={sizes} width={600} className="object-cover p-0" /> : <CategoryIcon slug={slug} className={iconClassName} />}
     </div>
   );
 }

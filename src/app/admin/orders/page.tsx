@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
 import { FilterChips } from "@/components/admin/filter-chips";
+import { FilterBar, FilterDates, FilterSearch, FilterSelect } from "@/components/admin/filter-bar";
 import Link from "next/link";
 
 import { PaymentBadge } from "@/components/admin/payment-badge";
 import { OrderStatusBadge } from "@/components/shop/order-status";
-import { buttonClasses } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { EmptyNote } from "@/components/admin/empty-note";
-import { Input, Select } from "@/components/ui/field";
 import { Money } from "@/components/ui/money";
 import { PageHeader } from "@/components/ui/page-header";
 import { Pagination } from "@/components/ui/pagination";
@@ -87,39 +86,18 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/ord
       <PageHeader title="All orders" description="Every order, its payment and its profit. Open one to change it, record payments or see the proof of delivery." />
       <FilterChips label="Filter by status" current={tab} items={(Object.keys(TABS) as Tab[]).map((t, i) => ({ key: t, href: href({ status: t, page: 1 }), label: TABS[t].label, count: counts[i] }))} />
 
-      <form action="/admin/orders" className="mb-4 grid grid-cols-2 items-end gap-x-2 gap-y-3 lg:grid-cols-[minmax(0,1.4fr)_repeat(4,minmax(0,1fr))_auto]">
-        {tab ? <input type="hidden" name="status" value={tab} /> : null}
-        <div className="col-span-2 lg:col-span-1">
-          <label htmlFor="orders-q" className="sr-only">Order number or restaurant</label>
-          <Input id="orders-q" name="q" type="search" defaultValue={q} placeholder="Order number or restaurant" />
-        </div>
-        <div>
-          <label htmlFor="orders-payment" className="sr-only">Payment</label>
-          <Select id="orders-payment" name="payment" defaultValue={pay}>
-            {(Object.keys(PAYMENT) as Pay[]).map((p) => <option key={p || "any"} value={p}>{PAYMENT[p]}</option>)}
-          </Select>
-        </div>
-        <div>
-          <label htmlFor="orders-supplier" className="sr-only">Supplier</label>
-          <Select id="orders-supplier" name="supplier" defaultValue={supplier}>
-            <option value="">Any supplier</option>
-            {(suppliers ?? []).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </Select>
-        </div>
-        <div>
-          <label htmlFor="orders-from" className="mb-1 block text-sm font-semibold text-ink">Placed from</label>
-          <Input id="orders-from" name="from" type="date" defaultValue={from} aria-describedby="orders-dates" />
-        </div>
-        <div>
-          <label htmlFor="orders-to" className="mb-1 block text-sm font-semibold text-ink">Placed to</label>
-          <Input id="orders-to" name="to" type="date" defaultValue={to} aria-describedby="orders-dates" />
-        </div>
-        <div className="col-span-2 flex gap-2 lg:col-span-1">
-          <button type="submit" className={buttonClasses({ className: "flex-1 sm:h-10 lg:flex-none" })}>Filter</button>
-          {filtered ? <Link href={href({ payment: "", supplier: "", from: "", to: "", q: "", page: 1 })} className={buttonClasses({ variant: "ghost", className: "sm:h-10" })}>Clear</Link> : null}
-        </div>
-        <p id="orders-dates" className="sr-only">Dates filter by the day the order was placed.</p>
-      </form>
+      <FilterBar action="/admin/orders" hidden={{ status: tab }} clearHref={href({ payment: "", supplier: "", from: "", to: "", q: "", page: 1 })} active={filtered}>
+        <FilterSearch id="orders-q" label="Search" placeholder="Order number or restaurant" defaultValue={q} />
+        <FilterSelect id="orders-payment" name="payment" label="Payment" defaultValue={pay} options={(Object.keys(PAYMENT) as Pay[]).map((p) => ({ value: p, label: PAYMENT[p] }))} />
+        <FilterSelect
+          id="orders-supplier"
+          name="supplier"
+          label="Supplier"
+          defaultValue={supplier}
+          options={[{ value: "", label: "Any supplier" }, ...(suppliers ?? []).map((s) => ({ value: s.id, label: s.name }))]}
+        />
+        <FilterDates idPrefix="orders" label="Placed" from={from} to={to} />
+      </FilterBar>
 
       <Card>
         {rows.length === 0 ? (

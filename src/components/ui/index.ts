@@ -17,3 +17,4 @@ export * from "./route-progress";
 export * from "./skeletons";
 export * from "./toast";
 export * from "./segment-error";
+export * from "./sticky-action-bar";

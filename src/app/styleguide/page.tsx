@@ -169,7 +169,7 @@ export default function StyleguidePage() {
 
       <Section title="Badges and alerts">
         <div className="flex flex-wrap gap-2">
-          <Badge tone="accent" dot>Placed</Badge>
+          <Badge tone="neutral" dot>Placed</Badge>
           <Badge tone="info" dot>Confirmed</Badge>
           <Badge tone="primary" dot>Out for delivery</Badge>
           <Badge tone="success" dot>Delivered</Badge>
@@ -211,7 +211,7 @@ export default function StyleguidePage() {
                   <TD className="font-semibold">{o}</TD>
                   <TD>{c}</TD>
                   <TD className="text-ink-muted">{d}</TD>
-                  <TD><Badge tone={s === "Delivered" ? "success" : s === "Placed" ? "accent" : "info"} dot>{s}</Badge></TD>
+                  <TD><Badge tone={s === "Delivered" ? "success" : s === "Placed" ? "neutral" : "info"} dot>{s}</Badge></TD>
                   <TD className="text-right"><Money pence={t as number} /></TD>
                 </TR>
               ))}

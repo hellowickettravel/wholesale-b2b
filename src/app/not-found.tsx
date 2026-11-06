@@ -8,12 +8,11 @@ export default function NotFound() {
   return (
     <StatusPage
       code="404"
-      ground="rice"
       title="We can't find that page"
       actions={
         <>
-          <LinkButton href="/">Go to home</LinkButton>
-          <LinkButton href="/catalogue" variant="secondary">Browse catalogue</LinkButton>
+          <LinkButton href="/catalogue">Browse catalogue</LinkButton>
+          <LinkButton href="/" variant="secondary">Go to home</LinkButton>
         </>
       }
     >

@@ -75,7 +75,7 @@ export default async function SupplierOrders({ searchParams }: PageProps<"/suppl
               <Link href={`/supplier/orders/${o.id}`} className="flex items-center gap-3 px-4 py-3.5 hover:bg-sunken/60">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <span className="tabular font-semibold text-ink">{orderRef(o.order_number!)}</span>
+                    <span className="font-semibold text-ink">{orderRef(o.order_number!)}</span>
                     <DeliveryStatusBadge status={o.status!} />
                   </div>
                   <p className="mt-1 truncate text-sm text-ink">

@@ -67,7 +67,7 @@ export default async function ProductPage({ params }: PageProps<"/catalogue/[slu
         />
 
         <div className="min-w-0">
-          <h1 className="text-[clamp(1.875rem,1.4rem+2vw,2.75rem)] leading-[1.1] text-ink">{product.name}</h1>
+          <h1 className="text-2xl font-semibold leading-tight sm:text-3xl text-ink">{product.name}</h1>
           {product.description ? <p className="mt-4 max-w-prose whitespace-pre-line text-base text-ink-muted">{product.description}</p> : null}
 
           <section aria-labelledby="sizes-heading" className="mt-7">

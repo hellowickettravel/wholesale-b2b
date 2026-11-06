@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, FileText, Lock, Phone } from "lucide-react";
+import { FileText, Lock, Phone } from "lucide-react";
 import { PaymentBadge, SupplierPayBadge } from "@/components/admin/payment-badge";
 import { DriverLinkCard, ProofUpload } from "@/components/delivery/driver-link";
 import { ProofView } from "@/components/delivery/proof-view";
@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Money } from "@/components/ui/money";
+import { PageHeader } from "@/components/ui/page-header";
 import { Stat } from "@/components/ui/stat";
 import { Table, TD, TH, THead, TR } from "@/components/ui/table";
 import { formatDate, formatDayDate, formatShortDate, formatTimestamp } from "@/domain/dates";
@@ -56,31 +57,33 @@ export default async function AdminOrderPage({ params }: PageProps<"/admin/order
 
   return (
     <>
-      <Link href="/admin/orders" className="mb-3 inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink">
-        <ArrowLeft className="size-4" aria-hidden="true" /> Orders
-      </Link>
-      <div className="flex flex-col gap-4 pb-6 sm:flex-row sm:items-end sm:justify-between">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-3xl font-bold text-ink">{ref}</h1>
+      <PageHeader
+        back={{ href: "/admin/orders", label: "Orders" }}
+        title={ref}
+        meta={
+          <>
             <OrderStatusBadge status={order.status} />
             <PaymentBadge state={d.paymentState} />
-          </div>
-          <p className="mt-1 text-[15px] text-ink-muted">
+          </>
+        }
+        description={
+          <>
             <Link href={`/admin/customers/${customer.id}`} className="font-semibold text-ink hover:underline">{customer.business_name}</Link>
             {", placed "}{formatTimestamp(order.created_at)}{", delivery "}{formatDayDate(order.delivery_date)}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap items-start gap-2">
-          {d.invoice ? (
-            <a href={`/api/invoices/${d.invoice.id}/pdf`} target="_blank" rel="noreferrer" className={buttonClasses({ variant: "secondary", size: "sm" })}>
-              <FileText className="size-4" aria-hidden="true" /> Invoice PDF
-            </a>
-          ) : null}
-          {order.status === "delivered" ? <CompleteButton action={completeOrder.bind(null, order.id)} warning={completeWarning} /> : null}
-          {!locked ? <CancelOrder action={cancelOrder.bind(null, order.id)} reference={ref} /> : null}
-        </div>
-      </div>
+          </>
+        }
+        actions={
+          <>
+            {d.invoice ? (
+              <a href={`/api/invoices/${d.invoice.id}/pdf`} target="_blank" rel="noreferrer" className={buttonClasses({ variant: "secondary", size: "sm" })}>
+                <FileText className="size-4" aria-hidden="true" /> Invoice PDF
+              </a>
+            ) : null}
+            {order.status === "delivered" ? <CompleteButton action={completeOrder.bind(null, order.id)} warning={completeWarning} /> : null}
+            {!locked ? <CancelOrder action={cancelOrder.bind(null, order.id)} reference={ref} /> : null}
+          </>
+        }
+      />
 
       {order.status === "cancelled" ? (
         <Alert tone="danger" className="mb-6" title="Cancelled">

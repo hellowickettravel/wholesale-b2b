@@ -46,7 +46,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
                 className="group grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-3 rounded-[var(--radius-lg)] border border-line bg-raised px-4 py-4 shadow-rest transition-[box-shadow,transform] duration-[var(--dur-base)] ease-[var(--ease-out)] hover:shadow-lift motion-safe:hover:-translate-y-0.5 sm:px-5 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1fr)_auto_auto]"
               >
                 <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
-                  <span className="tabular text-lg font-bold text-ink">{orderRef(o.number!)}</span>
+                  <span className="text-lg font-semibold text-ink">{orderRef(o.number!)}</span>
                   <OrderStatusBadge status={o.status!} />
                 </div>
                 <span className="tabular text-xl font-bold text-ink md:order-4">{formatPence(Number(o.total_pence))}</span>
