@@ -3,7 +3,7 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import { emailLink, PASSWORD, signIn, sql } from "./helpers";
+import { emailLink, followEmailLink, PASSWORD, signIn, sql } from "./helpers";
 
 /**
  * The whole journey from the brief (§7), in one go, through the real screens:
@@ -41,7 +41,7 @@ test("register → approve → order → split → driver proof → payments bot
   await page.locator('input[name="confirm_password"]').fill(PASSWORD);
   await page.getByRole("button", { name: "Create trade account" }).click();
   await expect(page).toHaveURL(/\/register\/pending$/);
-  await page.goto(await emailLink(email, "Confirm your email"), { waitUntil: "load" });
+  await followEmailLink(page, await emailLink(email, "Confirm your email"));
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Thanks, we're reviewing your account");
 
   // 2. Admin approves with Rice and Drinks at a 10% margin.

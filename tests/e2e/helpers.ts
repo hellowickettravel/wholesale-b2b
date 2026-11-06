@@ -49,6 +49,16 @@ export async function emailLink(to: string, subject: string): Promise<string> {
   throw new Error(`no email "${subject}" for ${to}`);
 }
 
+/**
+ * Opens an auth email link the way a person does: the landing page only spends the token when the
+ * button is pressed (link scanners that open the URL must not use it up).
+ */
+export async function followEmailLink(page: Page, link: string) {
+  await page.goto(link, { waitUntil: "load" });
+  await page.locator("main form button[type=submit]").click();
+  await page.waitForURL((u) => !u.pathname.startsWith("/auth/confirm"));
+}
+
 export async function sql<T extends Record<string, unknown>>(query: string, params: unknown[] = []): Promise<T[]> {
   const db = new Client({ connectionString: process.env.TEST_DATABASE_URL ?? "postgresql://postgres:postgres@127.0.0.1:54322/postgres" });
   await db.connect();

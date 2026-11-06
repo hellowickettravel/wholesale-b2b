@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { ActionButton } from "@/app/admin/orders/[id]/forms";
+import { setLoginActive, setLoginPassword } from "../../logins/actions";
+import { SetPasswordForm } from "../../logins/set-password-form";
 import { notFound } from "next/navigation";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -80,12 +83,15 @@ export default async function CustomerPage({ params, searchParams }: PageProps<"
               {logins?.length ? (
                 <ul className="divide-y divide-line rounded-[var(--radius-md)] border border-line">
                   {logins.map((l) => (
-                    <li key={l.id} className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm">
+                    <li key={l.id} className="flex flex-wrap items-center justify-between gap-3 px-3 py-2.5 text-sm">
                       <span className="min-w-0">
-                        <span className="block font-medium text-ink">{l.full_name || "—"}</span>
+                        <span className="flex items-center gap-2 font-medium text-ink">{l.full_name || "—"}{l.active ? null : <Badge tone="neutral">Off</Badge>}</span>
                         <span className="block break-all text-ink-muted">{l.email}</span>
                       </span>
-                      {l.active ? null : <Badge tone="neutral">Off</Badge>}
+                      <ActionButton action={setLoginActive.bind(null, l.id, !l.active)} confirm={l.active ? `Switch off ${l.email}? They will no longer be able to sign in.` : undefined}>
+                        {l.active ? "Switch off" : "Switch on"}
+                      </ActionButton>
+                      <SetPasswordForm action={setLoginPassword.bind(null, l.id)} email={l.email ?? ""} />
                     </li>
                   ))}
                 </ul>

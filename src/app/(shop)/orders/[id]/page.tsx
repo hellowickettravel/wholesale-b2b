@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ChevronLeft, Download } from "lucide-react";
 import { ProofView } from "@/components/delivery/proof-view";
 import { BankDetails } from "@/components/shop/bank-details";
+import { OrderAgain } from "./order-again";
 import { Alert } from "@/components/ui/alert";
 import { buttonClasses } from "@/components/ui/button";
 import { DeliveryStatusBadge, OrderStatusBadge } from "@/components/shop/order-status";
@@ -122,6 +123,9 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                 <Download className="size-4" aria-hidden="true" /> Download invoice (PDF)
               </a>
             ) : null}
+            <div className="mt-3">
+              <OrderAgain orderId={order.id!} />
+            </div>
           </section>
           {order.status !== "cancelled" && (payState === "unpaid" || payState === "part_paid") ? (
             <BankDetails bank={bank} reference={ref} amountPence={total - paid} payBy={order.promised_pay_date} />

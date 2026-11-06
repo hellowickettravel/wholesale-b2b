@@ -89,6 +89,21 @@ export async function sendQueuedEmails(limit = 25): Promise<SendSummary> {
   return { configured: true, sent, failed, waiting: count ?? 0 };
 }
 
+/**
+ * Daily cron: puts back emails that failed in the last few days (an SMTP hiccup, a mailbox briefly full), so
+ * one bad moment does not lose an order email. Run once a day, this gives each email up to `days` more tries.
+ */
+export async function requeueRecentFailures(days = 3): Promise<number> {
+  const since = new Date(Date.now() - days * 86_400_000).toISOString();
+  const { data } = await createAdminClient()
+    .from("email_log")
+    .update({ status: "queued", provider_id: null })
+    .eq("status", "failed")
+    .gte("created_at", since)
+    .select("id");
+  return data?.length ?? 0;
+}
+
 /** Puts failed emails back in the queue (admin "Try again"). */
 export async function requeueFailedEmails(): Promise<number> {
   const { data } = await createAdminClient().from("email_log").update({ status: "queued", provider_id: null, error: null }).eq("status", "failed").select("id");

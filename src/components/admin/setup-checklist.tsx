@@ -8,11 +8,12 @@ import { mailerConfigured } from "@/server/mailer";
 /** What still has to be done before real customers can order and be invoiced. Renders nothing once everything is done. */
 export async function SetupChecklist() {
   const supabase = await createClient();
-  const [{ count: noCost }, { data: settings }, { data: factors }, { count: waiting }] = await Promise.all([
+  const [{ count: noCost }, { data: settings }, { data: factors }, { count: waiting }, { count: failed }] = await Promise.all([
     supabase.from("product_variants").select("id", { count: "exact", head: true }).eq("active", true).is("cost_pence", null),
     supabase.from("settings").select("vat_number, business_address, bank_account_name, bank_sort_code, bank_account_number").maybeSingle(),
     supabase.auth.mfa.listFactors(),
     supabase.from("email_log").select("id", { count: "exact", head: true }).eq("status", "queued"),
+    supabase.from("email_log").select("id", { count: "exact", head: true }).eq("status", "failed"),
   ]);
   const items: { text: string; href: string; action: string }[] = [];
   if (noCost) items.push({ text: `${noCost} ${noCost === 1 ? "size has" : "sizes have"} no cost, so restaurants see "Price on request" and cannot order ${noCost === 1 ? "it" : "them"}.`, href: "/admin/products/costs", action: "Import costs" });
@@ -20,6 +21,9 @@ export async function SetupChecklist() {
   if (!filled(settings?.business_address) || !(settings && hasBankDetails(settings))) items.push({ text: "Business address or bank details are missing, so invoices cannot tell restaurants where to pay.", href: "/admin/settings", action: "Open settings" });
   if (!factors?.totp?.length) items.push({ text: "Two-step sign-in is off for this admin account.", href: "/admin/security", action: "Turn it on" });
   if (!mailerConfigured()) items.push({ text: `Email is not set up, so order, approval and supplier emails are not being sent${waiting ? ` (${waiting} waiting)` : ""}.`, href: "/admin/emails", action: "See how" });
+  if (failed) items.push({ text: `${failed} ${failed === 1 ? "email" : "emails"} could not be sent. They are retried once a day for three days; you can also try again now.`, href: "/admin/emails", action: "Open emails" });
+  if (!process.env.ADMIN_NOTIFY_EMAIL) items.push({ text: "No address is set for new-registration alerts (ADMIN_NOTIFY_EMAIL in Vercel), so you are not emailed when a restaurant registers.", href: "/admin/emails", action: "See how" });
+  if (!process.env.CRON_SECRET) items.push({ text: "The daily email retry is not switched on (CRON_SECRET in Vercel), so an email that fails once is not tried again by itself.", href: "/admin/emails", action: "See how" });
   if (items.length === 0) return null;
   return (
     <Card className="mb-6">

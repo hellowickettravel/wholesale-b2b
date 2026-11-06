@@ -15,7 +15,7 @@ import { Stat } from "@/components/ui/stat";
 import { Table, TD, TH, THead, TR } from "@/components/ui/table";
 import { formatDate, formatDayDate, formatShortDate, formatTimestamp } from "@/domain/dates";
 import { marginOnRevenueBp } from "@/domain/totals";
-import { formatBp } from "@/domain/money";
+import { formatBp, penceToInput } from "@/domain/money";
 import { invoiceRef, isOrderLocked, orderRef, PAYMENT_TERMS_LABEL } from "@/domain/status";
 import { PAYMENT_METHOD_LABEL } from "@/lib/validation/admin-orders";
 import { requireRole } from "@/server/auth";
@@ -171,7 +171,7 @@ export default async function AdminOrderPage({ params }: PageProps<"/admin/order
                         <PaymentForm
                           action={recordSupplierPayment.bind(null, p.id)}
                           today={d.today}
-                          suggested={Math.max(0, p.owed.grossPence - (p.paid_pence ?? 0)) ? ((Math.max(0, p.owed.grossPence - (p.paid_pence ?? 0))) / 100).toFixed(2) : undefined}
+                          suggested={p.owed.grossPence - (p.paid_pence ?? 0) > 0 ? penceToInput(p.owed.grossPence - (p.paid_pence ?? 0)) : undefined}
                           submitLabel="Record supplier payment"
                         />
                       </div>
@@ -329,7 +329,7 @@ export default async function AdminOrderPage({ params }: PageProps<"/admin/order
                   <PaymentForm
                     action={recordCustomerPayment.bind(null, order.id)}
                     today={d.today}
-                    suggested={d.balancePence > 0 ? (d.balancePence / 100).toFixed(2) : undefined}
+                    suggested={d.balancePence > 0 ? penceToInput(d.balancePence) : undefined}
                     allowRefund
                     submitLabel="Record payment"
                   />

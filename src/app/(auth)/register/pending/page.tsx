@@ -133,6 +133,19 @@ export default async function PendingPage({ searchParams }: PageProps<"/register
         <Alert tone="warning" title={viewer.customer.businessName}>
           {data?.status_reason || (rejected ? "Please contact us if you think this is a mistake." : "Please contact us to reopen your account.")}
         </Alert>
+        <div className="mt-6 space-y-3">
+          <a
+            href={whatsappHref(`Hello, this is ${viewer.customer.businessName}. Our trade account is ${rejected ? "not approved" : "on hold"}, can you help?`)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-[var(--radius-md)] border border-line bg-raised text-base font-semibold text-ink transition-colors hover:border-[#25D366]"
+          >
+            <WhatsAppIcon className="size-5 text-[#128C4A]" /> WhatsApp us on {brand.contact.phoneDisplay}
+          </a>
+          <a href={`mailto:${brand.contact.email}`} className="flex min-h-11 items-center justify-center text-base font-semibold text-primary underline-offset-4 hover:underline">
+            Or email {brand.contact.email}
+          </a>
+        </div>
       </AuthShell>
     );
   }

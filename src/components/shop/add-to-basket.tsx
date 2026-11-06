@@ -6,6 +6,7 @@ import { addToBasket } from "@/app/(shop)/basket/actions";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/field";
 import { useToast } from "@/components/ui/toast";
+import { whatsappHref } from "@/config/brand";
 import { formatPence } from "@/domain/money";
 import { cn } from "@/lib/cn";
 import { QtyStepper } from "./qty-stepper";
@@ -57,6 +58,7 @@ export function AddToBasket({
   const slot = useRef<HTMLDivElement>(null);
   const [docked, setDocked] = useState(false);
   const hasBar = page && size.orderable;
+  const askHref = whatsappHref(`Hello, can I order ${productName} (${size.sizeLabel})?`);
   useEffect(() => {
     const el = slot.current;
     if (!hasBar || !el || typeof IntersectionObserver === "undefined") return;
@@ -164,7 +166,15 @@ export function AddToBasket({
           ) : (
             <p className="text-sm text-ink-muted">Pack size: <span className="font-bold text-ink">{size.sizeLabel}</span></p>
           )}
-          {!size.orderable ? <p className="text-sm text-ink-muted">This size has no price for your account yet. Ask us and we will add it.</p> : null}
+          {!size.orderable ? (
+            <p className="text-sm text-ink-muted">
+              This size cannot be ordered yet.{" "}
+              <a href={askHref} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary underline-offset-2 hover:underline">
+                Ask us on WhatsApp
+              </a>{" "}
+              and we will sort it out.
+            </p>
+          ) : null}
         </div>
         {size.orderable ? (
           <div ref={slot} className="mt-3 h-12">
@@ -196,7 +206,9 @@ export function AddToBasket({
             {addButton}
           </div>
         ) : (
-          <p className="text-xs leading-snug text-ink-muted">Ask us for a price on this size.</p>
+          <a href={askHref} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold leading-snug text-primary underline-offset-2 hover:underline">
+            Ask us about this size
+          </a>
         )}
         {errorText}
       </div>
@@ -208,7 +220,11 @@ export function AddToBasket({
       {stepper}
       {addButton}
     </div>
-  ) : null;
+  ) : (
+    <a href={askHref} target="_blank" rel="noopener noreferrer" className="block text-right text-sm font-semibold text-primary underline-offset-2 hover:underline">
+      Ask us
+    </a>
+  );
 
   // Row: [size][price][qty + Add] in fixed columns on wide screens so rows line up; below that the size
   // dropdown takes the first line and price + controls share the second.

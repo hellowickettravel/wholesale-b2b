@@ -59,6 +59,11 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
           </>
         }
       />
+      {notice !== "created" && p.active && !variants.some((v) => v.active && v.cost_pence != null) ? (
+        <Alert tone="warning" className="mb-4">
+          Restaurants cannot order this yet: add at least one pack size with a cost below.
+        </Alert>
+      ) : null}
       {notice === "created" ? (
         <Alert tone="success" className="mb-4">
           Product created. Now add its pack sizes and costs.
