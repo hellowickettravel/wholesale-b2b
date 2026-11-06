@@ -188,9 +188,21 @@ export default async function ShopHome({ searchParams }: PageProps<"/shop">) {
         <PlateMessage
           className="mt-6"
           title="Nothing matches that search"
-          action={<LinkButton href={href({ category: active?.slug })} variant="secondary">Clear search</LinkButton>}
+          action={
+            <span className="flex flex-wrap justify-center gap-2">
+              <LinkButton href={href({ category: active?.slug })} variant="secondary">Clear search</LinkButton>
+              <a
+                href={whatsappHref(`Hello, this is ${viewer.customer!.businessName}. Can you get me ${query.q ? `“${query.q}”` : "a product that is not on the site"}?`)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-11 items-center gap-2 rounded-[var(--radius-md)] bg-primary px-4 text-sm font-bold text-primary-ink hover:opacity-90"
+              >
+                <WhatsAppIcon className="size-5" /> Ask us to get it
+              </a>
+            </span>
+          }
         >
-          Try a shorter word or check the spelling. Need something we do not list? Message us on WhatsApp and we will source it.
+          Try a shorter word or check the spelling. Need something we do not list? Ask us and we will source it.
         </PlateMessage>
       ) : (
         <ul className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
@@ -201,6 +213,21 @@ export default async function ShopHome({ searchParams }: PageProps<"/shop">) {
       )}
 
       <Pagination page={page} pageCount={pageCount} hrefFor={(n) => href({ category: active?.slug, q: query.q, sort, page: n })} />
+
+      {items.length > 0 ? (
+        <p className="mt-6 text-center text-sm text-ink-muted">
+          Can&rsquo;t find a product?{" "}
+          <a
+            href={whatsappHref(`Hello, this is ${viewer.customer!.businessName}. Can you add a product to the site for us?`)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-primary underline-offset-2 hover:underline"
+          >
+            Ask us on WhatsApp
+          </a>{" "}
+          and we will source it.
+        </p>
+      ) : null}
 
       {welcome && categories.length > 1 ? (
         <section aria-labelledby="browse-title" className="mt-12">

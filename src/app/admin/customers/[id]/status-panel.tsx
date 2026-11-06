@@ -36,7 +36,7 @@ export function StatusPanel({
 
       {status === "pending" ? (
         <>
-          <p className="text-sm text-ink-muted">This restaurant registered and cannot see prices or order until you approve it.</p>
+          <p className="text-sm text-ink-muted">This restaurant registered and cannot see prices or order until you approve it. Tick the categories they can see, then press &ldquo;Approve account&rdquo;.</p>
           <div className="flex gap-2" role="tablist" aria-label="Decision">
             <Button size="sm" variant={mode === "approve" ? "primary" : "secondary"} onClick={() => setMode("approve")} aria-pressed={mode === "approve"}>Approve</Button>
             <Button size="sm" variant={mode === "reject" ? "danger" : "secondary"} onClick={() => setMode("reject")} aria-pressed={mode === "reject"}>Reject</Button>

@@ -136,3 +136,14 @@ test("a product link's Sign in comes back to the same product", async ({ page })
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page).toHaveURL(/\/shop\/p\/mango-drink$/);
 });
+
+test("a search with no results offers a WhatsApp request; the list always has one", async ({ page }) => {
+  await signIn(page, "restaurant.a@example.com");
+  await page.goto("/shop?q=zzzznotaproduct", { waitUntil: "load" });
+  const ask = page.getByRole("link", { name: "Ask us to get it" });
+  await expect(ask).toBeVisible();
+  expect(await ask.getAttribute("href")).toContain("https://wa.me/");
+  expect(decodeURIComponent((await ask.getAttribute("href"))!)).toContain("zzzznotaproduct");
+  await page.goto("/shop", { waitUntil: "load" });
+  await expect(page.getByRole("link", { name: "Ask us on WhatsApp" }).last()).toBeVisible();
+});

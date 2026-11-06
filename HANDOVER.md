@@ -281,6 +281,11 @@ After merging, smoke test (the agent's container cannot reach the live site, so 
 4. As that restaurant: see the price, place an order, open the invoice PDF.
 5. As admin: the order appears with its supplier part; record a payment.
 
+## What each account can do (settled 6 Nov; the owner once asked why a "merchant" could not add products)
+- **Restaurant** (registers on `/register`): sees only a "we're reviewing your account" page until the admin approves it (Admin > Approvals > open it > tick categories > **Approve account**). After that: browse, search, basket, order, order again, invoices, account. Restaurants **never add products**; if they cannot find one they get a WhatsApp "Ask us" link (empty search and under every list) and the admin adds it.
+- **Supplier** (invited by the admin): sees only its own orders and driver links. It cannot add products or see prices. A "suppliers add their own products (admin approves)" idea was designed in Phase 14 and dropped because the owner meant a restaurant; the draft is not in the repo. Revisit only if the owner asks.
+- **Admin**: everything, including adding products (Products > New product, or "Add a product" on the dashboard and each category).
+
 ## Next up (found by the Phase 14 audit, not done yet)
 - Restaurants never see their in-portal notifications (saved, but nothing in the shop reads them); add an updates strip on `/shop`.
 - An account on hold cannot see its own invoices to pay them (RLS `my_approved_customer_id()`); needs a migration to let suspended accounts read orders/invoices.
