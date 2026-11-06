@@ -98,7 +98,7 @@ export default async function ProductPage({ params }: PageProps<"/catalogue/[slu
             <p className="mt-1 text-[15px] font-normal">Prices are agreed with each restaurant and shown once your trade account is approved.</p>
             <div className="mt-4 flex flex-wrap gap-3">
               <LinkButton href="/register">Open a trade account</LinkButton>
-              <LinkButton href="/login" variant="secondary">Sign in</LinkButton>
+              <LinkButton href={`/login?next=${encodeURIComponent(`/shop/p/${slug}`)}`} variant="secondary">Sign in</LinkButton>
             </div>
           </PriceLockStrip>
         </div>

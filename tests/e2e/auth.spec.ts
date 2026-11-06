@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { emailLink, formAlert, PASSWORD, signIn, signOut, sql, submitLogin } from "./helpers";
+import { emailLink, followEmailLink, formAlert, PASSWORD, signIn, signOut, sql, submitLogin } from "./helpers";
 
 test.describe("one login routes each role to its own area", () => {
   for (const [email, url, heading] of [
@@ -121,7 +121,7 @@ test.describe.serial("self-registration, approval and password reset", () => {
     expect(row).toEqual({ role: "customer", status: "pending", postcode: "E1 6AN" });
 
     const link = await emailLink(email, "Confirm your email");
-    await page.goto(link, { waitUntil: "load" });
+    await followEmailLink(page, link);
     await expect(page).toHaveURL(/\/register\/pending$/);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Thanks, we're reviewing your account");
     await expect(page.getByText("E2E Curry House")).toBeVisible();
@@ -144,7 +144,7 @@ test.describe.serial("self-registration, approval and password reset", () => {
     await expect(page.getByText("Check your email")).toBeVisible();
 
     const link = await emailLink(email, "Reset your password");
-    await page.goto(link, { waitUntil: "load" });
+    await followEmailLink(page, link);
     await expect(page).toHaveURL(/\/reset-password$/);
     await page.locator('input[name="password"]').fill(newPassword);
     await page.locator('input[name="confirm_password"]').fill("different1");
@@ -164,7 +164,7 @@ test.describe.serial("self-registration, approval and password reset", () => {
 
   test("a used reset link cannot be used again", async ({ page }) => {
     const link = await emailLink(email, "Reset your password");
-    await page.goto(link, { waitUntil: "load" });
+    await followEmailLink(page, link);
     await expect(page).toHaveURL(/\/login\?notice=link-expired$/);
     await expect(page.getByText("That link has expired or has already been used.")).toBeVisible();
   });
@@ -197,7 +197,7 @@ test.describe.serial("admin-created accounts (invite flow)", () => {
     expect(audit.actor_id).toBe("10000000-0000-4000-a000-000000000001");
 
     const invitee = await (await browser.newContext()).newPage();
-    await invitee.goto(await emailLink(restaurant, "set your password"), { waitUntil: "load" });
+    await followEmailLink(invitee, await emailLink(restaurant, "set your password"));
     await expect(invitee).toHaveURL(/\/auth\/invite$/);
     await expect(invitee.getByRole("heading", { level: 1 })).toHaveText("Welcome, Ivy");
     await invitee.locator('input[name="password"]').fill("Invited123!");
@@ -218,7 +218,7 @@ test.describe.serial("admin-created accounts (invite flow)", () => {
     await expect(page.getByText(`Invitation sent to ${supplier}.`)).toBeVisible();
 
     const invitee = await (await browser.newContext()).newPage();
-    await invitee.goto(await emailLink(supplier, "set your password"), { waitUntil: "load" });
+    await followEmailLink(invitee, await emailLink(supplier, "set your password"));
     await invitee.locator('input[name="password"]').fill("Invited123!");
     await invitee.locator('input[name="confirm_password"]').fill("Invited123!");
     await invitee.getByRole("button", { name: "Set password and continue" }).click();

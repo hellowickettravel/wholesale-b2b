@@ -98,19 +98,6 @@ export async function inviteSupplierLogin(id: string, _prev: FormState, fd: Form
   };
 }
 
-/** Switch a login off (it can no longer sign in) or back on. An admin cannot switch off their own login. */
-export async function setLoginActive(profileId: string, active: boolean): Promise<FormState> {
-  const viewer = await requireRole("admin");
-  if (!uuid.safeParse(profileId).success) return { error: "Not found." };
-  if (profileId === viewer.userId && !active) return { error: "You cannot switch off your own login." };
-  const supabase = await createClient();
-  const { data, error } = await supabase.from("profiles").update({ active }).eq("id", profileId).select("supplier_id");
-  if (error || !data?.length) return { error: "Could not update. Try again." };
-  revalidatePath("/admin/users");
-  refresh(data[0].supplier_id ?? undefined);
-  return { notice: active ? "Login switched on." : "Login switched off." };
-}
-
 /**
  * "I paid the supplier": for each chosen part, record a payment of what is still owed and tick it
  * paid. One bank transfer can cover several orders, so they share the date and reference.

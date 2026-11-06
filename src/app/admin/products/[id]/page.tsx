@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink, Plus } from "lucide-react";
+import { LinkButton } from "@/components/ui/button";
 import { PhotoForm } from "@/components/admin/photo-form";
 import { ProductImage } from "@/components/brand/product-image";
 import { Alert } from "@/components/ui/alert";
@@ -46,13 +47,23 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
       <PageHeader
         title={p.name}
         actions={
-          live ? (
-            <Link href={`/catalogue/${p.slug}`} target="_blank" className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline">
-              View on site <ExternalLink className="size-4" aria-hidden="true" />
-            </Link>
-          ) : null
+          <>
+            {live ? (
+              <Link href={`/catalogue/${p.slug}`} target="_blank" className="inline-flex items-center gap-1.5 self-center text-sm font-semibold text-primary hover:underline">
+                View on site <ExternalLink className="size-4" aria-hidden="true" />
+              </Link>
+            ) : null}
+            <LinkButton href={`/admin/products/new?category=${p.category_id}`} variant="secondary" size="sm" icon={<Plus className="size-4" aria-hidden="true" />}>
+              Add another product
+            </LinkButton>
+          </>
         }
       />
+      {notice !== "created" && p.active && !variants.some((v) => v.active && v.cost_pence != null) ? (
+        <Alert tone="warning" className="mb-4">
+          Restaurants cannot order this yet: add at least one pack size with a cost below.
+        </Alert>
+      ) : null}
       {notice === "created" ? (
         <Alert tone="success" className="mb-4">
           Product created. Now add its pack sizes and costs.

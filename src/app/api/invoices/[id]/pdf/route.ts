@@ -11,7 +11,13 @@ import { renderInvoicePdf } from "@/server/invoice-pdf";
  */
 export async function GET(request: NextRequest, ctx: RouteContext<"/api/invoices/[id]/pdf">) {
   const viewer = await getViewer();
-  if (!viewer) return new Response("Sign in to download invoices.", { status: 401 });
+  if (!viewer) {
+    // Still a 401 for tools, but a person whose session ran out gets a way back.
+    return new Response(
+      '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Sign in</title><p style="font:16px system-ui;margin:2rem">Your session has ended. <a href="/login?next=/invoices">Sign in to download invoices</a>.</p>',
+      { status: 401, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } },
+    );
+  }
   const { id } = await ctx.params;
   const doc = await getInvoiceDocument(id, viewer);
   if (!doc) return new Response("Invoice not found.", { status: 404 });

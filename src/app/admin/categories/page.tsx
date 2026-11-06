@@ -38,12 +38,19 @@ export default async function CategoriesPage({ searchParams }: PageProps<"/admin
   const sort = choiceParam(sp, "sort", SORTS.map((s) => s.value));
   const filtered = Boolean(q || status || sort !== "order");
   const supabase = await createClient();
-  const [{ data: categories }, { data: products }] = await Promise.all([
-    supabase.from("categories").select("id, name, slug, sort, active, image_path, default_vat_rate_bp").order("sort").order("name"),
-    supabase.from("products").select("category_id").limit(20000),
-  ]);
-  const counts = new Map<string, number>();
-  for (const p of products ?? []) counts.set(p.category_id, (counts.get(p.category_id) ?? 0) + 1);
+  const { data: categories } = await supabase
+    .from("categories")
+    .select("id, name, slug, sort, active, image_path, default_vat_rate_bp")
+    .order("sort")
+    .order("name");
+  // One counted query per category: loading product rows instead would stop at the API's 1,000-row cap.
+  const counted = await Promise.all(
+    (categories ?? []).map(async (c) => {
+      const { count } = await supabase.from("products").select("id", { count: "exact", head: true }).eq("category_id", c.id);
+      return [c.id, count ?? 0] as const;
+    }),
+  );
+  const counts = new Map<string, number>(counted);
   const nextSort = (categories ?? []).reduce((m, c) => Math.max(m, c.sort), 0) + 1;
   const words = searchWords(q);
   const rows = (categories ?? [])

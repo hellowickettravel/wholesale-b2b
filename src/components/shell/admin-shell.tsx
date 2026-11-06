@@ -19,6 +19,7 @@ import {
 import { Logo } from "@/components/brand/logo";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { ToastProvider } from "@/components/ui/toast";
+import { AdminMobileMenu } from "./admin-mobile-menu";
 import { NavLink } from "./nav-link";
 import "./admin-shell.css";
 
@@ -66,7 +67,7 @@ const activeCls = "bg-white/12 !text-on-dark shadow-[inset_3px_0_0_var(--brand-a
 
 /**
  * Admin: navy sidebar on desktop (lg+), sticky for the full viewport height; on tablet and phone a
- * horizontal scrolling nav strip. Working screens: dense and plain.
+ * "Menu" button that opens the same grouped list (every section one tap away). Working screens: dense and plain.
  */
 export function AdminShell({ children, userName, badges = {} }: { children: ReactNode; userName: string; badges?: Record<string, number> }) {
   const flat = groups.flatMap((g) => g.items);
@@ -119,23 +120,28 @@ export function AdminShell({ children, userName, badges = {} }: { children: Reac
                 <SignOutButton className="text-on-dark-muted hover:text-on-dark" />
               </div>
             </div>
-            <nav aria-label="Admin" className="overflow-x-auto">
-              <ul className="flex min-w-max gap-1 px-3 pb-2.5">
-                {flat.map(({ href, label, exact }) => (
-                  <li key={href}>
-                    <NavLink
-                      href={href}
-                      exact={exact}
-                      className="inline-flex min-h-9 items-center rounded-[var(--radius-sm)] px-3 text-sm font-semibold text-on-dark-muted transition-colors duration-[var(--dur-fast)] hover:bg-white/8 hover:text-on-dark"
-                      activeClassName="bg-accent !text-accent-ink hover:bg-accent"
-                    >
-                      {label}
-                      {badges[href] ? <span className="tabular ml-1.5 rounded-[var(--radius-sm)] bg-raised px-1.5 text-xs font-bold text-ink">{badges[href]}</span> : null}
-                    </NavLink>
-                  </li>
+            <AdminMobileMenu items={flat.map(({ href, label, exact }) => ({ href, label, exact }))} attention={Object.values(badges).reduce((a, b) => a + (b || 0), 0)}>
+              <nav aria-label="Admin" className="grid gap-x-3 gap-y-4 sm:grid-cols-2">
+                {groups.map((g) => (
+                  <div key={g.label}>
+                    <div className="px-3 pb-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-white/50">{g.label}</div>
+                    <ul className="space-y-0.5">
+                      {g.items.map(({ href, label, icon: Icon, exact }) => (
+                        <li key={href}>
+                          <NavLink href={href} exact={exact} className={`${linkCls} min-h-11`} activeClassName={activeCls}>
+                            <Icon className="size-4 shrink-0" aria-hidden="true" />
+                            <span className="flex-1">{label}</span>
+                            {badges[href] ? (
+                              <span className="tabular min-w-5 rounded-[var(--radius-sm)] bg-accent px-1.5 text-center text-xs font-bold text-accent-ink">{badges[href]}</span>
+                            ) : null}
+                          </NavLink>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ))}
-              </ul>
-            </nav>
+              </nav>
+            </AdminMobileMenu>
           </header>
           <main id="main" className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
             {children}

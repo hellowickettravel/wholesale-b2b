@@ -17,7 +17,9 @@ import { orderRef } from "@/domain/status";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/server/auth";
 import { owedBySupplierOrder } from "@/server/admin-orders";
-import { inviteSupplierLogin, paySupplierParts, setLoginActive, setSupplierActive, updateSupplier } from "../actions";
+import { inviteSupplierLogin, paySupplierParts, setSupplierActive, updateSupplier } from "../actions";
+import { setLoginActive, setLoginPassword } from "../../logins/actions";
+import { SetPasswordForm } from "../../logins/set-password-form";
 import { PayPartsForm, SupplierForm } from "../forms";
 
 export const metadata: Metadata = { title: "Supplier" };
@@ -155,6 +157,7 @@ export default async function SupplierPage({ params, searchParams }: PageProps<"
                           {l.active ? "Switch off" : "Switch on"}
                         </ActionButton>
                       )}
+                      {l.id === viewer.userId ? null : <SetPasswordForm action={setLoginPassword.bind(null, l.id)} email={l.email ?? ""} />}
                     </li>
                   ))}
                 </ul>

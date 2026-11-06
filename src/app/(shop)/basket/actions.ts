@@ -206,3 +206,31 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
 
   redirect(`/orders/${orderId}/confirmed`);
 }
+
+export type ReorderResult = { ok: true; added: number; skipped: string[] } | { ok: false; error: string };
+
+/**
+ * "Order again": puts every line of a past order back in the basket, at today's prices (the basket and
+ * checkout always price live). Lines that can no longer be ordered are skipped and named.
+ * Ownership is checked through the restaurant's own RLS view; only then are those lines' sizes read
+ * server-side (the view does not carry the size id).
+ */
+export async function reorder(orderId: string): Promise<ReorderResult> {
+  await requireRole("customer");
+  if (!uuid.safeParse(orderId).success) return { ok: false, error: "Order not found." };
+  const supabase = await createClient();
+  const { data: lines } = await supabase.from("customer_order_items").select("id, product_name, size_label, qty").eq("order_id", orderId).order("sort");
+  if (!lines?.length) return { ok: false, error: "Order not found." };
+  const { data: sizes } = await createAdminClient().from("order_items").select("id, variant_id").in("id", lines.map((l) => l.id!));
+  const variantOf = new Map((sizes ?? []).map((s) => [s.id, s.variant_id]));
+  const skipped: string[] = [];
+  let added = 0;
+  for (const l of lines) {
+    const variantId = variantOf.get(l.id!);
+    const res = variantId ? await addToBasket(variantId, l.qty!) : null;
+    if (res?.ok) added++;
+    else skipped.push(`${l.product_name} ${l.size_label}`);
+  }
+  refresh();
+  return { ok: true, added, skipped };
+}

@@ -413,3 +413,13 @@ Optional per admin, enforced once switched on. Admin > Security enrols an authen
 
 ## D54. Legal pages and what they assume (14 Oct)
 `/terms`, `/privacy`, `/cookies`, linked from the footer and the register form, plus `robots.txt` and `sitemap.xml`. Drafted from how the system really behaves: trade customers only, accounts approved by us, per-customer prices, split deliveries with photo + signature proof, payment terms per order, statutory late-payment interest, English law; processors named (Supabase, Vercel, email provider); only essential cookies, so no banner. Clauses that are the owner's business policy and not facts about the system (shortages reported "as soon as you can, ideally the same day", no marketing email, six-year record keeping) are worded softly. **A solicitor should read these before launch.**
+
+## D55. Admin menu on phones: a Menu button, not a scrolling strip (5 Nov)
+The client could not find "add a product". The button was on `/admin/products`, but on a phone the 15 admin sections sat in one sideways-scrolling strip with only three visible and no hint it scrolled, so Products was never reached. Below `lg` the header now has a "Menu" button showing the current section; it opens the same four groups as the desktop sidebar (closes on navigation and Escape). "Add a product" is also on the dashboard, category and product pages.
+
+## D56. Auth email links are spent on a button press, not on opening (5 Nov)
+`/auth/confirm` used to call `verifyOtp` on GET. Outlook Safe Links / Defender open every link in an email first, which used up invites and password resets for business inboxes. It is now a page with one button; the token is verified in a server action (POST). Email templates are unchanged.
+
+## D57. Admin can switch restaurant logins off and set a new password (5 Nov)
+Shared `src/app/admin/logins/actions.ts` (used by customer and supplier pages). Setting a password is for restaurant and supplier logins only (never admins), uses the service-role Auth API server-side, and the admin tells the person privately. Needed because accounts made with "set a password now" (D48) often have no inbox to receive a reset.
+
